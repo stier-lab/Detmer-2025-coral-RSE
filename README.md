@@ -1,1 +1,1 @@
-# Detmer-2025-coral-RSE
+Code for coral restoration strategy evaluation models
