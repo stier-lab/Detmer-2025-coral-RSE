@@ -57,7 +57,7 @@ Surv_fun <- function(years, n, surv_pars, sigma_s = 0, seed1 = 10){
 
 # growth/shrinkage/fragmentation
 # leave stochasticity out of this for now
-# but if adding stochasticity: get the growth, fragmentation, and shrinkage probabilities, then divide each by sum to make sure they sum to 1
+# but if adding stochasticity: get the growth, fragmentation, shrinkage, and staying (1-G-F-Sh) probabilities, then divide each by sum to make sure they sum to 1
 
 #' @param years number of years in simulation
 #' @param n number of size classes
