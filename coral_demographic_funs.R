@@ -12,93 +12,107 @@
 
 Surv_fun <- function(years, n, surv_pars, sigma_s = 0, seed1 = 10){
 
+  # holding list for survival probabilities of each size class
+  S_list <- list()
+
   # errors (or could generate these in the for loop below to make them different for each life stage)
   set.seed(seed1) # set seed
-  surv_errors <- rnorm(years, mean = 0, sd = sigma_s) # generate random errors
+  surv_errors <- rnorm(years, mean = 0, sd = sigma_s) # generate random errors (on log scale)
 
-  for(i in 1:n){ # for each size class
+  for(i in 1:years){ # for each year in simulation
 
-    S_i <- rep(surv_pars[i], years) + surv_errors # survival probabilities at each time point
+    S_i <- surv_pars*exp(surv_errors[i])
+    S_i[which(S_i > 1)] <- 1 # make sure survival is never > 1
 
-    # make sure survival is between 0 and 1 (should probably make the errors multiplicative to avoid this)
-    for(j in 1:years){
-      S_i[j] <- max(0, min(S_i[j], 1))
-    }
-
-    # store as data frame
-    S_dfi <- data.frame(
-      year = c(1:years), # year in simulation
-      surv = S_i, # survival probabilities
-      class = rep(i, years) # size class
-    )
-
-    if(i == 1){
-      S_df <- S_dfi
-
-    } else{
-
-      S_df <- rbind(S_df, S_dfi)
-
-    }
+    S_list[[i]] <- S_i
 
   }
 
-  return(S_df)
+
+  return(S_list)
 
 
 }
 
 # test this
-# test1 <- Surv_fun(years = 10, n = 4, surv_pars = c(0.1, 0.25, 0.5, 0.90), sigma_s = 0.2)
-# View(test1)
+test1 <- Surv_fun(years = 10, n = 4, surv_pars = c(0.1, 0.25, 0.5, 0.90), sigma_s = 0.2)
+test1[[1]]
 
 # density dependent survival: put in full model function for now
 
 
 # growth/shrinkage/fragmentation
 # leave stochasticity out of this for now
-# but if adding stochasticity: get the growth, fragmentation, shrinkage, and staying (1-G-F-Sh) probabilities, then divide each by sum to make sure they sum to 1
+# if adding stochasticity: get the growth, shrinkage, and staying (1-G-Sh) probabilities, then divide each by sum to make sure they sum to 1
 
 #' @param years number of years in simulation
 #' @param n number of size classes
-#' @param growth_pars transition probabilities for each size class
-#' @param shrink_pars shrinkage probabilities for each size class
-#' @param frag_pars fragmentation probabilities for each size class
+#' @param growth_pars list of transition probabilities for each size class (each element of list = vector of growth probabilities from that size class to all others)
+#' @param shrink_pars list of shrinkage/fragmentation probabilities for each size class (each element of list = vector of shrinkage probabilities from that size class to all others)
 
-GSF_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
+G_fun <- function(years, n, growth_pars, shrink_pars){
 
-  for(i in 1:n){ # for each size class
+  # holding list (each element is matrix with all the growth/shrink parameters for a given year)
 
-    # store parameters as data frame
-    GSF_dfi <- data.frame(
-      year = c(1:years), # year in simulation
-      G = growth_pars[i], # transition probabilities
-      Sh = shrink_pars[i], # shrinkage probabilities
-      Fr = frag_pars[i], # fragmentation probabilities
-      class = rep(i, years) # size class
-    )
+  G_list <- list()
 
-    if(i == 1){
-      GSF_df <- GSF_dfi
+  for(i in 1:years){ # for each year in the simulation
 
-    } else{
+    # holding matrix
+    Ti_mat <- matrix(NA, nrow = n, ncol = n) # transition matrix
 
-      GSF_df <- rbind(GSF_df, GSF_dfi)
+    for(cc in 1:n){ # for each column of the transition matrix (i.e., each size class)
 
-    }
+      if(cc == 1){ # if this is the first size class, growth only and no shrinking
+        Ti_mat[(cc+1):n,cc] <- growth_pars[[cc]]
 
-  }
+      } else if(cc == n){ # if this is the last size class, shrinking only and no growth
 
-  return(GSF_df)
+        Ti_mat[1:(cc-1), cc] <- shrink_pars[[cc]]
+
+
+      } else{ # if this is not the smallest or largest size class
+
+        Ti_mat[(cc+1):n,cc] <- growth_pars[[cc]] # probabilities of growing into each larger size class
+        Ti_mat[1:(cc-1), cc] <- shrink_pars[[cc]] # probabilities of shrinking into each larger size class
+
+      }
+
+    } # end of first loop over columns
+
+    # now fill in the diagonals (probabilities of staying = 1-sum of probabilities of growing or shrinking)
+    Ti_mat[1, 1] <- 1-sum(Ti_mat[2:n, 1])
+    Ti_mat[n, n] <- 1-sum(Ti_mat[1:(n-1), n])
+
+    for(cc in 2:(n-1)){ # for each column from 2 to 1-n
+
+      for(rr in 2:(n-1)){ # for each row
+        if(cc==rr){
+          Ti_mat[rr, cc] <- 1-sum(Ti_mat[1:(rr-1), cc]) - sum(Ti_mat[(rr+1):n, cc])
+        }
+      }
+
+    } # end of second loop over columns
+
+   G_list[[i]] <- Ti_mat # store the transition matrix for the ith year
+
+
+  } # end of loop over years
+
+
+
+  return(G_list)
 
 }
 
 # test this
-# test2 <- GSF_fun(years = 10, n = 4, growth_pars = c(0.1, 0.25, 0.5, 0.90), shrink_pars = c(0, 0.1, 0.2, 0.3), frag_pars = c(0, 0.2, 0.3, 0.4))
-# View(test2)
+# test2 <- G_fun(years = 10, n = 4, growth_pars = list(c(0.5, 0.1, 0), c(0.15, 0.01), c(0.05), NULL),
+#                shrink_pars = list(NULL, c(0.02), c(0.01, 0.02), c(0.02, 0.04, 0.1)))
+# test2.1 <- test2[[1]]
+# sum(test2.1[,4])
 
 
-# density dependent growth: put in full model function for now
+# density dependent growth: put in full model function
 
 
 # reproduction function
@@ -111,51 +125,31 @@ GSF_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 
 Rep_fun <- function(years, n, fec_pars, sigma_f = 0, seed1 = 10){
 
+  # holding list for survival probabilities of each size class
+  F_list <- list()
+
   # errors (or could generate these in the for loop below to make them different for each life stage)
   set.seed(seed1) # set seed
   fec_errors <- rnorm(years, mean = 0, sd = sigma_f) # generate random errors
 
-  for(i in 1:n){ # for each size class
 
-    if(fec_pars[i] == 0){ # if this stage is not reproductively mature
-      F_i <- rep(fec_pars[i], years)
-    } else{
+  for(i in 1:years){ # for each year in simulation
 
-      F_i <- rep(fec_pars[i], years) + fec_errors
-    }
+    F_i <- fec_pars*exp(fec_errors[i])
 
-
-    # make sure fecundity isn't negative
-    for(j in 1:years){
-      F_i[j] <- max(0, F_i[j])
-    }
-
-    # store as data frame
-    F_dfi <- data.frame(
-      year = c(1:years), # year in simulation
-      fecundity = F_i, # fecundities
-      class = rep(i, years) # size class
-    )
-
-    if(i == 1){
-      F_df <- F_dfi
-
-    } else{
-
-      F_df <- rbind(F_df, F_dfi)
-
-    }
+    F_list[[i]] <- F_i
 
   }
 
-  return(F_df)
+
+  return(F_list)
 
 
 }
 
 # test this
-# test3 <- Rep_fun(years = 10, n = 4, fec_pars = c(0, 0.1, 1, 3), sigma_f = 0.2)
-# View(test3)
+test3 <- Rep_fun(years = 10, n = 4, fec_pars = c(0, 0.1, 1, 3), sigma_f = 0.2)
+test3
 
 
 # external recruitment
