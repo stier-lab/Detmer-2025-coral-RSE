@@ -17,16 +17,16 @@
 #' ADD disturbance effects here (years of disturbance and corresponding parameter values)
 
 mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars,
-                         lambda, sigma_s, sigma_f, ext_rand, seeds){
+                         sigma_s, sigma_f, seeds){
 
   # survival parameters
-  S_list <- Surv_fun(years, n, surv_pars, sigma_s = 0, seed1 = seeds[1])
+  S_list <- Surv_fun(years, n, surv_pars, sigma_s, seed1 = seeds[1])
 
   # growth/shrinkage/fragmentation matrices
   G_list <- G_fun(years, n, growth_pars, shrink_pars)
 
   # fecundity parameters
-  F_list <- Rep_fun(years, n, fec_pars, sigma_f = 0, seed1 = seeds[2])
+  F_list <- Rep_fun(years, n, fec_pars, sigma_f, seed1 = seeds[2])
 
 
   return(list(survival = S_list, growth = G_list, fecundity = F_list))
@@ -107,7 +107,7 @@ rse_mod <- function(years, n, surv_pars.r, growth_pars.r, shrink_pars.r, fec_par
                                         shrink_pars.r[[ss]], fec_pars.r[[ss]], sigma_s,
                                         sigma_f, seeds)
     # fill in initial reproduction
-    reef_rep[[ss]][1] <- sum(N_mat[, 1]*reef_mat_pars[[ss]]$fecundity[[1]])
+    reef_rep[[ss]][1] <- sum(reef_pops[[ss]][,1]*reef_mat_pars[[ss]]$fecundity[[1]])
   }
 
   # repeat for orchard subpops
@@ -131,7 +131,7 @@ rse_mod <- function(years, n, surv_pars.r, growth_pars.r, shrink_pars.r, fec_par
                                            shrink_pars.o[[ss]], fec_pars.o[[ss]], sigma_s,
                                            sigma_f, seeds)
     # fill in initial reproduction
-    orchard_rep[[ss]][1] <- sum(N_mat[, 1]*orchard_mat_pars[[ss]]$fecundity[[1]])
+    orchard_rep[[ss]][1] <- sum(orchard_pops[[ss]][,1]*orchard_mat_pars[[ss]]$fecundity[[1]])
 
 
   }
@@ -183,11 +183,13 @@ rse_mod <- function(years, n, surv_pars.r, growth_pars.r, shrink_pars.r, fec_par
       N_mat <- reef_pops[[ss]][,i-1] # population sizes in each size class at last time point
       N_mat <- N_mat*S_i # fractions surviving to current time point
 
-      # amount of new larvae produced at the i^th time point:
-      reef_rep[[ss]][i] <- sum(N_mat[, i]*reef_mat_pars[[ss]]$fecundity[[i]])
-
       # now update the population sizes
-      reef_pops[[ss]][ ,i] <- T_mat %*% N_mat[, i-1] # new population sizes
+      reef_pops[[ss]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
+
+
+      # amount of new larvae produced at the i^th time point:
+      reef_rep[[ss]][i] <- sum(reef_pops[[ss]][ ,i]*reef_mat_pars[[ss]]$fecundity[[i]])
+
 
 
       # add external recruits
@@ -216,14 +218,16 @@ rse_mod <- function(years, n, surv_pars.r, growth_pars.r, shrink_pars.r, fec_par
 
       N_mat <- N_mat*S_i # fractions surviving to current time point
 
+      # now update the population sizes:
+      orchard_pops[[ss]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1)
+
       # amount of new larvae produced since the last time point:
       #orchard_rep[[ss]][i] <- sum(N_mat[, i-1]*orchard_mat_pars[[ss]]$fecundity[[i-1]])
 
       # amount of new larvae produced at i^th time point:
-      orchard_rep[[ss]][i] <- sum(N_mat[, i]*orchard_mat_pars[[ss]]$fecundity[[i]])
+      orchard_rep[[ss]][i] <- sum(orchard_pops[[ss]][ ,i]*orchard_mat_pars[[ss]]$fecundity[[i]])
 
-      # now update the population sizes:
-      orchard_pops[[ss]][ ,i] <- T_mat %*% N_mat[, i-1]
+
 
 
 
@@ -234,7 +238,7 @@ rse_mod <- function(years, n, surv_pars.r, growth_pars.r, shrink_pars.r, fec_par
     new_babies <- rep(NA, length(s_orchard))
 
     for(ss in 1:length(s_orchard)){
-      new_babies[ss] <- orchard_rep[[ss]][i]*rest_pars$orchard_yield # orchard_yield = percent of new babies successfully collected
+      new_babies[ss] <- orchard_rep[[ss]][i]*rest_pars$orchard_yield # orchard_yield = percent of new orchard babies successfully collected
     }
 
     tot_babies <- sum(new_babies) # total new babies collected from the orchard
