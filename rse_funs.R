@@ -76,7 +76,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
   # lab subpops = length(lab_treatments)
 
   # orchard subpopulations:
-  s_orchard <- length(orchard_treatments)
+  s_orchard <- length(orchard_treatments)*length(lab_treatments)
 
   # reef subpopulations:
   s_reef <- length(reef_treatments)*length(lab_treatments)
@@ -92,7 +92,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
   reef_rep <- list() # holding list for total reproductive output from each reef subpopulation
   reef_mat_pars <- list() # list with data frames with the transition matrix parameters for each reef subpop
 
-  for(ss in 1:length(s_reef)){
+  for(ss in 1:s_reef){
 
     # holding matrix for number of individuals in each size class of the ss^th reef subpop in each year
     reef_pops[[ss]] <- matrix(NA, nrow = n, ncol = years)
@@ -116,7 +116,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
   orchard_rep <- list()
   orchard_mat_pars <- list()
 
-  for(ss in 1:length(s_orchard)){
+  for(ss in 1:s_orchard){
 
     # holding matrix for number of individuals in each size class of the ss^th reef subpop in each year
     orchard_pops[[ss]] <- matrix(NA, nrow = n, ncol = years)
@@ -142,7 +142,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
   lab_pops <- list()
   # lab_mat_pars <- list()
 
-  for(ss in 1:length(s_lab)){
+  for(ss in 1:s_lab){
 
     # holding vectors for number of individuals in the lab
     lab_pops[[ss]] <- rep(NA, years)
@@ -170,7 +170,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     # update the population size using the transition matrix:
 
-    for(ss in 1:length(s_reef)){ # for each reef subpopulation
+    for(ss in 1:s_reef){ # for each reef subpopulation
 
       # get the transition matrix
       T_mat <- reef_mat_pars[[ss]]$growth[[i]]
@@ -195,16 +195,18 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
       # add external recruits
       # external recruits going to the ss^th reef subpopulation:
-      ext_rec_ss <- ext_rec[i]*rest_pars$reef_areas[ss]/sum(rest_pars$reef_areas) # proportional to area of reef given to this subpop
+      #ext_rec_ss <- ext_rec[i]*rest_pars$reef_areas[ss]/sum(rest_pars$reef_areas) # proportional to area of reef given to this subpop
 
-      reef_pops[[ss]][1 ,i] <- reef_pops[[ss]][1 ,i] + ext_rec_ss
+      #reef_pops[[ss]][1 ,i] <- reef_pops[[ss]][1 ,i] + ext_rec_ss
+
+      #  # UPDATE: need to fix recruits since there are more reef subpops than reef areas due to lab treatment part
 
 
     }
 
 
     # orchard dynamics
-    for(ss in 1:length(s_orchard)){ # for each reef subpopulation
+    for(ss in 1:s_orchard){ # for each reef subpopulation
 
       # get the transition matrix from the last year
       #T_mat <- orchard_mat_pars[[ss]]$growth[[i-1]]
@@ -239,16 +241,16 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
 
     # calculate total new orchard babies
-    new_babies <- rep(NA, length(s_orchard))
+    new_babies <- rep(NA, s_orchard)
 
-    for(ss in 1:length(s_orchard)){
+    for(ss in 1:s_orchard){
       new_babies[ss] <- orchard_rep[[ss]][i]*rest_pars$orchard_yield # orchard_yield = percent of new orchard babies successfully collected
     }
 
     tot_babies <- sum(new_babies) # total new babies collected from the orchard
 
     # put the new orchard babies into each lab treatment and determine how many survive
-    for(ss in 1:length(s_lab)){
+    for(ss in 1:s_lab){
 
       # settlers = prop babies put in ss^th treatment x prop of babies that successfully settle in this treatment x total babies
       new_settlers <- min(rest_pars$lab_props[ss]*lab_pars$sett[ss]*tot_babies, rest_pars$lab_max[ss]) # rest_pars$lab_max[ss] = max number of settlers that can go in this treatment
@@ -267,7 +269,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     # first make a matrix with the number of recruits going from each lab treatment to each reef treatment
     reef_outplants <- matrix(NA, nrow = s_lab, ncol = length(reef_treatments))
 
-    for(ss in 1:length(s_lab)){ # for each lab treatment
+    for(ss in 1:s_lab){ # for each lab treatment
 
       reef_outplants[ss, ] <- lab_pops[[ss]][i-1]*rest_pars$reef_prop*rest_pars$reef_out_props[ss,]
       # reef_prop = proportion lab recruits going to reef, reef_out_props[ss,] = proportion of outplants from lab treatment ss going to each reef treatment
@@ -315,7 +317,10 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       }
 
     # update outplant matrix (remember row = lab treatment where recruits originated, column = reef treatment where recruits are outplanted)
-    reef_outplants <- reef_outplants*matrix(prop_fits, nrow = length(reef_treatments), ncol = 1)
+    #reef_outplants <- reef_outplants%*%matrix(prop_fits, nrow = length(reef_treatments), ncol = 1)
+    for(ss in 1:s_lab){
+      reef_outplants[ss,] <- reef_outplants[ss,]*prop_fits
+    }
 
 
     # turn outplant matrix into a vector where the first n elements are the outplants from the
@@ -329,7 +334,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
 
     # add the outplants to the reef subpopulations
-    for(ss in 1:length(s_reef)){
+    for(ss in 1:s_reef){
 
         reef_pops[[ss]][1 ,i] <- reef_pops[[ss]][1 ,i] + reef_outplants[ss]
 
@@ -337,9 +342,9 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
 
     # repeat for orchard outplants
-    orchard_outplants <- matrix(NA, nrow = length(s_lab), ncol = length(s_orchard))
+    orchard_outplants <- matrix(NA, nrow = s_lab, ncol = s_orchard)
 
-    for(ss in 1:length(s_lab)){
+    for(ss in 1:s_lab){
 
       orchard_outplants[ss, ] <- lab_pops[[ss]][i-1]*(1-rest_pars$reef_prop)*rest_pars$orchard_out_props[ss,]
       # 1-reef_prop = proportion lab recruits going to orchard, orchard_out_props[ss,] = proportion of outplants from lab treatment ss going to each orchard treatment
@@ -385,14 +390,17 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     }
 
     # update outplant matrix (remember row = lab treatment where recruits originated, column = orchard treatment where recruits are outplanted)
-    orchard_outplants <- orchard_outplants*matrix(prop_fits2, nrow = length(orchard_treatments), ncol = 1)
+   # orchard_outplants <- orchard_outplants%*%matrix(prop_fits2, nrow = length(orchard_treatments), ncol = 1)
 
+    for(ss in 1:s_lab){
+      orchard_outplants[ss,] <- orchard_outplants[ss,]*prop_fits
+    }
 
 
     orchard_outplants <- as.vector(t(orchard_outplants))
 
     # add the outplants to the orchard subpopulations
-    for(ss in 1:length(s_orchard)){
+    for(ss in 1:s_orchard){
 
       orchard_pops[[ss]][1 ,i] <- orchard_pops[[ss]][1 ,i] + orchard_outplants[ss]
 
