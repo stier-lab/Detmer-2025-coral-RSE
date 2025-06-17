@@ -393,7 +393,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
    # orchard_outplants <- orchard_outplants%*%matrix(prop_fits2, nrow = length(orchard_treatments), ncol = 1)
 
     for(ss in 1:s_lab){
-      orchard_outplants[ss,] <- orchard_outplants[ss,]*prop_fits
+      orchard_outplants[ss,] <- orchard_outplants[ss,]*prop_fits2
     }
 
 
