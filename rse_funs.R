@@ -204,6 +204,24 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     }
 
+    # add external recruits to each reef subpop, proportional to total reef area covered by that reef treatment
+    # need to turn into a matrix to account for the lab-origin subpopulations in each reef area
+    ext_rec_reef_ss <- matrix(NA, nrow = s_lab, ncol = length(reef_treatments))
+
+    for(ss in 1:s_lab){ # for each lab treatment
+
+      ext_rec_reef_ss[ss, ] <- ext_rec[i]*rest_pars$reef_areas/sum(rest_pars$reef_areas)*1/s_lab
+      # reef_prop = proportion lab recruits going to reef, reef_out_props[ss,] = proportion of outplants from lab treatment ss going to each reef treatment
+
+    }
+
+    # turn back into a vector where each element is a reef subpopulation
+    ext_rec_reef_ss <- as.vector(t(ext_rec_reef_ss))
+
+    # now add these to all the reef subpopulations
+    for(ss in 1:s_reef){
+      reef_pops[[ss]][ ,i] <- reef_pops[[ss]][ ,i] + ext_rec_reef_ss[ss]
+    }
 
     # orchard dynamics
     for(ss in 1:s_orchard){ # for each reef subpopulation
@@ -290,7 +308,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     }
     # now turn this into a matrix where each row is the lab treatment that outplanted individuals originated in
-    area_tots <- matrix(area_tots, nrow = s_lab, ncol = length(reef_treatments))
+    area_tots <- matrix(area_tots, nrow = s_lab, ncol = length(reef_treatments), byrow = T)
     # now sum across lab treatments to get total area occupied in each reef treatment
     area_tots <- apply(area_tots, 2, sum)
 
@@ -363,7 +381,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     }
 
     # now turn this into a matrix where each row is the lab treatment that outplanted individuals originated in
-    ind_tots <- matrix(ind_tots, nrow = s_lab, ncol = length(orchard_treatments))
+    ind_tots <- matrix(ind_tots, nrow = s_lab, ncol = length(orchard_treatments), byrow = T)
     # now sum across lab treatments to get total individuals in each orchard treatment
     ind_tots <- apply(ind_tots, 2, sum)
 
