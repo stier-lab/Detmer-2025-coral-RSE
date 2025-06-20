@@ -13,11 +13,13 @@
 #' @param sigma_s standard deviation of survival probabilities
 #' @param sigma_f standard deviation of survival probabilities
 #' @param seeds vector with seeds for the random number generation for survival, fecundity, and recruitment
-#'
+#' @param dist_yrs vector of years where disturbance occurs
+#' @param dist_pars list with survival, growth/shrinkage (transition matrix) and fecundity parameters for each disturbance year
+#' @param dist_effects which demographic parameters are affected by each disturbance
 #' ADD disturbance effects here (years of disturbance and corresponding parameter values)
 
 mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars,
-                         sigma_s, sigma_f, seeds){
+                         sigma_s, sigma_f, seeds, dist_yrs, dist_pars, dist_effects){
 
   # survival parameters
   S_list <- Surv_fun(years, n, surv_pars, sigma_s, seed1 = seeds[1])
@@ -27,6 +29,27 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars
 
   # fecundity parameters
   F_list <- Rep_fun(years, n, fec_pars, sigma_f, seed1 = seeds[2])
+
+  # update with disturbance effects
+  if(is.na(dist_yrs[1])==F){
+
+    for(i in dist_yrs){ # for each disturbance year
+
+      if("survival" %in% dist_effects[[which(dist_yrs==i)]]){ # if the ith disturbance affected survival
+        S_list[[i]] <- dist_pars$dist_surv[[which(dist_yrs==i)]]
+      }
+
+      if("Tmat" %in% dist_effects[[which(dist_yrs==i)]]){ # if the ith disturbance affected growth or shrinkage (transition matrix)
+        G_list[[i]] <- dist_pars$dist_Tmat[[which(dist_yrs==i)]]
+      }
+
+      if("fecundity" %in% dist_effects[[which(dist_yrs==i)]]){ # if the ith disturbance affected fecundity
+        F_list[[i]] <- dist_pars$dist_fec[[which(dist_yrs==i)]]
+      }
+
+    }
+
+  }
 
 
   return(list(survival = S_list, growth = G_list, fecundity = F_list))
@@ -58,6 +81,11 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars
 #' @param sigma_f standard deviation of survival probabilities
 #' @param ext_rand whether external recruitment is stochastic (TRUE) or not (FALSE)
 #' @param seeds vector with seeds for the random number generation for survival, fecundity, and recruitment
+#' @param dist_yrs vector of years when reef disturbance occurs
+#' @param dist_pars.r list with survival, growth/shrinkage (transition matrix) and fecundity parameters for each reef disturbance year
+#' @param dist_effects.r which demographic parameters are affected by each reef disturbance
+#' @param dist_pars.o list with survival, growth/shrinkage (transition matrix) and fecundity parameters for each orchard disturbance year
+#' @param dist_effects.o which demographic parameters are affected by each orchard disturbance
 #' @param orchard_treatments named list with all orchard treatments (including "none" for no treatment)
 #' @param reef_treatments named list with all the reef treatments (including "none" for no treatment)
 #' @param lab_treatments named list with all lab treatments (including "none" for no treatment)
@@ -69,8 +97,10 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars
 
 rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, fec_pars.r,
                     surv_pars.o, growth_pars.o, shrink_pars.o, fec_pars.o,
-                    lambda, sigma_s, sigma_f, ext_rand, seeds, orchard_treatments,
-                    reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l){
+                    lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r,
+                    dist_effects.r, dist_pars.o, dist_effects.o,
+                    orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars,
+                    N0.r, N0.o, N0.l){
 
   # reef subpops = length(lab_treatments)*length(reef_treatments)
   # lab subpops = length(lab_treatments)
@@ -106,7 +136,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     # and get the list with the transition matrix parameters
     reef_mat_pars[[ss]] <- mat_pars_fun(years, n, surv_pars.r[[ss]], growth_pars.r[[ss]],
                                         shrink_pars.r[[ss]], fec_pars.r[[ss]], sigma_s,
-                                        sigma_f, seeds)
+                                        sigma_f, seeds, dist_yrs, dist_pars.r[[ss]],
+                                        dist_effects.r[[ss]])
     # fill in initial reproduction
     reef_rep[[ss]][1] <- sum(reef_pops[[ss]][,1]*reef_mat_pars[[ss]]$fecundity[[1]])
   }
@@ -130,7 +161,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     # and calculate the data frames with the transition matrix parameters
     orchard_mat_pars[[ss]] <- mat_pars_fun(years, n, surv_pars.o[[ss]], growth_pars.o[[ss]],
                                            shrink_pars.o[[ss]], fec_pars.o[[ss]], sigma_s,
-                                           sigma_f, seeds)
+                                           sigma_f, seeds, dist_yrs,
+                                           dist_pars.o[[ss]], dist_effects.o[[ss]])
     # fill in initial reproduction
     orchard_rep[[ss]][1] <- sum(orchard_pops[[ss]][,1]*orchard_mat_pars[[ss]]$fecundity[[1]])
 
