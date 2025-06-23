@@ -8,7 +8,7 @@
 #' @param n number of size classes
 #' @param surv_pars mean survival probabilities in each size class
 #' @param growth_pars transition probabilities for each size class
-#' @param shrink_pars shrinkage/fragmentation probabilities for each size class
+#' @param shrink_pars shrinkage probabilities for each size class
 #' @param fec_pars mean fecundities of each size class
 #' @param sigma_s standard deviation of survival probabilities
 #' @param sigma_f standard deviation of survival probabilities
@@ -24,7 +24,7 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars
   # survival parameters
   S_list <- Surv_fun(years, n, surv_pars, sigma_s, seed1 = seeds[1])
 
-  # growth/shrinkage/fragmentation matrices
+  # growth/shrinkage matrices
   G_list <- G_fun(years, n, growth_pars, shrink_pars)
 
   # fecundity parameters
@@ -70,11 +70,11 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars
 #' @param A_mids areas at the midpoint of each size class
 #' @param surv_pars.r list with mean survival probabilities in each size class for each reef treatment
 #' @param growth_pars.r list with transition probabilities for each size class for each reef treatment
-#' @param shrink_pars.r list with shrinkage/fragmentation probabilities for each size class for each reef treatment
+#' @param shrink_pars.r list with shrinkage probabilities for each size class for each reef treatment
 #' @param fec_pars.r list with mean fecundities of each size class for each reef treatment
 #' @param surv_pars.o list with mean survival probabilities in each size class for each orchard treatment
 #' @param growth_pars.o list with transition probabilities for each size class for each orchard treatment
-#' @param shrink_pars.o list with shrinkage/fragmentation probabilities for each size class for each orchard treatment
+#' @param shrink_pars.o list with shrinkage probabilities for each size class for each orchard treatment
 #' @param fec_pars.o list with mean fecundities of each size class for each orchard treatment
 #' @param lambda mean number of external recruits each year
 #' @param sigma_s standard deviation of survival probabilities
@@ -106,16 +106,22 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
   # lab subpops = length(lab_treatments)
 
   # orchard subpopulations:
-  s_orchard <- length(orchard_treatments)*length(lab_treatments)
+  s_orchard <- length(orchard_treatments)
 
   # reef subpopulations:
-  s_reef <- length(reef_treatments)*length(lab_treatments)
+  s_reef <- length(reef_treatments)
 
   # external recruitment
   ext_rec <- Ext_fun(years, lambda, rand = ext_rand, seed1 = seeds[3])
+  # proportions going to each reef subpop:
+  ext_props <- rest_pars$reef_areas/sum(rest_pars$reef_areas)
 
   # lab subpopulations
   s_lab <- length(lab_treatments)
+
+  # sources of new recruits
+  source_reef <- s_lab + 1 # number of possible sources of reef recruits (+1 is for external recruits)
+  source_orchard <- s_lab # number of possible sources of orchard recruits
 
   # set up holding lists
   reef_pops <- list() # holding list for population sizes of each reef subpopulation
@@ -124,22 +130,61 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
   for(ss in 1:s_reef){
 
-    # holding matrix for number of individuals in each size class of the ss^th reef subpop in each year
-    reef_pops[[ss]] <- matrix(NA, nrow = n, ncol = years)
+    # sublists for all the different sources of recruits to this reef
+    reef_pops_ss <- list() # population sizes
+    reef_rep_ss <- list() # total reproductive output
+    reef_mat_pars_ss <- list() # matrix parameters
 
-    # holding matrix for total reproductive output by ss^th subpop each year
-    reef_rep[[ss]] <- rep(NA, years)
+    if(reef_treatments[ss] == "none"){ # if this is the reference site
 
-    # add initial conditions
-    reef_pops[[ss]][,1] <- N0.r[[ss]]
+      # holding matrix for number of individuals in each size class of reference reef pop'n in each year
+      reef_pops_ss[[1]] <- matrix(NA, nrow = n, ncol = years)
 
-    # and get the list with the transition matrix parameters
-    reef_mat_pars[[ss]] <- mat_pars_fun(years, n, surv_pars.r[[ss]], growth_pars.r[[ss]],
-                                        shrink_pars.r[[ss]], fec_pars.r[[ss]], sigma_s,
-                                        sigma_f, seeds, dist_yrs, dist_pars.r[[ss]],
-                                        dist_effects.r[[ss]])
-    # fill in initial reproduction
-    reef_rep[[ss]][1] <- sum(reef_pops[[ss]][,1]*reef_mat_pars[[ss]]$fecundity[[1]])
+      # holding matrix for total reproductive output by ss^th subpop each year
+      reef_rep_ss[[1]] <- rep(NA, years)
+
+      # add initial conditions
+      reef_pops_ss[[1]][,1] <- N0.r[[ss]][[1]]
+
+      # and get the list with the transition matrix parameters
+      reef_mat_pars_ss[[1]] <- mat_pars_fun(years, n, surv_pars.r[[ss]][[1]], growth_pars.r[[ss]][[1]],
+                                          shrink_pars.r[[ss]][[1]], fec_pars.r[[ss]][[1]], sigma_s,
+                                          sigma_f, seeds, dist_yrs, dist_pars.r[[ss]][[1]],
+                                          dist_effects.r[[ss]][[1]])
+
+    } else{
+
+      for(rr in 1:source_reef){ # for each possible source of recruits to this reef subpop
+
+        # holding matrix for number of individuals in each size class of the ss^th reef subpop from the rr^th source in each year
+        reef_pops_ss[[rr]] <- matrix(NA, nrow = n, ncol = years)
+
+        # holding matrix for total reproductive output by individuals in the ss^th reef subpop from the rr^th source each year
+        reef_rep_ss[[rr]] <- rep(NA, years)
+
+        # add initial conditions
+        reef_pops_ss[[rr]][,1] <- N0.r[[ss]][[rr]]
+
+        # and get the list with the transition matrix parameters
+        reef_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, surv_pars.r[[ss]][[rr]], growth_pars.r[[ss]][[rr]],
+                                            shrink_pars.r[[ss]][[rr]], fec_pars.r[[ss]][[rr]], sigma_s,
+                                            sigma_f, seeds, dist_yrs, dist_pars.r[[ss]][[rr]],
+                                            dist_effects.r[[ss]][[rr]])
+        # fill in initial reproduction
+        reef_rep_ss[[rr]][1] <- sum(reef_pops_ss[[rr]][,1]*reef_mat_pars_ss[[rr]]$fecundity[[1]])
+
+      }
+
+
+    }
+
+    # put all the sublists in the outer holding lists for each reef subpop
+
+    reef_pops[[ss]] <- reef_pops_ss
+    reef_rep[[ss]] <- reef_rep_ss
+    reef_mat_pars[[ss]] <- reef_mat_pars_ss
+
+
   }
 
   # repeat for orchard subpops
@@ -149,23 +194,37 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
   for(ss in 1:s_orchard){
 
-    # holding matrix for number of individuals in each size class of the ss^th reef subpop in each year
-    orchard_pops[[ss]] <- matrix(NA, nrow = n, ncol = years)
+    # sublists for all the different sources of recruits to the orchard
+    orchard_pops_ss <- list() # population sizes
+    orchard_rep_ss <- list() # total reproductive output
+    orchard_mat_pars_ss <- list() # matrix parameters
 
-    # holding matrix for total reproductive output by ss^th subpop each year
-    orchard_rep[[ss]] <- rep(NA, years)
+    for(rr in 1:source_orchard){ # for each source of recruits to the ss^th orchard treatment
 
-    # add initial conditions here too
-    orchard_pops[[ss]][,1] <- N0.o[[ss]]
+      # holding matrix for number of individuals in each size class of the ss^th reef subpop in each year
+      orchard_pops_ss[[rr]] <- matrix(NA, nrow = n, ncol = years)
 
-    # and calculate the data frames with the transition matrix parameters
-    orchard_mat_pars[[ss]] <- mat_pars_fun(years, n, surv_pars.o[[ss]], growth_pars.o[[ss]],
-                                           shrink_pars.o[[ss]], fec_pars.o[[ss]], sigma_s,
-                                           sigma_f, seeds, dist_yrs,
-                                           dist_pars.o[[ss]], dist_effects.o[[ss]])
-    # fill in initial reproduction
-    orchard_rep[[ss]][1] <- sum(orchard_pops[[ss]][,1]*orchard_mat_pars[[ss]]$fecundity[[1]])
+      # holding matrix for total reproductive output by ss^th subpop each year
+      orchard_rep_ss[[rr]] <- rep(NA, years)
 
+      # add initial conditions here too
+      orchard_pops_ss[[rr]][,1] <- N0.o[[ss]][[rr]]
+
+      # and calculate the data frames with the transition matrix parameters
+      orchard_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, surv_pars.o[[ss]][[rr]], growth_pars.o[[ss]][[rr]],
+                                             shrink_pars.o[[ss]][[rr]], fec_pars.o[[ss]][[rr]], sigma_s,
+                                             sigma_f, seeds, dist_yrs,
+                                             dist_pars.o[[ss]][[rr]], dist_effects.o[[ss]][[rr]])
+      # fill in initial reproduction
+      orchard_rep_ss[[rr]][1] <- sum(orchard_pops_ss[[rr]][,1]*orchard_mat_pars_ss[[rr]]$fecundity[[1]])
+
+
+    }
+
+
+    orchard_pops[[ss]] <- orchard_pops_ss
+    orchard_rep[[ss]] <- orchard_rep_ss
+    orchard_mat_pars[[ss]] <- orchard_mat_pars_ss
 
   }
 
@@ -204,98 +263,136 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     for(ss in 1:s_reef){ # for each reef subpopulation
 
-      # get the transition matrix
-      T_mat <- reef_mat_pars[[ss]]$growth[[i]]
+      if(reef_treatments[ss] == "none"){ # if this is the reference site
 
-      # get the survival probabilities
-      S_i <- reef_mat_pars[[ss]]$survival[[i]] # survival
+        # get the transition matrix
+        T_mat <- reef_mat_pars[[ss]][[1]]$growth[[i]]
 
-      # UPDATE survival with density dependence here
-      # (QUESTION: should this depend on total reef popn or just the subpopn size?)
+        # get the survival probabilities
+        S_i <- reef_mat_pars[[ss]][[1]]$survival[[i]] # survival
 
-      N_mat <- reef_pops[[ss]][,i-1] # population sizes in each size class at last time point
-      N_mat <- N_mat*S_i # fractions surviving to current time point
+        # UPDATE survival with density dependence here
+        # (QUESTION: should this depend on total reef popn or just the subpopn size?)
 
-      # now update the population sizes
-      reef_pops[[ss]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
+        N_mat <- reef_pops[[ss]][[1]][,i-1] # population sizes in each size class at last time point
+        N_mat <- N_mat*S_i # fractions surviving to current time point
+
+        # now update the population sizes
+        reef_pops[[ss]][[1]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
+
+        # amount of new larvae produced at the i^th time point:
+        reef_rep[[ss]][[1]][i] <- sum(reef_pops[[ss]][[1]][ ,i]*reef_mat_pars[[ss]][[1]]$fecundity[[i]])
+
+        # add external recruits if there's room
+        tot_area1 <- rest_pars$reef_areas[ss] # total area devoted to the ss^th reef treatment
+        occupied_area1 <- sum(reef_pops[[ss]][[1]][ ,i]*A_mids) # total area currently occupied
+        open_area1 <- tot_area1 - occupied_area1 # area that is available for new recruits
+        new_area1 <- ext_rec[i]*ext_props[ss]*A_mids[1] # area that the new recruits will need
+
+        if(open_area1 <= 0){ # if there's no space left
+          prop_rec <- 0 # proportion of new recruits that can be outplanted is 0
+        } else if(new_area1 < open_area1){ # if all of them fit
+          prop_rec <- 1 # all the new recruits can be outplanted
+        } else{ # if only some will fit, calculate what proportion will fit
+          prop_rec <- 1-((new_area1 - open_area1)/new_area1)
+        }
+
+        reef_pops[[ss]][[1]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
 
 
-      # amount of new larvae produced at the i^th time point:
-      reef_rep[[ss]][i] <- sum(reef_pops[[ss]][ ,i]*reef_mat_pars[[ss]]$fecundity[[i]])
+      } else{
+
+        for(rr in 1:source_reef){ # for each source of recruits
+
+          # get the transition matrix
+          T_mat <- reef_mat_pars[[ss]][[rr]]$growth[[i]]
+
+          # get the survival probabilities
+          S_i <- reef_mat_pars[[ss]][[rr]]$survival[[i]] # survival
+
+          # UPDATE survival with density dependence here
+          # (QUESTION: should this depend on total reef popn or just the subpopn size?)
+
+          N_mat <- reef_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
+          N_mat <- N_mat*S_i # fractions surviving to current time point
+
+          # now update the population sizes
+          reef_pops[[ss]][[rr]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
+
+          # amount of new larvae produced at the i^th time point:
+          reef_rep[[ss]][[rr]][i] <- sum(reef_pops[[ss]][[rr]][ ,i]*reef_mat_pars[[ss]][[rr]]$fecundity[[i]])
+
+          if(rr ==1){ # if this is the first source (external recruits)
+            # add the external recruits if they fit
+            tot_area1 <- rest_pars$reef_areas[ss] # total area devoted to the ss^th reef treatment
+            occupied_area1 <- sum(reef_pops[[ss]][[rr]][ ,i]*A_mids) # total area currently occupied
+            open_area1 <- tot_area1 - occupied_area1 # area that is available for new recruits
+            new_area1 <- ext_rec[i]*ext_props[ss]*A_mids[1] # area that the new recruits will need
+
+            if(open_area1 <= 0){ # if there's no space left
+              prop_rec <- 0 # proportion of new recruits that can be outplanted is 0
+            } else if(new_area1 < open_area1){ # if all of them fit
+              prop_rec <- 1 # all the new recruits can be outplanted
+            } else{ # if only some will fit, calculate what proportion will fit
+              prop_rec <- 1-((new_area1 - open_area1)/new_area1)
+            }
+
+            reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
+          }
+
+        } # end of iterations over each source
+
+      } # end of "else" statement
 
 
+    } # end of iterations over each reef subpop
 
-      # add external recruits
-      # external recruits going to the ss^th reef subpopulation:
-      #ext_rec_ss <- ext_rec[i]*rest_pars$reef_areas[ss]/sum(rest_pars$reef_areas) # proportional to area of reef given to this subpop
-
-      #reef_pops[[ss]][1 ,i] <- reef_pops[[ss]][1 ,i] + ext_rec_ss
-
-      #  # UPDATE: need to fix recruits since there are more reef subpops than reef areas due to lab treatment part
-
-
-    }
-
-    # add external recruits to each reef subpop, proportional to total reef area covered by that reef treatment
-    # need to turn into a matrix to account for the lab-origin subpopulations in each reef area
-    ext_rec_reef_ss <- matrix(NA, nrow = s_lab, ncol = length(reef_treatments))
-
-    for(ss in 1:s_lab){ # for each lab treatment
-
-      ext_rec_reef_ss[ss, ] <- ext_rec[i]*rest_pars$reef_areas/sum(rest_pars$reef_areas)*1/s_lab
-      # reef_prop = proportion lab recruits going to reef, reef_out_props[ss,] = proportion of outplants from lab treatment ss going to each reef treatment
-
-    }
-
-    # turn back into a vector where each element is a reef subpopulation
-    ext_rec_reef_ss <- as.vector(t(ext_rec_reef_ss))
-
-    # now add these to all the reef subpopulations
-    for(ss in 1:s_reef){
-      reef_pops[[ss]][ ,i] <- reef_pops[[ss]][ ,i] + ext_rec_reef_ss[ss]
-    }
 
     # orchard dynamics
     for(ss in 1:s_orchard){ # for each reef subpopulation
 
-      # get the transition matrix from the last year
-      #T_mat <- orchard_mat_pars[[ss]]$growth[[i-1]]
+      for(rr in 1:source_orchard){ # for each source of orchard recruits
 
-      # get the transition matrix for this year
-      T_mat <- orchard_mat_pars[[ss]]$growth[[i]]
+        # get the transition matrix from the last year
+        #T_mat <- orchard_mat_pars[[ss]]$growth[[i-1]]
 
-      # get the survival probabilities for this year
-      S_i <- orchard_mat_pars[[ss]]$survival[[i]] # survival
+        # get the transition matrix for this year
+        T_mat <- orchard_mat_pars[[ss]][[rr]]$growth[[i]]
 
-      # UPDATE survival with density dependence here
-      # (QUESTION: should this depend on total reef popn or just the subpopn size?)
+        # get the survival probabilities for this year
+        S_i <- orchard_mat_pars[[ss]][[rr]]$survival[[i]] # survival
 
-      N_mat <- orchard_pops[[ss]][,i-1] # population sizes in each size class at last time point
+        # UPDATE survival with density dependence here
+        # (QUESTION: should this depend on total reef popn or just the subpopn size?)
 
-      N_mat <- N_mat*S_i # fractions surviving to current time point
+        N_mat <- orchard_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
 
-      # now update the population sizes:
-      orchard_pops[[ss]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1)
+        N_mat <- N_mat*S_i # fractions surviving to current time point
 
-      # amount of new larvae produced since the last time point:
-      #orchard_rep[[ss]][i] <- sum(N_mat[, i-1]*orchard_mat_pars[[ss]]$fecundity[[i-1]])
+        # now update the population sizes:
+        orchard_pops[[ss]][[rr]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1)
 
-      # amount of new larvae produced at i^th time point:
-      orchard_rep[[ss]][i] <- sum(orchard_pops[[ss]][ ,i]*orchard_mat_pars[[ss]]$fecundity[[i]])
+        # amount of new larvae produced since the last time point:
+        #orchard_rep[[ss]][i] <- sum(N_mat[, i-1]*orchard_mat_pars[[ss]]$fecundity[[i-1]])
+
+        # amount of new larvae produced at i^th time point:
+        orchard_rep[[ss]][[rr]][i] <- sum(orchard_pops[[ss]][[rr]][ ,i]*orchard_mat_pars[[ss]][[rr]]$fecundity[[i]])
 
 
+      } # end of iterations over each orchard source
 
 
-
-    }
+    } # end of iterations over each orchard treatment
 
 
     # calculate total new orchard babies
-    new_babies <- rep(NA, s_orchard)
+    new_babies <- matrix(NA, nrow = s_orchard, ncol = source_orchard)
 
     for(ss in 1:s_orchard){
-      new_babies[ss] <- orchard_rep[[ss]][i]*rest_pars$orchard_yield # orchard_yield = percent of new orchard babies successfully collected
-    }
+      for(rr in 1:source_orchard){
+        new_babies[ss,rr] <- orchard_rep[[ss]][[rr]][i]*rest_pars$orchard_yield # orchard_yield = percent of new orchard babies successfully collected
+      }
+      }
 
     tot_babies <- sum(new_babies) # total new babies collected from the orchard
 
@@ -317,7 +414,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     # add the orchard babies from the previous time step:
     # first make a matrix with the number of recruits going from each lab treatment to each reef treatment
-    reef_outplants <- matrix(NA, nrow = s_lab, ncol = length(reef_treatments))
+    reef_outplants <- matrix(NA, nrow = s_lab, ncol = s_reef)
 
     for(ss in 1:s_lab){ # for each lab treatment
 
@@ -328,26 +425,32 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     # apply space constraints: total recruits from all lab treatments going to a given reef
     # treatment can't exceed available space in that reef subpopulation
-
-
-    # calculate total number of recruits (from all lab treatments) going to each reef treatment
+    # first calculate total number of recruits (from all lab treatments) going to each reef treatment
     new_reef_tots <- apply(reef_outplants, 2, sum)
 
     # calculate total area currently occupied by each reef subpopulation
     area_tots <- rep(NA, s_reef)
     for(ss in 1:s_reef){
-      area_tots[ss] <- sum(reef_pops[[ss]][ ,i]*A_mids)
+
+      if(ss == 1){
+        area_tots[ss] <- sum(reef_pops[[ss]][[1]][ ,i]*A_mids)
+      } else{
+
+        area_tots_ss <- rep(NA, source_reef)
+
+        for(rr in 1:source_reef){
+          area_tots_ss[rr] <- sum(reef_pops[[ss]][[rr]][ ,i]*A_mids)
+        }
+
+        area_tots[ss] <- sum(area_tots_ss)
+      }
 
     }
-    # now turn this into a matrix where each row is the lab treatment that outplanted individuals originated in
-    area_tots <- matrix(area_tots, nrow = s_lab, ncol = length(reef_treatments), byrow = T)
-    # now sum across lab treatments to get total area occupied in each reef treatment
-    area_tots <- apply(area_tots, 2, sum)
 
     # now calculate the fractions of new recruits that will fit in each reef treatment
-    prop_fits <- rep(NA, length(reef_treatments))
+    prop_fits <- rep(NA, s_reef)
 
-    for(pp in 1:length(reef_treatments)){
+    for(pp in 1:s_reef){
 
       tot_area_pp <- rest_pars$reef_areas[pp] # total area devoted to the pp^th reef treatment
       occupied_area_pp <- area_tots[pp] # total area currently occupied
@@ -369,24 +472,25 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     # update outplant matrix (remember row = lab treatment where recruits originated, column = reef treatment where recruits are outplanted)
     #reef_outplants <- reef_outplants%*%matrix(prop_fits, nrow = length(reef_treatments), ncol = 1)
     for(ss in 1:s_lab){
-      reef_outplants[ss,] <- reef_outplants[ss,]*prop_fits
+      reef_outplants[ss,] <- reef_outplants[ss,]*prop_fits # Note: could update this to give priority to certain lab treatments?
     }
-
-
-    # turn outplant matrix into a vector where the first n elements are the outplants from the
-    # first lab treatment to each of the n reef treatments, second n elements are the outplants
-    # from the second lab treatment to each of the n reef treatments, etc.
-    # also multiply by proportion of the outplants that will fit in each reef treatment
-    # as.vector(matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, ncol = 3))
-    # as.vector(t(matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, ncol = 3)))
-    # matrix(c(1, 2, 3), nrow = 1)
-    reef_outplants <- as.vector(t(reef_outplants))
-
 
     # add the outplants to the reef subpopulations
     for(ss in 1:s_reef){
 
-        reef_pops[[ss]][1 ,i] <- reef_pops[[ss]][1 ,i] + reef_outplants[ss]
+      if(reef_treatments[ss] != "none"){ # if this isn't a reference site (where zero outplants are added)
+
+        for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
+          reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + reef_outplants[ss,rr]
+
+        }
+
+      }
+
+      # if "none" treatment also got recruits:
+      # for(rr in 1:(source_reef-1)){ # for each lab source (rr = 1 is for external recruits)
+      #     reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + reef_outplants[ss,rr]
+
 
     }
 
@@ -408,14 +512,18 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     # calculate total number of corals currently in each orchard subpopulation
     ind_tots <- rep(NA, s_orchard)
     for(ss in 1:s_orchard){
-      ind_tots[ss] <- sum(orchard_pops[[ss]][ ,i])
+
+     ind_tots_ss <- rep(NA, source_orchard)
+
+      for(rr in 1:source_orchard){
+
+        ind_tots_ss[rr] <- sum(orchard_pops[[ss]][[rr]][ ,i])
+      }
+
+     ind_tots[ss] <- sum(ind_tots_ss)
 
     }
 
-    # now turn this into a matrix where each row is the lab treatment that outplanted individuals originated in
-    ind_tots <- matrix(ind_tots, nrow = s_lab, ncol = length(orchard_treatments), byrow = T)
-    # now sum across lab treatments to get total individuals in each orchard treatment
-    ind_tots <- apply(ind_tots, 2, sum)
 
     # now calculate the fractions of new recruits that will fit in each orchard treatment
     prop_fits2 <- rep(NA, length(orchard_treatments))
@@ -446,13 +554,13 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       orchard_outplants[ss,] <- orchard_outplants[ss,]*prop_fits2
     }
 
-
-    orchard_outplants <- as.vector(t(orchard_outplants))
-
     # add the outplants to the orchard subpopulations
     for(ss in 1:s_orchard){
 
-      orchard_pops[[ss]][1 ,i] <- orchard_pops[[ss]][1 ,i] + orchard_outplants[ss]
+        for(rr in 1:source_orchard){ # for each lab source
+          orchard_pops[[ss]][[rr]][1 ,i] <- orchard_pops[[ss]][[rr]][1 ,i] + orchard_outplants[ss,rr]
+
+        }
 
     }
 
