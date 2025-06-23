@@ -91,30 +91,38 @@ lab_treatments <- c("none") # lab
 
 # demographic parameters for each orchard and reef treatment
 # reef parameters
-surv_pars.r <- list()
-surv_pars.r[[1]] <- 1- c(0.24, 0.13, 0.05, 0.001) # probabilities of surviving
+surv_pars.r <- list() # probabilities of surviving on reef
+surv_pars.r[[1]] <- list() # first reef 
+surv_pars.r[[1]][[1]] <- 1- c(0.24, 0.13, 0.05, 0.001) # survival probabilities for first source of recruits to first reef
 
 growth_pars.r <- list()
-growth_pars.r[[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL)
+growth_pars.r[[1]] <- list()
+growth_pars.r[[1]][[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL)
 
 shrink_pars.r <- list()
-shrink_pars.r[[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
+shrink_pars.r[[1]] <- list()
+shrink_pars.r[[1]][[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
 
 fec_pars.r <- list()
-fec_pars.r[[1]] <- c(0, 0.1, 1, 2)
+fec_pars.r[[1]] <- list()
+fec_pars.r[[1]][[1]] <- c(0, 0.1, 1, 2)
 
 # orchard parameters
 surv_pars.o <- list()
-surv_pars.o[[1]] <- 1- c(0.24, 0.13, 0.05, 0.001) # probabilities of surviving
+surv_pars.o[[1]] <- list()
+surv_pars.o[[1]][[1]] <- 1- c(0.24, 0.13, 0.05, 0.001) # probabilities of surviving
 
 growth_pars.o <- list()
-growth_pars.o[[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL)
+growth_pars.o[[1]] <- list()
+growth_pars.o[[1]][[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL)
 
 shrink_pars.o <- list()
-shrink_pars.o[[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
+shrink_pars.o[[1]] <- list()
+shrink_pars.o[[1]][[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
 
 fec_pars.o <- list()
-fec_pars.o[[1]] <- c(0, 10, 50, 100)
+fec_pars.o[[1]] <- list()
+fec_pars.o[[1]][[1]] <- c(0, 10, 50, 100)
 
 
 # disturbance parameters
@@ -122,40 +130,46 @@ dist_yrs <- c(10) # years when disturbance occurs, NA if none
 
 # disturbance effects for each reef subpop
 dist_effects.r <- list()
-dist_effects.r[[1]] <- list() # list where ith element is the effects of the ith disturbance
-dist_effects.r[[1]][[1]] <- c("survival")
+dist_effects.r[[1]] <- list() # list where each element is effects of disturbance on corals from each source in the 1st reef subpop
+dist_effects.r[[1]][[1]] <- list() # effects of disturbances on corals from first source in first reef subpop
+dist_effects.r[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
 
 # disturbance parameters for each reef subpop
-dist_pars.r <- list()
+dist_pars.r <- list() # first reef subpop
+dist_pars.r[[1]] <- list() # first source in first reef subpop
 
-# first reef subpop
-dist_surv.r <- list()
-dist_surv.r[[1]] <- surv_pars.r[[1]]*0.1 # survival probabilities in first disturbance year in first reef subpop
+dist_surv.r <- list() # first reef subpop
+dist_surv.r[[1]] <- surv_pars.r[[1]][[1]]*0.1 # survival probabilities of corals from first source in first reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
 
 dist_Tmat.r <- list()
-dist_fec.r <- list()
+dist_Tmat.r[[1]] <- list()
 
-dist_pars.r[[1]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the first reef subpop
+dist_fec.r <- list()
+dist_fec.r[[1]] <- list()
+
+dist_pars.r[[1]][[1]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for first source in the first reef subpop
 
 # disturbance effects for each orchard subpop
-dist_effects.o <- list()
-dist_effects.o[[1]] <- list() # list where ith element is the effects of the ith disturbance
-dist_effects.o[[1]][[1]] <- c("survival")
+dist_effects.o <- list() # first orchard treatment
+dist_effects.o[[1]] <- list() # list where each element is effects of disturbance on corals from each source in the 1st orchard subpop
+dist_effects.o[[1]][[1]] <- list() # effects of disturbances on corals from first source in first reef subpop
+dist_effects.o[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef orchard ([[1]][[1]][[2]] would be second disturbance, etc.)
 
-
-# disturbance parameters for each reef subpop
+# disturbance parameters for each orchard subpop
 dist_pars.o <- list()
+dist_pars.o[[1]] <- list() # first source in first orchard subpop
 
 # first orchard subpop
-dist_surv.o <- list()
-dist_surv.o[[1]] <- surv_pars.o[[1]]*0.1 # survival probabilities in first disturbance year in first reef subpop
+dist_surv.o <- list() # first orchard subpop
+dist_surv.o[[1]] <- surv_pars.o[[1]][[1]]*0.1 # survival probabilities of corals from first source in first orchard subpop in first disturbance year (dist_surv.o[[2]] would be second disturbance)
 
 dist_Tmat.o <- list()
+dist_Tmat.o[[1]] <- list()
+
 dist_fec.o <- list()
+dist_fec.o[[1]] <- list()
 
-dist_pars.o[[1]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, dist_fec = dist_fec.o) # list of disturbance parameters for the first reef subpop
-
-
+dist_pars.o[[1]][[1]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, dist_fec = dist_fec.o) # list of disturbance parameters for first source in the first orchard subpop
 
 lambda <- 0 #10 # external recruitment to reef
 
@@ -167,10 +181,12 @@ seeds <- c(1000, 5000, 10000)
 
 # initial conditions in each treatment subpopulation
 N0.r <- list()
-N0.r[[1]] <- rep(1, n)
+N0.r[[1]] <- list() # first reef subpop
+N0.r[[1]][[1]] <- rep(1, n) # first source in first reef subpop
 
 N0.o <- list()
-N0.o[[1]] <- rep(1, n)
+N0.o[[1]] <- list() # first orchard subpop
+N0.o[[1]] <- rep(1, n) # first source in first orchard subpop
 
 N0.l <- list()
 N0.l <- 1
@@ -204,20 +220,25 @@ sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, fec
 ```
 
 
-
 ```{r}
 #sim1$reef_pops
 
 #sim1$orchard_pops
 
-reef1_tot <- apply(sim1$reef_pops[[1]], MARGIN = 2, sum)
-orch1_tot <- apply(sim1$orchard_pops[[1]], MARGIN = 2, sum)
+reef1_tot <- apply(sim1$reef_pops[[1]][[1]], MARGIN = 2, sum)
+orch1_tot <- apply(sim1$orchard_pops[[1]][[1]], MARGIN = 2, sum)
+
+#reef1_tot <- apply(reef_pops[[1]][[1]], MARGIN = 2, sum)
+#orch1_tot <- apply(orchard_pops[[1]][[1]], MARGIN = 2, sum)
 
 plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Pop'n size", lwd = 2)
 lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
 legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 
 ```
+
+reef is dying because only treatment is "none" so there are no outplants 
+
 
 
 ```{r}
@@ -227,12 +248,12 @@ reef1_Atot <- rep(NA, years)
 
 for(i in 1:years){
   
-  reef1_Atot[i] <- sum(sim1$reef_pops[[1]][,i]*A_mids)
+  reef1_Atot[i] <- sum(sim1$reef_pops[[1]][[1]][,i]*A_mids)
   
 }
 
 
-plot(x = c(1:years), y = reef1_Atot, type = "l", las = 1, ylim = c(0.9*reef_areas[1], max(reef1_Atot)), xlab = "year", ylab = "Area covered", lwd = 2) # ylim = c(0, max(reef1_Atot))
+plot(x = c(1:years), y = reef1_Atot, type = "l", las = 1, xlab = "year", ylab = "Area covered", lwd = 2) # ylim = c(0, max(reef1_Atot))
 abline(h = reef_areas[1], lty = 2)
 
 ```
@@ -242,71 +263,113 @@ now try multiple treatments
 
 ```{r}
 
-years <- 500
+years <- 50
 
 orchard_treatments <- c("none", "algae_scrub") # orchard
 reef_treatments <- c("none", "algae_scrub", "urchin_outplant") # reef
 lab_treatments <- c("tile1", "tile2") # lab
 
 # demographic parameters for each orchard and reef treatment
-# reef parameters
+# reef parameters: survival
 surv_pars.r <- list()
-surv_pars.r[[1]] <- 1- c(0.24, 0.13, 0.05, 0.001) # probabilities of surviving
-surv_pars.r[[2]] <- surv_pars.r[[1]] # 1-3 are for recruits originating in the first lab treatment
-surv_pars.r[[3]] <- surv_pars.r[[1]]
-surv_pars.r[[4]] <- surv_pars.r[[1]] # 4-6 are same three reef subpops but for recruits originating in the second lab treatment
-surv_pars.r[[5]] <- surv_pars.r[[1]]
-surv_pars.r[[6]] <- surv_pars.r[[1]]
+surv_pars.r[[1]] <- list() # first reef subpop (reference reef) 
+surv_pars.r[[1]][[1]] <- 1- c(0.24, 0.13, 0.05, 0.001) # survival probabilities for first source of recruits to first reef (external recruits)
 
+surv_pars.r[[2]] <- list() # second reef subpop
+surv_pars.r[[2]][[1]] <- surv_pars.r[[1]][[1]] # survival probabilities for first source of recruits to second reef subpop (external recruits)
+surv_pars.r[[2]][[2]] <- surv_pars.r[[1]][[1]] # survival probabilities for second source of recruits to second reef subpop (first lab treatment)
+surv_pars.r[[2]][[3]] <- surv_pars.r[[1]][[1]] # survival probabilities for third source of recruits to second reef subpop (second lab treatment)
+
+surv_pars.r[[3]] <- list() # third reef subpop
+surv_pars.r[[3]][[1]] <- surv_pars.r[[1]][[1]] 
+surv_pars.r[[3]][[2]] <- surv_pars.r[[1]][[1]] 
+surv_pars.r[[3]][[3]] <- surv_pars.r[[1]][[1]]
+
+# reef parameters: growth
 growth_pars.r <- list()
-growth_pars.r[[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL)
-growth_pars.r[[2]] <- growth_pars.r[[1]]
-growth_pars.r[[3]] <- growth_pars.r[[1]]
-growth_pars.r[[4]] <- growth_pars.r[[1]]
-growth_pars.r[[5]] <- growth_pars.r[[1]]
-growth_pars.r[[6]] <- growth_pars.r[[1]]
+growth_pars.r[[1]] <- list() # first reef subpop
+growth_pars.r[[1]][[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) # first source to first reef subpop (external recruits)
 
+growth_pars.r[[2]] <- list() # second reef subpop
+growth_pars.r[[2]][[1]] <- growth_pars.r[[1]][[1]] # first source (ext recruits)
+growth_pars.r[[2]][[2]] <- growth_pars.r[[1]][[1]] # second source (first lab treatment)
+growth_pars.r[[2]][[3]] <- growth_pars.r[[1]][[1]] # third source (third lab treatment)
+
+growth_pars.r[[3]] <- list() # third reef subpop
+growth_pars.r[[3]][[1]] <- growth_pars.r[[1]][[1]] # first source (ext recruits)
+growth_pars.r[[3]][[2]] <- growth_pars.r[[1]][[1]] # second source (first lab treatment)
+growth_pars.r[[3]][[3]] <- growth_pars.r[[1]][[1]] # third source (third lab treatment)
+
+# reef parameters: shrinkage
 shrink_pars.r <- list()
-shrink_pars.r[[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
-shrink_pars.r[[2]] <- shrink_pars.r[[1]]
-shrink_pars.r[[3]] <- shrink_pars.r[[1]]
-shrink_pars.r[[4]] <- shrink_pars.r[[1]]
-shrink_pars.r[[5]] <- shrink_pars.r[[1]]
-shrink_pars.r[[6]] <- shrink_pars.r[[1]]
+shrink_pars.r[[1]] <- list() # first subpop
+shrink_pars.r[[1]][[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11)) # first source
+
+shrink_pars.r[[2]] <- list() # second subpop
+shrink_pars.r[[2]][[1]] <- shrink_pars.r[[1]][[1]] # first source
+shrink_pars.r[[2]][[2]] <- shrink_pars.r[[1]][[1]] # second source
+shrink_pars.r[[2]][[3]] <- shrink_pars.r[[1]][[1]] # third source
+
+shrink_pars.r[[3]] <- list() # third subpop
+shrink_pars.r[[3]][[1]] <- shrink_pars.r[[1]][[1]] # first source
+shrink_pars.r[[3]][[2]] <- shrink_pars.r[[1]][[1]] # second source
+shrink_pars.r[[3]][[3]] <- shrink_pars.r[[1]][[1]] # third source
+
+# reef parameters: fecundity
 
 fec_pars.r <- list()
-fec_pars.r[[1]] <- c(0, 0.1, 1, 2)
-fec_pars.r[[2]] <- fec_pars.r[[1]]
-fec_pars.r[[3]] <- fec_pars.r[[1]]
-fec_pars.r[[4]] <- fec_pars.r[[1]]
-fec_pars.r[[5]] <- fec_pars.r[[1]]
-fec_pars.r[[6]] <- fec_pars.r[[1]]
+fec_pars.r[[1]] <- list() # first subpop
+fec_pars.r[[1]][[1]] <- c(0, 0.1, 1, 2) # first source
 
-# orchard parameters
+fec_pars.r[[2]] <- list()
+fec_pars.r[[2]][[1]] <- fec_pars.r[[1]][[1]]
+fec_pars.r[[2]][[2]] <- fec_pars.r[[1]][[1]]
+fec_pars.r[[2]][[3]] <- fec_pars.r[[1]][[1]]
+
+fec_pars.r[[3]] <- list()
+fec_pars.r[[3]][[1]] <- fec_pars.r[[1]][[1]]
+fec_pars.r[[3]][[2]] <- fec_pars.r[[1]][[1]]
+fec_pars.r[[3]][[3]] <- fec_pars.r[[1]][[1]]
+
+# orchard parameters: survival
 surv_pars.o <- list()
-surv_pars.o[[1]] <- 1- c(0.24, 0.13, 0.05, 0.001) # probabilities of surviving
-surv_pars.o[[2]] <- surv_pars.o[[1]]
-surv_pars.o[[3]] <- surv_pars.o[[1]]
-surv_pars.o[[4]] <- surv_pars.o[[1]]
+surv_pars.o[[1]] <- list() # first treatment
+surv_pars.o[[1]][[1]] <- 1- c(0.24, 0.13, 0.05, 0.001) # first source (first lab treatment)
+surv_pars.o[[1]][[2]] <- surv_pars.o[[1]][[1]] # second source (second lab treatment)
 
+surv_pars.o[[2]] <- list() # second treatment
+surv_pars.o[[2]][[1]] <- surv_pars.o[[1]][[1]] # first source (first lab treatment)
+surv_pars.o[[2]][[2]] <- surv_pars.o[[1]][[1]] # second source (second lab treatment)
+
+# orchard parameters: growth
 growth_pars.o <- list()
-growth_pars.o[[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL)
-growth_pars.o[[2]] <- growth_pars.o[[1]]
-growth_pars.o[[3]] <- growth_pars.o[[1]]
-growth_pars.o[[4]] <- growth_pars.o[[1]]
+growth_pars.o[[1]] <- list() # first treatment
+growth_pars.o[[1]][[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) # first source
+growth_pars.o[[1]][[2]] <- growth_pars.o[[1]][[1]] # second source
 
+growth_pars.o[[2]] <- list() # second treatment
+growth_pars.o[[2]][[1]] <-growth_pars.o[[1]][[1]] # first source
+growth_pars.o[[2]][[2]] <- growth_pars.o[[1]][[1]] # second source
+
+# orchard parameters: shrinkage
 shrink_pars.o <- list()
-shrink_pars.o[[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
-shrink_pars.o[[2]] <- shrink_pars.o[[1]]
-shrink_pars.o[[3]] <- shrink_pars.o[[1]]
-shrink_pars.o[[4]] <- shrink_pars.o[[1]]
+shrink_pars.o[[1]] <- list() # first treatment
+shrink_pars.o[[1]][[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11)) # first source
+shrink_pars.o[[1]][[2]] <- shrink_pars.o[[1]][[1]] # second source
+
+shrink_pars.o[[2]] <- list() # second treatment
+shrink_pars.o[[2]][[1]] <- shrink_pars.o[[1]][[1]] # first source
+shrink_pars.o[[2]][[2]] <- shrink_pars.o[[1]][[1]] # second source
+
 
 fec_pars.o <- list()
-fec_pars.o[[1]] <- c(0, 10, 50, 100)
-fec_pars.o[[2]] <- fec_pars.o[[1]]
-fec_pars.o[[3]] <- fec_pars.o[[1]]
-fec_pars.o[[4]] <- fec_pars.o[[1]]
+fec_pars.o[[1]] <- list() # first treatment
+fec_pars.o[[1]][[1]] <- c(0, 10, 50, 100) # first source
+fec_pars.o[[1]][[2]] <- fec_pars.o[[1]][[1]] # second source
 
+fec_pars.o[[2]] <- list() # second treatment
+fec_pars.o[[2]][[1]] <- c(0, 10, 50, 100) # first source
+fec_pars.o[[2]][[2]] <- fec_pars.o[[1]][[1]] # second source
 
 lambda <- 0 # external recruitment to reef
 
@@ -316,20 +379,27 @@ sigma_f <- 0
 ext_rand <- FALSE
 seeds <- c(1000, 5000, 10000)
 
-# initial conditions in each treatment subpopulation
+# initial conditions in each reef subpopulation
 N0.r <- list()
-N0.r[[1]] <- rep(1, n)
-N0.r[[2]] <- rep(1, n)
-N0.r[[3]] <- rep(1, n)
-N0.r[[4]] <- rep(1, n)
-N0.r[[5]] <- rep(1, n)
-N0.r[[6]] <- rep(1, n)
+N0.r[[1]] <- list() # first reef subpop
+N0.r[[1]][[1]] <- rep(1, n) # first source in first reef subpop 
+N0.r[[2]] <- list() # second reef subpop
+N0.r[[2]][[1]] <- rep(1, n) # first source
+N0.r[[2]][[2]] <- rep(1, n) # second source
+N0.r[[2]][[3]] <- rep(1, n) # third source
+N0.r[[3]] <- list() # third reef subpop
+N0.r[[3]][[1]] <- rep(1, n) # first source
+N0.r[[3]][[2]] <- rep(1, n) # second source
+N0.r[[3]][[3]] <- rep(1, n) # third source
 
+# intial conditions in each orchard subpopulation
 N0.o <- list()
-N0.o[[1]] <- rep(1, n)
-N0.o[[2]] <- rep(1, n)
-N0.o[[3]] <- rep(1, n)
-N0.o[[4]] <- rep(1, n)
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- rep(1, n) # first source
+N0.o[[1]][[2]] <- rep(1, n) # second source
+N0.o[[2]] <- list() # second orchard treatment
+N0.o[[2]][[1]] <- rep(1, n) # first source
+N0.o[[2]][[2]] <- rep(1, n) # second source
 
 N0.l <- list()
 N0.l[[1]] <- 1
@@ -340,14 +410,13 @@ sett <- c(0.5, 0.5) # fraction of larvae that successfully settle in each lab tr
 s <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
 lab_pars <- list(sett = sett, s = s)
 
-
 # restoration strategy parameters
 orchard_yield <- 0.1 # percent of new orchard babies successfully collected
 lab_props <- c(0.5, 0.5) # proportion of new babies put in each lab treatment
 reef_prop <- 0.75 # proportion of lab recruits outplanted to reef (1-proportion outplanted to orchard)
 reef_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion recruits going from each lab treatment to each orchard treatment (row = origin lab treatment, column = destination reef treatment)
-reef_out_props[1,] <- c(1/3, 1/3, 1/3) # from first lab treatment to each reef treatment
-reef_out_props[2,] <- c(1/3, 1/3, 1/3) # from second lab treatment to each reef treatment
+reef_out_props[1,] <- c(0, 0.5, 0.5) # from first lab treatment to each reef treatment (note the "none" reef treatment shouldn't get any outplants)
+reef_out_props[2,] <- c(0, 0.5, 0.5) # from second lab treatment to each reef treatment (note the "none" reef treatment shouldn't get any outplants)
 
 orchard_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(orchard_treatments)) # proportion recruits going from each lab treatment to each orchard treatment
 orchard_out_props[1,] <- c(0.5, 0.5) # from first lab treatment to each orchard treatment
@@ -361,13 +430,167 @@ orchard_size <- c(200, 200) # number of individuals each orchard treatment has s
 rest_pars <- list(orchard_yield = orchard_yield, lab_props = lab_props, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, orchard_size = orchard_size)
 
 
+# disturbance parameters
+dist_yrs <- NA # c(10) # years when disturbance occurs, NA if none
 
-sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+# disturbance effects for each reef subpop
+dist_effects.r <- list()
+dist_effects.r[[1]] <- list() # list where each element is the effects of disturbnce on corals from each source in the 1st reef subpop
+dist_effects.r[[1]][[1]] <- list() # effects of disturbances on corals from first source in first reef subpop
+dist_effects.r[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
+
+# second reef subpop
+dist_effects.r[[2]] <- list() 
+dist_effects.r[[2]][[1]] <- list() # first source
+dist_effects.r[[2]][[1]][[1]] <- c("survival")
+dist_effects.r[[2]][[2]] <- list() # second source
+dist_effects.r[[2]][[2]][[1]] <- c("survival")
+dist_effects.r[[2]][[3]] <- list() # third source
+dist_effects.r[[2]][[3]][[1]] <- c("survival")
+
+# third reef subpop
+dist_effects.r[[3]] <- list() 
+dist_effects.r[[3]][[1]] <- list() # first source
+dist_effects.r[[3]][[1]][[1]] <- c("survival")
+dist_effects.r[[3]][[2]] <- list() # second source
+dist_effects.r[[3]][[2]][[1]] <- c("survival")
+dist_effects.r[[3]][[3]] <- list() # third source
+dist_effects.r[[3]][[3]][[1]] <- c("survival")
+
+
+# disturbance parameters for each reef subpop
+dist_pars.r <- list()
+
+# first reef subpop
+dist_pars.r[[1]] <- list() # first source in first reef subpop
+
+dist_surv.r <- list()
+dist_surv.r[[1]] <- surv_pars.r[[1]][[1]]*0.1 # survival probabilities of corals from first source in first reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
+
+dist_Tmat.r <- list()
+dist_Tmat.r[[1]] <- list() # first disturbance
+
+dist_fec.r <- list()
+dist_fec.r[[1]] <- list() # first disturbance
+
+dist_pars.r[[1]][[1]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the first source in the first reef subpop
+
+
+# second reef subpop
+dist_pars.r[[2]] <- list() # first source in first reef subpop
+
+dist_surv.r <- list()
+dist_surv.r[[1]] <- surv_pars.r[[1]][[1]]*0.1 # survival probabilities of corals from first source in first reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
+
+dist_Tmat.r <- list()
+dist_Tmat.r[[1]] <- list() # first disturbance
+
+dist_fec.r <- list()
+dist_fec.r[[1]] <- list() # first disturbance
+
+dist_pars.r[[2]][[1]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the first source in the second reef subpop
+dist_pars.r[[2]][[2]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the second source in the second reef subpop
+dist_pars.r[[2]][[3]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the third source in the second reef subpop
+
+# third reef subpop
+dist_pars.r[[3]] <- list() # first source in first reef subpop
+
+dist_surv.r <- list()
+dist_surv.r[[1]] <- surv_pars.r[[1]][[1]]*0.1 # survival probabilities of corals from first source in first reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
+
+dist_Tmat.r <- list()
+dist_Tmat.r[[1]] <- list() # first disturbance
+
+dist_fec.r <- list()
+dist_fec.r[[1]] <- list() # first disturbance
+
+dist_pars.r[[3]][[1]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the first source in the second reef subpop
+dist_pars.r[[3]][[2]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the second source in the second reef subpop
+dist_pars.r[[3]][[3]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the third source in the second reef subpop
+
+
+# disturbance effects for each orchard subpop
+
+dist_effects.o <- list()
+dist_effects.o[[1]] <- list() # list where each element is the effects of disturbnce on corals from each source in the 1st orchard treatment
+dist_effects.o[[1]][[1]] <- list() # effects of disturbances on corals from first source in first orchard treatment
+dist_effects.o[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
+dist_effects.o[[1]][[2]] <- list() # second source
+dist_effects.o[[1]][[2]][[1]] <- c("survival")
+
+# second orchard treatment
+dist_effects.o[[2]] <- list() 
+dist_effects.o[[2]][[1]] <- list() # first source
+dist_effects.o[[2]][[1]][[1]] <- c("survival") 
+dist_effects.o[[2]][[2]] <- list() # second source
+dist_effects.o[[2]][[2]][[1]] <- c("survival")
+
+# disturbance parameters for each orchard subpop
+dist_pars.o <- list()
+
+# first orchard treatment
+dist_pars.o[[1]] <- list() # first source in first orchard treatment
+
+dist_surv.o <- list()
+dist_surv.o[[1]] <- surv_pars.o[[1]][[1]]*0.1 # survival probabilities of corals from first source in first reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
+
+dist_Tmat.o <- list()
+dist_Tmat.o[[1]] <- list() # first disturbance
+
+dist_fec.o <- list()
+dist_fec.o[[1]] <- list() # first disturbance
+
+dist_pars.o[[1]][[1]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, dist_fec = dist_fec.o) # list of disturbance parameters for the first source in the first orchard treatment
+dist_pars.o[[1]][[2]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, dist_fec = dist_fec.o) # second source
+
+# second orchard treatment
+dist_pars.o[[2]] <- list() # first source in first reef subpop
+
+dist_surv.o <- list()
+dist_surv.o[[1]] <- surv_pars.o[[1]][[1]]*0.1 # survival probabilities of corals from first source in first reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
+
+dist_Tmat.o <- list()
+dist_Tmat.o[[1]] <- list() # first disturbance
+
+dist_fec.o <- list()
+dist_fec.o[[1]] <- list() # first disturbance
+
+dist_pars.o[[2]][[1]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, dist_fec = dist_fec.o) # list of disturbance parameters for the first source in the second orchard treatment
+dist_pars.o[[2]][[2]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, dist_fec = dist_fec.o) # second source
+
+
+
+
+sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 ```
 
 
+
+
 plot results
+
+```{r}
+
+
+reef1_tot <- apply(sim1$reef_pops[[1]][[1]], MARGIN = 2, sum) 
+reef2_tot <- apply(sim1$reef_pops[[2]][[1]], MARGIN = 2, sum) + apply(sim1$reef_pops[[2]][[1]], MARGIN = 2, sum) + apply(sim1$reef_pops[[2]][[3]], MARGIN = 2, sum)
+reef3_tot <- apply(sim1$reef_pops[[3]][[1]], MARGIN = 2, sum) + apply(sim1$reef_pops[[3]][[1]], MARGIN = 2, sum) + apply(sim1$reef_pops[[3]][[3]], MARGIN = 2, sum)
+
+
+orch1_tot <- apply(sim1$orchard_pops[[1]][[1]], MARGIN = 2, sum) + apply(sim1$orchard_pops[[1]][[2]], MARGIN = 2, sum)
+orch2_tot <- apply(sim1$orchard_pops[[2]][[1]], MARGIN = 2, sum) + apply(sim1$orchard_pops[[2]][[1]], MARGIN = 2, sum)
+
+
+plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(reef1_tot, reef2_tot, reef3_tot, orch1_tot, orch2_tot)), xlab = "year", ylab = "Pop'n size", lwd = 2)
+lines(x = c(1:years), y = reef2_tot, type = "l", lwd = 2, lty = 2)
+lines(x = c(1:years), y = reef3_tot, type = "l", lwd = 3, lty = 3)
+lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 1)
+lines(x = c(1:years), y = orch2_tot, type = "l", col = "dodgerblue", lwd = 3, lty = 2)
+legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 1))
+
+```
+
 
 ```{r}
 
