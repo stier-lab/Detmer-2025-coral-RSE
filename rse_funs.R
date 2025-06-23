@@ -297,7 +297,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
           prop_rec <- 1-((new_area1 - open_area1)/new_area1)
         }
 
-        reef_pops[[ss]][[1]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
+        reef_pops[[ss]][[1]][1 ,i] <- reef_pops[[ss]][[1]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
 
 
       } else{
@@ -481,7 +481,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       if(reef_treatments[ss] != "none"){ # if this isn't a reference site (where zero outplants are added)
 
         for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
-          reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + reef_outplants[ss,rr]
+          reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + reef_outplants[rr-1,ss] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
 
         }
 
