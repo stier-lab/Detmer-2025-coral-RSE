@@ -48,9 +48,10 @@ test1[[1]]
 #' @param years number of years in simulation
 #' @param n number of size classes
 #' @param growth_pars list of transition probabilities for each size class (each element of list = vector of growth probabilities from that size class to all others)
-#' @param shrink_pars list of shrinkage/fragmentation probabilities for each size class (each element of list = vector of shrinkage probabilities from that size class to all others)
+#' @param shrink_pars list of shrinkage probabilities for each size class (each element of list = vector of shrinkage probabilities from that size class to all others)
+#' @param frag_pars list of fragmentation probabilities for each size class (each element of list = vector of probabilities of that size class creating fragments in each of the other size classes)
 
-G_fun <- function(years, n, growth_pars, shrink_pars){
+G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 
   # holding list (each element is matrix with all the growth/shrink parameters for a given year)
 
@@ -74,7 +75,7 @@ G_fun <- function(years, n, growth_pars, shrink_pars){
       } else{ # if this is not the smallest or largest size class
 
         Ti_mat[(cc+1):n,cc] <- growth_pars[[cc]] # probabilities of growing into each larger size class
-        Ti_mat[1:(cc-1), cc] <- shrink_pars[[cc]] # probabilities of shrinking into each larger size class
+        Ti_mat[1:(cc-1), cc] <- shrink_pars[[cc]] # probabilities of shrinking into each smaller size class
 
       }
 
@@ -94,6 +95,14 @@ G_fun <- function(years, n, growth_pars, shrink_pars){
 
     } # end of second loop over columns
 
+
+    # now add the fragmentation probabilities (with these, columns can sum to >1 because new individuals are created by the fragments)
+    for(cc in 2:n){ # for each column of the transition matrix (i.e., each size class) except the smallest
+
+       Ti_mat[1:(cc-1), cc] <- Ti_mat[1:(cc-1), cc] + frag_pars[[cc]] # add probabilities of producing fragments in each smaller size class
+
+    } # end of third loop over columns
+
    G_list[[i]] <- Ti_mat # store the transition matrix for the ith year
 
 
@@ -107,7 +116,8 @@ G_fun <- function(years, n, growth_pars, shrink_pars){
 
 # test this
 # test2 <- G_fun(years = 10, n = 4, growth_pars = list(c(0.5, 0.1, 0), c(0.15, 0.01), c(0.05), NULL),
-#                shrink_pars = list(NULL, c(0.02), c(0.01, 0.02), c(0.02, 0.04, 0.1)))
+#                shrink_pars = list(NULL, c(0.02), c(0.01, 0.02), c(0.02, 0.04, 0.1)),
+#                frag_pars = list(NULL, c(0), c(0.01, 0.02), c(0.02, 0.04, 0.1)))
 # test2.1 <- test2[[1]]
 # sum(test2.1[,4])
 

@@ -9,6 +9,7 @@
 #' @param surv_pars mean survival probabilities in each size class
 #' @param growth_pars transition probabilities for each size class
 #' @param shrink_pars shrinkage probabilities for each size class
+#' @param frag_pars fragmentation probabilities for each size class
 #' @param fec_pars mean fecundities of each size class
 #' @param sigma_s standard deviation of survival probabilities
 #' @param sigma_f standard deviation of survival probabilities
@@ -18,14 +19,14 @@
 #' @param dist_effects which demographic parameters are affected by each disturbance
 #' ADD disturbance effects here (years of disturbance and corresponding parameter values)
 
-mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars,
+mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_pars, fec_pars,
                          sigma_s, sigma_f, seeds, dist_yrs, dist_pars, dist_effects){
 
   # survival parameters
   S_list <- Surv_fun(years, n, surv_pars, sigma_s, seed1 = seeds[1])
 
   # growth/shrinkage matrices
-  G_list <- G_fun(years, n, growth_pars, shrink_pars)
+  G_list <- G_fun(years, n, growth_pars, shrink_pars, frag_pars)
 
   # fecundity parameters
   F_list <- Rep_fun(years, n, fec_pars, sigma_f, seed1 = seeds[2])
@@ -71,10 +72,12 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars
 #' @param surv_pars.r list with mean survival probabilities in each size class for each reef treatment
 #' @param growth_pars.r list with transition probabilities for each size class for each reef treatment
 #' @param shrink_pars.r list with shrinkage probabilities for each size class for each reef treatment
+#' @param frag_pars.r list with fragmentation probabilities for each size class for each reef treatment
 #' @param fec_pars.r list with mean fecundities of each size class for each reef treatment
 #' @param surv_pars.o list with mean survival probabilities in each size class for each orchard treatment
 #' @param growth_pars.o list with transition probabilities for each size class for each orchard treatment
 #' @param shrink_pars.o list with shrinkage probabilities for each size class for each orchard treatment
+#' @param frag_pars.o list with fragmentation probabilities for each size class for each orchard treatment
 #' @param fec_pars.o list with mean fecundities of each size class for each orchard treatment
 #' @param lambda mean number of external recruits each year
 #' @param sigma_s standard deviation of survival probabilities
@@ -95,10 +98,10 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, fec_pars
 #' @param N0.o initial population sizes in each orchard subpopulation
 #' @param N0.l initial population sizes in each lab subpopulation
 
-rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, fec_pars.r,
-                    surv_pars.o, growth_pars.o, shrink_pars.o, fec_pars.o,
-                    lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r,
-                    dist_effects.r, dist_pars.o, dist_effects.o,
+rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r,
+                    fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o,
+                    fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                    dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o,
                     orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars,
                     N0.r, N0.o, N0.l){
 
@@ -148,8 +151,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
       # and get the list with the transition matrix parameters
       reef_mat_pars_ss[[1]] <- mat_pars_fun(years, n, surv_pars.r[[ss]][[1]], growth_pars.r[[ss]][[1]],
-                                          shrink_pars.r[[ss]][[1]], fec_pars.r[[ss]][[1]], sigma_s,
-                                          sigma_f, seeds, dist_yrs, dist_pars.r[[ss]][[1]],
+                                          shrink_pars.r[[ss]][[1]], frag_pars.r[[ss]][[1]], fec_pars.r[[ss]][[1]],
+                                          sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[ss]][[1]],
                                           dist_effects.r[[ss]][[1]])
 
     } else{
@@ -167,8 +170,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
         # and get the list with the transition matrix parameters
         reef_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, surv_pars.r[[ss]][[rr]], growth_pars.r[[ss]][[rr]],
-                                            shrink_pars.r[[ss]][[rr]], fec_pars.r[[ss]][[rr]], sigma_s,
-                                            sigma_f, seeds, dist_yrs, dist_pars.r[[ss]][[rr]],
+                                            shrink_pars.r[[ss]][[rr]], frag_pars.r[[ss]][[rr]], fec_pars.r[[ss]][[rr]],
+                                            sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[ss]][[rr]],
                                             dist_effects.r[[ss]][[rr]])
         # fill in initial reproduction
         reef_rep_ss[[rr]][1] <- sum(reef_pops_ss[[rr]][,1]*reef_mat_pars_ss[[rr]]$fecundity[[1]])
@@ -212,8 +215,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
       # and calculate the data frames with the transition matrix parameters
       orchard_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, surv_pars.o[[ss]][[rr]], growth_pars.o[[ss]][[rr]],
-                                             shrink_pars.o[[ss]][[rr]], fec_pars.o[[ss]][[rr]], sigma_s,
-                                             sigma_f, seeds, dist_yrs,
+                                             shrink_pars.o[[ss]][[rr]], frag_pars.o[[ss]][[rr]],
+                                             fec_pars.o[[ss]][[rr]], sigma_s, sigma_f, seeds, dist_yrs,
                                              dist_pars.o[[ss]][[rr]], dist_effects.o[[ss]][[rr]])
       # fill in initial reproduction
       orchard_rep_ss[[rr]][1] <- sum(orchard_pops_ss[[rr]][,1]*orchard_mat_pars_ss[[rr]]$fecundity[[1]])

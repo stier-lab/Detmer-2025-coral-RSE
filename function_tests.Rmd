@@ -31,6 +31,8 @@ sum(col4)
 growth_pars1 <- list(col1[2:4], col2[3:4], col3[4], NULL)
 # shrinking
 shrink_pars1 <- list(NULL, col2[1], col3[1:2], col4[1:3])
+# fragmentation
+frag_pars1 <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23))
 # survival
 surv_pars1 <- 1-c(0.24, 0.13, 0.05, 0)
 # fecundity (not in Vardi et al. 2012, check other studies and just make up for now)
@@ -38,7 +40,7 @@ fec_pars1 <- c(0, 0.1, 1, 2)
 # recruitment
 lambda1 <- 10
 
-G_fun(years = 10, n = 4, growth_pars = growth_pars1, shrink_pars = shrink_pars1)
+G_fun(years = 10, n = 4, growth_pars = growth_pars1, shrink_pars = shrink_pars1, frag_pars = frag_pars1)
 Surv_fun(years = 10, n = 4, surv_pars = surv_pars1, sigma_s = 0)
 Rep_fun(years = 10, n = 4, fec_pars = c(0, 0.1, 1, 2), sigma_f = 0)
 Ext_fun(years = 10, lambda = lambda1, rand = F, seed1 = 10)
@@ -51,8 +53,8 @@ dist_surv[[1]] <- surv_pars1*0.1
 dist_surv[[2]] <- surv_pars1*0.01
 
 dist_Tmat <- list()
-dist_Tmat[[1]] <- G_fun(years = 1, n, list(col1[2:4]*0.9, col2[3:4]*0.9, col3[4]*0.9, NULL), shrink_pars1)[[1]]
-dist_Tmat[[2]] <- G_fun(years = 1, n, growth_pars1, shrink_pars1)[[1]]
+dist_Tmat[[1]] <- G_fun(years = 1, n, list(col1[2:4]*0.9, col2[3:4]*0.9, col3[4]*0.9, NULL), shrink_pars1, frag_pars1)[[1]]
+dist_Tmat[[2]] <- G_fun(years = 1, n, growth_pars1, shrink_pars1, frag_pars1)[[1]]
 
 dist_fec <- list()
 dist_fec[[1]] <- fec_pars1*0.8
@@ -103,6 +105,10 @@ shrink_pars.r <- list()
 shrink_pars.r[[1]] <- list()
 shrink_pars.r[[1]][[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
 
+frag_pars.r <- list()
+frag_pars.r[[1]] <- list()
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23))
+
 fec_pars.r <- list()
 fec_pars.r[[1]] <- list()
 fec_pars.r[[1]][[1]] <- c(0, 0.1, 1, 2)
@@ -119,6 +125,10 @@ growth_pars.o[[1]][[1]] <- list(c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL)
 shrink_pars.o <- list()
 shrink_pars.o[[1]] <- list()
 shrink_pars.o[[1]][[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
+
+frag_pars.o <- list()
+frag_pars.o[[1]] <- list()
+frag_pars.o[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23))
 
 fec_pars.o <- list()
 fec_pars.o[[1]] <- list()
@@ -212,7 +222,7 @@ orchard_size <- c(200) # number of individuals each orchard treatment has space 
 rest_pars <- list(orchard_yield = orchard_yield, lab_props = lab_props, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, orchard_size = orchard_size)
 
 
-sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 
 
@@ -315,6 +325,22 @@ shrink_pars.r[[3]][[1]] <- shrink_pars.r[[1]][[1]] # first source
 shrink_pars.r[[3]][[2]] <- shrink_pars.r[[1]][[1]] # second source
 shrink_pars.r[[3]][[3]] <- shrink_pars.r[[1]][[1]] # third source
 
+
+# reef parameters: fragmentation
+frag_pars.r <- list()
+frag_pars.r[[1]] <- list() # first subpop
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23)) # first source
+
+frag_pars.r[[2]] <- list() # second subpop
+frag_pars.r[[2]][[1]] <- frag_pars.r[[1]][[1]] # first source
+frag_pars.r[[2]][[2]] <- frag_pars.r[[1]][[1]] # second source
+frag_pars.r[[2]][[3]] <- frag_pars.r[[1]][[1]] # third source
+
+frag_pars.r[[3]] <- list() # third subpop
+frag_pars.r[[3]][[1]] <- frag_pars.r[[1]][[1]] # first source
+frag_pars.r[[3]][[2]] <- frag_pars.r[[1]][[1]] # second source
+frag_pars.r[[3]][[3]] <- frag_pars.r[[1]][[1]] # third source
+
 # reef parameters: fecundity
 
 fec_pars.r <- list()
@@ -361,6 +387,15 @@ shrink_pars.o[[2]] <- list() # second treatment
 shrink_pars.o[[2]][[1]] <- shrink_pars.o[[1]][[1]] # first source
 shrink_pars.o[[2]][[2]] <- shrink_pars.o[[1]][[1]] # second source
 
+# orchard parameters: fragmentation
+frag_pars.o <- list()
+frag_pars.o[[1]] <- list() # first treatment
+frag_pars.o[[1]][[1]] <- list(NULL, 0, c(0, 0), c(0, 0, 0)) # first source
+frag_pars.o[[1]][[2]] <- frag_pars.o[[1]][[1]] # second source
+
+frag_pars.o[[2]] <- list() # second treatment
+frag_pars.o[[2]][[1]] <- frag_pars.o[[1]][[1]] # first source
+frag_pars.o[[2]][[2]] <- frag_pars.o[[1]][[1]] # second source
 
 fec_pars.o <- list()
 fec_pars.o[[1]] <- list() # first treatment
@@ -561,7 +596,7 @@ dist_pars.o[[2]][[2]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, 
 
 
 
-sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 ```
 
