@@ -421,8 +421,9 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     for(ss in 1:s_lab){ # for each lab treatment
 
-      reef_outplants[ss, ] <- lab_pops[[ss]][i-1]*rest_pars$reef_prop*rest_pars$reef_out_props[ss,]
-      # reef_prop = proportion lab recruits going to reef, reef_out_props[ss,] = proportion of outplants from lab treatment ss going to each reef treatment
+      reef_outplants[ss, ] <- lab_pops[[ss]][i-1]*rest_pars$reef_prop[ss]*rest_pars$reef_out_props[ss,]
+      # reef_prop[ss] = proportion lab recruits from ss lab treatment going to reef
+      # reef_out_props[ss,] = proportion of reef outplants from lab treatment ss going to treatment on reef
 
     }
 
@@ -503,8 +504,9 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     for(ss in 1:s_lab){
 
-      orchard_outplants[ss, ] <- lab_pops[[ss]][i-1]*(1-rest_pars$reef_prop)*rest_pars$orchard_out_props[ss,]
-      # 1-reef_prop = proportion lab recruits going to orchard, orchard_out_props[ss,] = proportion of outplants from lab treatment ss going to each orchard treatment
+      orchard_outplants[ss, ] <- lab_pops[[ss]][i-1]*(1-rest_pars$reef_prop[ss])*rest_pars$orchard_out_props[ss,]
+      # 1-reef_prop[ss] = proportion lab recruits from ss lab treatment going to orchard
+      # orchard_out_props[ss,] = proportion of the orchard outplants from lab treatment ss going to each orchard treatment
 
     }
 
