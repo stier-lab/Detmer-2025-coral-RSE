@@ -81,7 +81,7 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
 #' @param fec_pars.o list with mean fecundities of each size class for each orchard treatment
 #' @param lambda mean number of external recruits each year
 #' @param sigma_s standard deviation of survival probabilities
-#' @param sigma_f standard deviation of survival probabilities
+#' @param sigma_f standard deviation of fecundities
 #' @param ext_rand whether external recruitment is stochastic (TRUE) or not (FALSE)
 #' @param seeds vector with seeds for the random number generation for survival, fecundity, and recruitment
 #' @param dist_yrs vector of years when reef disturbance occurs
@@ -388,18 +388,33 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     } # end of iterations over each orchard treatment
 
 
-    # calculate total new orchard babies
-    new_babies <- matrix(NA, nrow = s_orchard, ncol = source_orchard)
+    # calculate total new orchard babies collected
+    new_babies.o <- matrix(NA, nrow = s_orchard, ncol = source_orchard) # rows = number of orchard treatments, col = number of sources to the orchard
 
     for(ss in 1:s_orchard){
       for(rr in 1:source_orchard){
-        new_babies[ss,rr] <- orchard_rep[[ss]][[rr]][i]*rest_pars$orchard_yield # orchard_yield = percent of new orchard babies successfully collected
+        new_babies.o[ss,rr] <- orchard_rep[[ss]][[rr]][i]*rest_pars$orchard_yield # orchard_yield = percent of new orchard babies successfully collected
       }
+    }
+
+    # calculate total new reef babies collected
+    new_babies.r <- matrix(NA, nrow = s_reef, ncol = source_reef)
+
+    for(ss in 1:s_reef){
+
+      if(reef_treatments[ss] == "none"){ # if this is the reference reef, there is only one source
+        new_babies.r[ss,1] <- reef_rep[[ss]][[1]][i]*rest_pars$reef_yield # reef_yield = percent of new reef babies successfully collected
+      } else{
+        for(rr in 1:source_reef){
+          new_babies.r[ss,rr] <- reef_rep[[ss]][[rr]][i]*rest_pars$reef_yield
+        }
       }
 
-    tot_babies <- sum(new_babies) # total new babies collected from the orchard
+    }
 
-    # put the new orchard babies into each lab treatment and determine how many survive
+    tot_babies <- sum(new_babies.o) + sum(new_babies.r, na.rm = T) # total new babies collected
+
+    # put the new babies into each lab treatment and determine how many survive
     for(ss in 1:s_lab){
 
       # settlers = prop babies put in ss^th treatment x prop of babies that successfully settle in this treatment x total babies
@@ -415,7 +430,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     # NOTE: any feedbacks on restoration actions would be updating the proportions of babies
     # and recruits going to different locations/treatments (lab_props, reef_prop, reef_out_props, orchard_out_props)
 
-    # add the orchard babies from the previous time step:
+    # add the babies from the previous time step:
     # first make a matrix with the number of recruits going from each lab treatment to each reef treatment
     reef_outplants <- matrix(NA, nrow = s_lab, ncol = s_reef)
 
