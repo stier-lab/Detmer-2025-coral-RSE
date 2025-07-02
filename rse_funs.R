@@ -300,6 +300,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
           prop_rec <- 1-((new_area1 - open_area1)/new_area1)
         }
 
+        #prop_rec <- 1
+
         reef_pops[[ss]][[1]][1 ,i] <- reef_pops[[ss]][[1]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
 
 
@@ -414,14 +416,25 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     tot_babies <- sum(new_babies.o) + sum(new_babies.r, na.rm = T) # total new babies collected
 
+    # holding vector for settlers on each lab treatment that will be immediately outplanted
+
+    out_settlers <- rep(NA, s_lab)
+
     # put the new babies into each lab treatment and determine how many survive
     for(ss in 1:s_lab){
 
       # settlers = prop babies put in ss^th treatment x prop of babies that successfully settle in this treatment x total babies
       new_settlers <- min(rest_pars$lab_props[ss]*lab_pars$sett[ss]*tot_babies, rest_pars$lab_max[ss]) # rest_pars$lab_max[ss] = max number of settlers that can go in this treatment
 
-      # settlers that survive to be outplanted in the next timepoint
-      lab_pops[[ss]][i] <- new_settlers*lab_pars$s[ss] # ADD density dependence here?
+      # settlers that survive initial settlement
+      surv_settlers <- new_settlers*lab_pars$s[ss] # ADD density dependence here?
+
+      # determine which of these will be outplanted immediately vs. retained for a year
+      # settlers that get retained for a year:
+      lab_pops[[ss]][i] <- min(lab_pars$n_retain[ss], surv_settlers) # ADD any mortality that occurs over the next year here
+
+      # settlers that get outplanted immediately
+      out_settlers[ss] <- surv_settlers - lab_pops[[ss]][i]
 
     }
 
@@ -430,22 +443,24 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     # NOTE: any feedbacks on restoration actions would be updating the proportions of babies
     # and recruits going to different locations/treatments (lab_props, reef_prop, reef_out_props, orchard_out_props)
 
-    # add the babies from the previous time step:
+    # add the babies:
     # first make a matrix with the number of recruits going from each lab treatment to each reef treatment
-    reef_outplants <- matrix(NA, nrow = s_lab, ncol = s_reef)
+    reef_outplants <- matrix(NA, nrow = s_lab, ncol = s_reef) # from current timestep
+    reef_outplants1 <- matrix(NA, nrow = s_lab, ncol = s_reef) # from last time step
 
     for(ss in 1:s_lab){ # for each lab treatment
 
-      reef_outplants[ss, ] <- lab_pops[[ss]][i-1]*rest_pars$reef_prop[ss]*rest_pars$reef_out_props[ss,]
+      reef_outplants[ss, ] <- out_settlers[ss]*rest_pars$reef_prop[ss]*rest_pars$reef_out_props[ss,]
       # reef_prop[ss] = proportion lab recruits from ss lab treatment going to reef
       # reef_out_props[ss,] = proportion of reef outplants from lab treatment ss going to treatment on reef
 
+      reef_outplants1[ss, ] <- lab_pops[[ss]][i-1]*rest_pars$reef_prop[ss]*rest_pars$reef_out_props[ss,]
     }
 
     # apply space constraints: total recruits from all lab treatments going to a given reef
     # treatment can't exceed available space in that reef subpopulation
     # first calculate total number of recruits (from all lab treatments) going to each reef treatment
-    new_reef_tots <- apply(reef_outplants, 2, sum)
+    #new_reef_tots <- apply(reef_outplants, 2, sum)
 
     # calculate total area currently occupied by each reef subpopulation
     area_tots <- rep(NA, s_reef)
@@ -466,7 +481,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     }
 
-    # now calculate the fractions of new recruits that will fit in each reef treatment
+    # now calculate the fractions of new recruits that can get outplanted
     prop_fits <- rep(NA, s_reef)
 
     for(pp in 1:s_reef){
@@ -474,17 +489,23 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       tot_area_pp <- rest_pars$reef_areas[pp] # total area devoted to the pp^th reef treatment
       occupied_area_pp <- area_tots[pp] # total area currently occupied
 
-      open_area_pp <- tot_area_pp - occupied_area_pp # area that is available for new recruits
-
-      new_area_pp <- new_reef_tots[pp]*A_mids[1] # area that the new recruit outplants will need
-
-      if(open_area_pp <= 0){ # if there's no space left
-        prop_fits[pp] <- 0 # proportion of new recruits that can be outplanted is 0
-      } else if(new_area_pp < open_area_pp){ # if all of them fit
-        prop_fits[pp] <- 1 # all the new recruits can be outplanted
-      } else{ # if only some will fit, calculate what proportion will fit
-        prop_fits[pp] <- 1-((new_area_pp - open_area_pp)/new_area_pp)
+      if(occupied_area_pp >= tot_area_pp){ # if the reef subpopulation is full
+        prop_fits[pp] <- 0 # no new recruits can be outplanted
+      } else{ # else if there's still space
+        prop_fits[pp] <- 1 # outplant the recruits
       }
+
+      # open_area_pp <- tot_area_pp - occupied_area_pp # area that is available for new recruits
+      #
+      # new_area_pp <- new_reef_tots[pp]*A_mids[1] # area that the new recruit outplants will need
+      #
+      # if(open_area_pp <= 0){ # if there's no space left
+      #   prop_fits[pp] <- 0 # proportion of new recruits that can be outplanted is 0
+      # } else if(new_area_pp < open_area_pp){ # if all of them fit
+      #   prop_fits[pp] <- 1 # all the new recruits can be outplanted
+      # } else{ # if only some will fit, calculate what proportion will fit
+      #   prop_fits[pp] <- 1-((new_area_pp - open_area_pp)/new_area_pp)
+      # }
 
       }
 
@@ -492,6 +513,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     #reef_outplants <- reef_outplants%*%matrix(prop_fits, nrow = length(reef_treatments), ncol = 1)
     for(ss in 1:s_lab){
       reef_outplants[ss,] <- reef_outplants[ss,]*prop_fits # Note: could update this to give priority to certain lab treatments?
+      reef_outplants1[ss,] <- reef_outplants1[ss,]*prop_fits
     }
 
     # add the outplants to the reef subpopulations
@@ -502,6 +524,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
         for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
           reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + reef_outplants[rr-1,ss] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
 
+          # add the recruits from the previous year
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*lab_pars$size_props[rr-1,] # size_props specifies the fractions of last years lab recruits that are now in each size class
         }
 
       }
@@ -515,19 +539,21 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
 
     # repeat for orchard outplants
-    orchard_outplants <- matrix(NA, nrow = s_lab, ncol = s_orchard)
+    orchard_outplants <- matrix(NA, nrow = s_lab, ncol = s_orchard) # this year's
+    orchard_outplants1 <- matrix(NA, nrow = s_lab, ncol = s_orchard) # last year's
 
     for(ss in 1:s_lab){
 
-      orchard_outplants[ss, ] <- lab_pops[[ss]][i-1]*(1-rest_pars$reef_prop[ss])*rest_pars$orchard_out_props[ss,]
+      orchard_outplants[ss, ] <- out_settlers[ss]*(1-rest_pars$reef_prop[ss])*rest_pars$orchard_out_props[ss,]
       # 1-reef_prop[ss] = proportion lab recruits from ss lab treatment going to orchard
       # orchard_out_props[ss,] = proportion of the orchard outplants from lab treatment ss going to each orchard treatment
 
+      orchard_outplants1[ss, ] <- lab_pops[[ss]][i-1]*(1-rest_pars$reef_prop[ss])*rest_pars$orchard_out_props[ss,]
     }
 
     # apply space constraints
     # calculate total number of recruits (from all lab treatments) going to each orchard treatment
-    new_orchard_tots <- apply(orchard_outplants, 2, sum)
+    #new_orchard_tots <- apply(orchard_outplants, 2, sum)
 
     # calculate total number of corals currently in each orchard subpopulation
     ind_tots <- rep(NA, s_orchard)
@@ -553,17 +579,23 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       tot_ind_pp <- rest_pars$orchard_size[pp] # total number of individuals that fit in pp^th orchard treatment
       occupied_ind_pp <- ind_tots[pp] # total individuals currently in this orchard subpop
 
-      open_ind_pp <- tot_ind_pp - occupied_ind_pp # number of new recruits that could fit in the orchard subpop
-
-      new_ind_pp <- new_orchard_tots[pp] # total number of new recruits to put in orchard
-
-      if(open_ind_pp <= 0){ # if there's no space left
-        prop_fits2[pp] <- 0 # proportion of new recruits that can be outplanted is 0
-      } else if(new_ind_pp < open_ind_pp){ # if all of them fit
-        prop_fits2[pp] <- 1 # all the new recruits can be outplanted
-      } else{ # if only some will fit, calculate what proportion will fit
-        prop_fits2[pp] <- 1-((new_ind_pp - open_ind_pp)/new_ind_pp)
+      if(occupied_ind_pp >= tot_ind_pp){ # if the orchard is full
+        prop_fits2[pp] <- 0 # no new recruits can be added
+      } else{ # else if there's still space
+        prop_fits2[pp] <- 1 # add the new recruits
       }
+
+      # open_ind_pp <- tot_ind_pp - occupied_ind_pp # number of new recruits that could fit in the orchard subpop
+      #
+      # new_ind_pp <- new_orchard_tots[pp] # total number of new recruits to put in orchard
+      #
+      # if(open_ind_pp <= 0){ # if there's no space left
+      #   prop_fits2[pp] <- 0 # proportion of new recruits that can be outplanted is 0
+      # } else if(new_ind_pp < open_ind_pp){ # if all of them fit
+      #   prop_fits2[pp] <- 1 # all the new recruits can be outplanted
+      # } else{ # if only some will fit, calculate what proportion will fit
+      #   prop_fits2[pp] <- 1-((new_ind_pp - open_ind_pp)/new_ind_pp)
+      # }
 
     }
 
@@ -572,6 +604,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     for(ss in 1:s_lab){
       orchard_outplants[ss,] <- orchard_outplants[ss,]*prop_fits2
+      orchard_outplants1[ss,] <- orchard_outplants1[ss,]*prop_fits2
     }
 
     # add the outplants to the orchard subpopulations
@@ -579,6 +612,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
         for(rr in 1:source_orchard){ # for each lab source
           orchard_pops[[ss]][[rr]][1 ,i] <- orchard_pops[[ss]][[rr]][1 ,i] + orchard_outplants[ss,rr]
+
+          orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[ss,rr]*lab_pars$size_props[rr,]
 
         }
 

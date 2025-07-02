@@ -8,7 +8,7 @@ output: html_document
 README: testing that the functions work
 
 
-new parameters to add: reef_yield
+new parameters to add: reef_yield, n_retain, size_props
 
 load the functions
 
@@ -25,6 +25,8 @@ source("rse_funs.R")
 
 # start by using parameters from the Acropora palmata model by Vardi et al. 2012
 # NOTE in this study, fragamentation is separated from shrinkage and can result in columns adding up to more than one (if a large colony produces fragments but the majority of the colony stays in the same size class, I think)
+
+n <- 4
 
 # also jumping a size class can happen through fusion
 
@@ -77,7 +79,9 @@ dist_effects <- list()
 dist_effects[[1]] <- c("survival", "Tmat", "fecundity")
 dist_effects[[2]] <- c("survival")
 
-mat_test <- mat_pars_fun(years = 10, n = 4, surv_pars1, growth_pars1, shrink_pars1, fec_pars1, sigma_s = 0, sigma_f = 0, seeds = c(10, 100, 200), dist_yrs, dist_pars, dist_effects)
+mat_test <- mat_pars_fun(years = 10, n = 4, surv_pars1, growth_pars1, shrink_pars1, frag_pars1, fec_pars1, sigma_s = 0, sigma_f = 0, seeds = c(10, 100, 200), dist_yrs, dist_pars, dist_effects)
+
+# years, n, surv_pars, growth_pars, shrink_pars, frag_pars, fec_pars,  sigma_s, sigma_f, seeds, dist_yrs, dist_pars, dist_effects
 
 # mat_test$survival
 # mat_test$growth
@@ -118,7 +122,8 @@ shrink_pars.r[[1]][[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
 
 frag_pars.r <- list()
 frag_pars.r[[1]] <- list()
-frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23))
+#frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23))
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0))
 
 fec_pars.r <- list()
 fec_pars.r[[1]] <- list()
@@ -139,7 +144,8 @@ shrink_pars.o[[1]][[1]] <- list(NULL, 0.08, c(0, 0.105), c(0, 0.06, 0.11))
 
 frag_pars.o <- list()
 frag_pars.o[[1]] <- list()
-frag_pars.o[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23))
+#frag_pars.o[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23))
+frag_pars.o[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0))
 
 fec_pars.o <- list()
 fec_pars.o[[1]] <- list()
@@ -147,7 +153,7 @@ fec_pars.o[[1]][[1]] <- c(0, 10, 50, 100)
 
 
 # disturbance parameters
-dist_yrs <- c(10) # years when disturbance occurs, NA if none
+dist_yrs <- NA#c(10) # years when disturbance occurs, NA if none
 
 # disturbance effects for each reef subpop
 dist_effects.r <- list()
@@ -192,7 +198,7 @@ dist_fec.o[[1]] <- list()
 
 dist_pars.o[[1]][[1]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, dist_fec = dist_fec.o) # list of disturbance parameters for first source in the first orchard subpop
 
-lambda <- 0 #10 # external recruitment to reef
+lambda <- 0 # external recruitment to reef
 
 # stochasticity parameters
 sigma_s <- 0
@@ -215,7 +221,10 @@ N0.l <- 1
 # lab parameters
 sett <- c(0.5) # fraction of larvae that successfully settle in each lab treatment
 s <- c(0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
-lab_pars <- list(sett = sett, s = s)
+n_retain <- c(100) # max number of new settlers retained in each lab treatment in the lab for a year 
+size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- c(1, 0, 0, 0)
+lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
 
 
 # restoration strategy parameters
@@ -261,7 +270,10 @@ legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"),
 
 ```
 
-reef is dying because only treatment is "none" so there are no outplants 
+NOTES: 
+1) only reef treatment is "none" so there are no outplants, so varying the recruitment parameters won't change the reef dynamics here 
+2) when external recruits are the dominant source of new individuals, then the population seems to smoothly approach an equilibrium that depends on lambda
+3) the populations will blow up if there is fragmentation... so might need to redo fragmentation in a way that allows for making it stop if the populations are full (also not sure if any natural fragments would survive in the orchard?). Maybe make a separate F_mat (so T_mat will become T_mat + F_mat in the model)
 
 
 
@@ -277,7 +289,7 @@ for(i in 1:years){
 }
 
 
-plot(x = c(1:years), y = reef1_Atot, type = "l", las = 1, xlab = "year", ylab = "Area covered", lwd = 2) # ylim = c(0, max(reef1_Atot))
+plot(x = c(1:years), y = reef1_Atot, type = "l", las = 1, xlab = "year", ylab = "Area covered", lwd = 2, ylim = c(0, reef_areas[1])) # ylim = c(0, max(reef1_Atot))
 abline(h = reef_areas[1], lty = 2)
 
 ```
@@ -343,7 +355,9 @@ shrink_pars.r[[3]][[3]] <- shrink_pars.r[[1]][[1]] # third source
 # reef parameters: fragmentation
 frag_pars.r <- list()
 frag_pars.r[[1]] <- list() # first subpop
-frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23)) # first source
+#frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0.06, 0.06), c(0.28, 0.3, 0.23)) # first source
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0)) # first source
+
 
 frag_pars.r[[2]] <- list() # second subpop
 frag_pars.r[[2]][[1]] <- frag_pars.r[[1]][[1]] # first source
@@ -457,7 +471,12 @@ N0.l[[2]] <- 1
 # lab parameters
 sett <- c(0.5, 0.5) # fraction of larvae that successfully settle in each lab treatment
 s <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
-lab_pars <- list(sett = sett, s = s)
+n_retain <- c(100, 100) # max number of new settlers retained in each lab treatment in the lab for a year 
+size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- c(1, 0, 0, 0) # first lab treatment
+size_props[2, ] <- c(1, 0, 0, 0) # second lab treatment
+lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
+
 
 # restoration strategy parameters
 orchard_yield <- 0 # percent of new orchard babies successfully collected
