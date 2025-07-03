@@ -55,7 +55,8 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 
   # holding list (each element is matrix with all the growth/shrink parameters for a given year)
 
-  G_list <- list()
+  G_list <- list() # for transition matrices at each timepoint
+  Fr_list <- list() # for fragmentation matrices at each timepoint
 
   for(i in 1:years){ # for each year in the simulation
 
@@ -95,22 +96,28 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 
     } # end of second loop over columns
 
+    G_list[[i]] <- Ti_mat # store the transition matrix for the ith year
+
+    # now make the fragmentation matrix
+    Fi_mat <- matrix(0, nrow = n, ncol = n) # fragmentation matrix
 
     # now add the fragmentation probabilities (with these, columns can sum to >1 because new individuals are created by the fragments)
     for(cc in 2:n){ # for each column of the transition matrix (i.e., each size class) except the smallest
 
-       Ti_mat[1:(cc-1), cc] <- Ti_mat[1:(cc-1), cc] + frag_pars[[cc]] # add probabilities of producing fragments in each smaller size class
+       #Ti_mat[1:(cc-1), cc] <- Ti_mat[1:(cc-1), cc] + frag_pars[[cc]] # add probabilities of producing fragments in each smaller size class
+      Fi_mat[1:(cc-1), cc] <- frag_pars[[cc]]
 
     } # end of third loop over columns
 
-   G_list[[i]] <- Ti_mat # store the transition matrix for the ith year
+
+    Fr_list[[i]] <- Fi_mat # store the fragmentation matrix for the ith year
 
 
   } # end of loop over years
 
 
 
-  return(G_list)
+  return(list(G_list = G_list, Fr_list = Fr_list))
 
 }
 

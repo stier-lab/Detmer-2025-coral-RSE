@@ -25,8 +25,10 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
   # survival parameters
   S_list <- Surv_fun(years, n, surv_pars, sigma_s, seed1 = seeds[1])
 
-  # growth/shrinkage matrices
-  G_list <- G_fun(years, n, growth_pars, shrink_pars, frag_pars)
+  # growth/shrinkage and fragmentation matrices
+  all_mats <- G_fun(years, n, growth_pars, shrink_pars, frag_pars)
+  G_list <- all_mats$G_list
+  Fr_list <- all_mats$Fr_list
 
   # fecundity parameters
   F_list <- Rep_fun(years, n, fec_pars, sigma_f, seed1 = seeds[2])
@@ -44,6 +46,10 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
         G_list[[i]] <- dist_pars$dist_Tmat[[which(dist_yrs==i)]]
       }
 
+      if("Fmat" %in% dist_effects[[which(dist_yrs==i)]]){ # if the ith disturbance affected fragmentation
+        Fr_list[[i]] <- dist_pars$dist_Fmat[[which(dist_yrs==i)]]
+      }
+
       if("fecundity" %in% dist_effects[[which(dist_yrs==i)]]){ # if the ith disturbance affected fecundity
         F_list[[i]] <- dist_pars$dist_fec[[which(dist_yrs==i)]]
       }
@@ -53,7 +59,7 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
   }
 
 
-  return(list(survival = S_list, growth = G_list, fecundity = F_list))
+  return(list(survival = S_list, growth = G_list, fragmentation = Fr_list, fecundity = F_list))
 
 }
 
@@ -271,6 +277,14 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
         # get the transition matrix
         T_mat <- reef_mat_pars[[ss]][[1]]$growth[[i]]
 
+        # get the fragmentation matrix
+        F_mat <- reef_mat_pars[[ss]][[1]]$fragmentation[[i]]
+
+        # if the reef is full, assume none of the fragments produced over the last year result in new colonies
+        if(sum(reef_pops[[ss]][[1]][ ,i-1]*A_mids) >= rest_pars$reef_areas[ss]){
+          F_mat <- 0*F_mat
+        }
+
         # get the survival probabilities
         S_i <- reef_mat_pars[[ss]][[1]]$survival[[i]] # survival
 
@@ -281,7 +295,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
         N_mat <- N_mat*S_i # fractions surviving to current time point
 
         # now update the population sizes
-        reef_pops[[ss]][[1]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
+        reef_pops[[ss]][[1]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
 
         # amount of new larvae produced at the i^th time point:
         reef_rep[[ss]][[1]][i] <- sum(reef_pops[[ss]][[1]][ ,i]*reef_mat_pars[[ss]][[1]]$fecundity[[i]])
@@ -312,6 +326,14 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
           # get the transition matrix
           T_mat <- reef_mat_pars[[ss]][[rr]]$growth[[i]]
 
+          # get the fragmentation matrix
+          F_mat <- reef_mat_pars[[ss]][[rr]]$fragmentation[[i]]
+
+          # if the reef is full, assume none of the fragments produced over the last year result in new colonies
+          if(sum(reef_pops[[ss]][[1]][ ,i-1]*A_mids) >= rest_pars$reef_areas[ss]){
+            F_mat <- 0*F_mat
+          }
+
           # get the survival probabilities
           S_i <- reef_mat_pars[[ss]][[rr]]$survival[[i]] # survival
 
@@ -322,7 +344,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
           N_mat <- N_mat*S_i # fractions surviving to current time point
 
           # now update the population sizes
-          reef_pops[[ss]][[rr]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
+          reef_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
 
           # amount of new larvae produced at the i^th time point:
           reef_rep[[ss]][[rr]][i] <- sum(reef_pops[[ss]][[rr]][ ,i]*reef_mat_pars[[ss]][[rr]]$fecundity[[i]])
@@ -354,7 +376,17 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
 
     # orchard dynamics
-    for(ss in 1:s_orchard){ # for each reef subpopulation
+    for(ss in 1:s_orchard){ # for each orchard treatment
+
+      # calculate total number of colonies in this orchard
+      ind_tots_ss <- rep(NA, source_orchard)
+
+      for(rr in 1:source_orchard){
+
+        ind_tots_ss[rr] <- sum(orchard_pops[[ss]][[rr]][ ,i-1])
+      }
+
+      ind_tots_s <- sum(ind_tots_ss)
 
       for(rr in 1:source_orchard){ # for each source of orchard recruits
 
@@ -363,6 +395,13 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
         # get the transition matrix for this year
         T_mat <- orchard_mat_pars[[ss]][[rr]]$growth[[i]]
+
+        # get the fragmentation matrix
+        F_mat <- orchard_mat_pars[[ss]][[rr]]$fragmentation[[i]]
+
+        if(ind_tots_s >= rest_pars$orchard_size[ss]){
+          F_mat <- 0*F_mat
+        }
 
         # get the survival probabilities for this year
         S_i <- orchard_mat_pars[[ss]][[rr]]$survival[[i]] # survival
@@ -375,7 +414,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
         N_mat <- N_mat*S_i # fractions surviving to current time point
 
         # now update the population sizes:
-        orchard_pops[[ss]][[rr]][ ,i] <- T_mat %*% matrix(N_mat, nrow = n, ncol = 1)
+        orchard_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1)
 
         # amount of new larvae produced since the last time point:
         #orchard_rep[[ss]][i] <- sum(N_mat[, i-1]*orchard_mat_pars[[ss]]$fecundity[[i-1]])
@@ -572,9 +611,9 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
 
     # now calculate the fractions of new recruits that will fit in each orchard treatment
-    prop_fits2 <- rep(NA, length(orchard_treatments))
+    prop_fits2 <- rep(NA, s_orchard)
 
-    for(pp in 1:length(orchard_treatments)){
+    for(pp in 1:s_orchard){
 
       tot_ind_pp <- rest_pars$orchard_size[pp] # total number of individuals that fit in pp^th orchard treatment
       occupied_ind_pp <- ind_tots[pp] # total individuals currently in this orchard subpop
