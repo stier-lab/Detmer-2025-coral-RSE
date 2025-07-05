@@ -505,7 +505,7 @@ N0.l[[2]] <- 1
 
 
 # disturbance parameters
-dist_yrs <- NA # c(10) # years when disturbance occurs, NA if none
+dist_yrs <- c(10) # years when disturbance occurs, NA if none
 
 # disturbance effects for each reef subpop
 dist_effects.r <- list()
@@ -554,10 +554,10 @@ dist_pars.r[[1]][[1]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, 
 
 
 # second reef subpop
-dist_pars.r[[2]] <- list() # first source in first reef subpop
+dist_pars.r[[2]] <- list() # first source in second reef subpop
 
 dist_surv.r <- list()
-dist_surv.r[[1]] <- surv_pars.r[[1]][[1]]*0.1 # survival probabilities of corals from first source in first reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
+dist_surv.r[[1]] <- surv_pars.r[[1]][[1]]*0.1 # survival probabilities of corals from first source in second reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
 
 dist_Tmat.r <- list()
 dist_Tmat.r[[1]] <- list() # first disturbance
@@ -579,17 +579,26 @@ dist_surv.r <- list()
 dist_surv.r[[1]] <- surv_pars.r[[1]][[1]]*0.1 # survival probabilities of corals from first source in first reef subpop in first disturbance year (dist_surv.r[[2]] would be second disturbance)
 
 dist_Tmat.r <- list()
-dist_Tmat.r[[1]] <- list() # first disturbance
+#dist_Tmat.r[[1]] <- list() # first disturbance
 
 dist_Fmat.r <- list()
-dist_Fmat.r[[1]] <- list() # first disturbance
+#dist_Fmat.r[[1]] <- list() # first disturbance
 
 dist_fec.r <- list()
-dist_fec.r[[1]] <- list() # first disturbance
+#dist_fec.r[[1]] <- list() # first disturbance
 
 dist_pars.r[[3]][[1]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_Fmat = dist_Fmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the first source in the second reef subpop
 dist_pars.r[[3]][[2]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_Fmat = dist_Fmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the second source in the second reef subpop
 dist_pars.r[[3]][[3]] <- list(dist_surv = dist_surv.r, dist_Tmat = dist_Tmat.r, dist_Fmat = dist_Fmat.r, dist_fec = dist_fec.r) # list of disturbance parameters for the third source in the second reef subpop
+
+
+# test out dist_pars_fun: run separately for each subpop/source combination, for each go through and fill in the parameters for each disturbance, output is the dist_pars.r[[3]][[1]], dist_pars.r[[3]][[2]], etc. parameter lists
+# defaults for each parameter type are NULL unless specified
+
+# dist_surv = list where ith element is the survival probabilities for the ith disturbance
+
+# list("survival", "survival") should be replaced with dist_effects.r[[3]][[3]]
+dist_pars.r.3.3 <- dist_pars_fun(dist_yrs = c(10, 20), list("survival", "survival"), dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1, surv_pars.r[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
 
 
 # disturbance effects for each orchard subpop

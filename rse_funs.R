@@ -17,7 +17,6 @@
 #' @param dist_yrs vector of years where disturbance occurs
 #' @param dist_pars list with survival, growth/shrinkage (transition matrix) and fecundity parameters for each disturbance year
 #' @param dist_effects which demographic parameters are affected by each disturbance
-#' ADD disturbance effects here (years of disturbance and corresponding parameter values)
 
 mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_pars, fec_pars,
                          sigma_s, sigma_f, seeds, dist_yrs, dist_pars, dist_effects){
@@ -63,6 +62,55 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
 
 }
 
+#' function for generating lists with disturbance parameters for each subpopulation/source combination
+#' @param dist_yrs vector of years where disturbance occurs
+#' @param dist_effects which demographic parameters are affected by each disturbance
+#' @param dist_surv0 list where ith element contains the survival probabilities for year with ith disturbance
+#' @param dist_Tmat0 list where ith element contains the transition matrix for year with ith disturbance
+#' @param dist_Fmat0 list where ith element contains the fragmentation matrix for year with ith disturbance
+#' @param dist_fec0 list where ith element contains the fecundities for year with ith disturbance
+
+dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL){
+
+  dist_surv <- list()
+  dist_Tmat <- list()
+  dist_Fmat <- list()
+  dist_fec <- list()
+
+  for(i in 1:length(dist_yrs)){ # for each disturbance
+
+    if("survival" %in% dist_effects[[i]]){ # if the ith disturbance affected survival
+      dist_surv[[i]] <- dist_surv0[[i]]
+    } else{
+      dist_surv[[i]] <- NULL
+    }
+
+    if("Tmat" %in% dist_effects[[i]]){ # if the ith disturbance affected growth or shrinkage (transition matrix)
+      dist_Tmat[[i]] <- dist_Tmat0[[i]]
+    } else{
+      dist_Tmat[[i]] <- NULL
+    }
+
+    if("Fmat" %in% dist_effects[[i]]){ # if the ith disturbance affected fragmentation
+      dist_Fmat[[i]] <- dist_Fmat0[[i]]
+    } else{
+      dist_Fmat[[i]] <- NULL
+    }
+
+    if("fecundity" %in% dist_effects[[i]]){ # if the ith disturbance affected fecundity
+      dist_fec[[i]] <- dist_fec0[[i]]
+    } else{
+      dist_fec[[i]] <- NULL
+    }
+
+  } # end of loop over disturbance years
+
+
+  dist_pars <- list(dist_surv = dist_surv, dist_Tmat = dist_Tmat, dist_Fmat = dist_Fmat, dist_fec = dist_fec)
+
+  return(dist_pars)
+
+}
 
 #' lab function
 #' make a function that takes the number of new babies from the orchard as an input and
