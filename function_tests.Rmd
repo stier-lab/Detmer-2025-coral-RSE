@@ -262,7 +262,10 @@ reef_areas <- c(50)*10000 # m^2 given to each reef treatment (make sure to inclu
 lab_max <- c(5000) # number of settlers that can fit in each lab treatment
 orchard_size <- c(200) # number of individuals each orchard treatment has space for
 
-rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, lab_props = lab_props, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, orchard_size = orchard_size)
+# coral transplanting
+transplant <- rep(0, years)
+
+rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, lab_props = lab_props, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, orchard_size = orchard_size, transplant = transplant)
 
 
 sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
@@ -506,7 +509,7 @@ N0.l[[2]] <- 1
 
 
 # disturbance parameters
-dist_yrs <- c(10) # years when disturbance occurs, NA if none
+dist_yrs <- NA#c(10) # years when disturbance occurs, NA if none
 
 # disturbance effects for each reef subpop
 dist_effects.r <- list()
@@ -688,7 +691,35 @@ reef_areas <- c(100, 100, 100)*10000 # m^2 given to each reef treatment (make su
 lab_max <- c(5000, 5000) # number of settlers that can fit in each lab treatment
 orchard_size <- c(200, 200) # number of individuals each orchard treatment has space for
 
-rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, lab_props = lab_props, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, orchard_size = orchard_size)
+# coral transplanting
+transplant <- rep(0, years)
+transplant[10] <- 1 # in 10th year, move corals from orchard to reef
+
+# rest_pars$trans_mats[[ss]][[rr]][i,]
+null_mat <- matrix(0, nrow = years, ncol = n)
+trans_mats <- list()
+trans_mats[[1]] <- list() # first treatment
+trans_mats[[1]][[1]] <- null_mat
+trans_mats[[1]][[1]][which(transplant!=0)[1],] <- c(0, 0, 0, 2,0)# number of colonies of each size class to move to reef in first transplant event
+trans_mats[[1]][[2]] <- null_mat # second source
+
+trans_mats[[2]] <- list() # second treatment
+trans_mats[[2]][[1]] <- null_mat # first source
+trans_mats[[2]][[2]] <- null_mat # second source
+
+#rest_pars$trans_reef[[ss]][[rr]][i,1]
+trans_reef <- list()
+null_mat2 <- matrix(1, nrow = years, ncol = 2)
+trans_reef[[1]] <- list() # first treatment
+trans_reef[[1]][[1]] <- null_mat2
+trans_reef[[1]][[1]][which(transplant!=0)[1],] <- c(2, 1)# reef area and subpopulation to transport the corals to
+trans_reef[[1]][[2]] <- null_mat2 # second source
+
+trans_reef[[2]] <- list() # second treatment
+trans_reef[[2]][[1]] <- null_mat2# first source
+trans_reef[[2]][[2]] <- null_mat2 # second source
+
+rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, lab_props = lab_props, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
 
 
 

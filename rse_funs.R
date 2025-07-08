@@ -725,6 +725,43 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     }
 
 
+    # now add any colony transplants
+
+    if(rest_pars$transplant[i]==1){ # if colonies are moved from orchard to reef this year
+
+        # get the corals that will be transplanted from each size class
+        #colony_mats <- list() # holding list for matrices with number of transplant colonies
+
+        for(ss in 1:s_orchard){ # for each orchard subpopulation
+
+          #colony_mat_ss <- list()
+
+          for(rr in 1:source_orchard){ # for each lab source
+
+            trans_colonies <- rest_pars$trans_mats[[ss]][[rr]][i,]
+
+            # make sure these don't exceed the numbers in the population
+            for(nn in 1:n){ # for each size class
+              # if number to transplant is greater than number available at this timepoint, then only transplant the number of colonies available
+              trans_colonies[n] <- ifelse(trans_colonies[n] > orchard_pops[[ss]][[rr]][n ,i], orchard_pops[[ss]][[rr]][n ,i], trans_colonies[n])
+            }
+
+            # add the colonies to the correct reef population
+            ss.reef <- rest_pars$trans_reef[[ss]][[rr]][i,1] # [i,1] = reef area receiving the corals from the ith transplant from the ss/rr^th orchard population
+            rr.reef <- rest_pars$trans_reef[[ss]][[rr]][i,2] # [i, 2] = reef source subpopulation receiving the corals from the ith transplant from the ss/rr^th orchard population
+
+            if(prop_fits[ss.reef] !=0){ # if there's room on this reef
+            reef_pops[[ss.reef]][[rr.reef]][ ,i] <-  reef_pops[[ss.reef]][[rr.reef]][ ,i] + trans_colonies
+            # and substract these from the orchard
+            orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] - trans_colonies
+            }
+
+          } # end of iteration over all source subpopulations in ss^th orchard
+
+        } # end of iteration over all orchards
+
+    } # end of if statement for transplanting colonies
+
   } # end of iteration over each year
 
  # return all the population metrics
