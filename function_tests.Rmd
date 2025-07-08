@@ -107,7 +107,7 @@ A_mids <- c(0.1, 43, 369, 2158, 11171) # mean areas in each size class (cm^2)
 # restoration treatments
 orchard_treatments <- c("none") # orchard
 reef_treatments <- c("none") # reef
-lab_treatments <- c("none") # lab
+lab_treatments <- c("1_none") # lab: all need to have prefix of either "0" (immediately outplanted) or "1" (outplanted after 1 year)
 
 
 # demographic parameters for each orchard and reef treatment
@@ -242,10 +242,11 @@ N0.l <- 1
 # lab parameters
 sett <- c(0.5) # fraction of larvae that successfully settle in each lab treatment
 s <- c(0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
-n_retain <- c(100) # max number of new settlers retained in each lab treatment in the lab for a year 
+#n_retain <- c(100) # max number of new settlers retained in each lab treatment in the lab for a year 
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
 size_props[1, ] <- c(0.2, 0.8, 0, 0, 0)
-lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
+#lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
+lab_pars <- list(sett = sett, s = s, size_props = size_props)
 
 
 # restoration strategy parameters
@@ -325,7 +326,7 @@ n <- 5
 
 orchard_treatments <- c("none", "algae_scrub") # orchard
 reef_treatments <- c("none", "algae_scrub", "urchin_outplant") # reef
-lab_treatments <- c("tile1", "tile2") # lab
+lab_treatments <- c("0_tile1", "1_tile1") # lab
 
 # demographic parameters for each orchard and reef treatment
 # reef parameters: survival
@@ -660,11 +661,12 @@ dist_pars.o[[2]][[2]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, 
 # lab parameters
 sett <- c(0.5, 0.5) # fraction of larvae that successfully settle in each lab treatment
 s <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
-n_retain <- c(0, 0) # max number of new settlers retained in each lab treatment in the lab for a year 
+#n_retain <- c(0, 0) # max number of new settlers retained in each lab treatment in the lab for a year 
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
 size_props[1, ] <- c(0.2, 0.8, 0, 0, 0) # first lab treatment
 size_props[2, ] <- c(0.2, 0.8, 0, 0, 0) # second lab treatment
-lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
+#lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
+lab_pars <- list(sett = sett, s = s, size_props = size_props)
 
 
 # restoration strategy parameters

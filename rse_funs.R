@@ -175,6 +175,10 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
   # lab subpopulations
   s_lab <- length(lab_treatments)
+  # subpopulations that will be outplanted immediately
+  #s_lab0 <- length(which(substr(lab_treatments, start = 1, stop = 1) == "0"))
+  # subpopulations that are retained in the lab for a year
+  #s_lab1 <- length(which(substr(lab_treatments, start = 1, stop = 1) == "1"))
 
   # sources of new recruits
   source_reef <- s_lab + 1 # number of possible sources of reef recruits (+1 is for external recruits)
@@ -505,7 +509,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     # holding vector for settlers on each lab treatment that will be immediately outplanted
 
-    out_settlers <- rep(NA, s_lab)
+    out_settlers <- rep(0, s_lab)
 
     # put the new babies into each lab treatment and determine how many survive
     for(ss in 1:s_lab){
@@ -516,12 +520,20 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       # settlers that survive initial settlement
       surv_settlers <- new_settlers*lab_pars$s[ss] # ADD density dependence here?
 
+      # store these in the lab population
+
+      lab_pops[[ss]][i] <- surv_settlers
+
       # determine which of these will be outplanted immediately vs. retained for a year
       # settlers that get retained for a year:
-      lab_pops[[ss]][i] <- min(lab_pars$n_retain[ss], surv_settlers) # ADD any mortality that occurs over the next year here
+      #lab_pops[[ss]][i] <- min(lab_pars$n_retain[ss], surv_settlers) # ADD any mortality that occurs over the next year here
 
       # settlers that get outplanted immediately
-      out_settlers[ss] <- surv_settlers - lab_pops[[ss]][i]
+     # out_settlers[ss] <- surv_settlers - lab_pops[[ss]][i]
+
+      if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){ # if recruits in ss^th lab treatment are outplanted immediately
+        out_settlers[ss] <- lab_pops[[ss]][i]
+      }
 
     }
 
@@ -532,8 +544,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
     # add the babies:
     # first make a matrix with the number of recruits going from each lab treatment to each reef treatment
-    reef_outplants <- matrix(NA, nrow = s_lab, ncol = s_reef) # from current timestep
-    reef_outplants1 <- matrix(NA, nrow = s_lab, ncol = s_reef) # from last time step
+    reef_outplants <- matrix(0, nrow = s_lab, ncol = s_reef) # from current timestep
+    reef_outplants1 <- matrix(0, nrow = s_lab, ncol = s_reef) # from last time step
 
     for(ss in 1:s_lab){ # for each lab treatment
 
@@ -541,7 +553,10 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       # reef_prop[ss] = proportion lab recruits from ss lab treatment going to reef
       # reef_out_props[ss,] = proportion of reef outplants from lab treatment ss going to treatment on reef
 
-      reef_outplants1[ss, ] <- lab_pops[[ss]][i-1]*rest_pars$reef_prop[ss]*rest_pars$reef_out_props[ss,]
+      if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if recruits in ssth treatment were retained a year
+        reef_outplants1[ss, ] <- lab_pops[[ss]][i-1]*rest_pars$reef_prop[ss]*rest_pars$reef_out_props[ss,]
+      }
+
     }
 
     # apply space constraints: total recruits from all lab treatments going to a given reef
@@ -626,8 +641,8 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 
 
     # repeat for orchard outplants
-    orchard_outplants <- matrix(NA, nrow = s_lab, ncol = s_orchard) # this year's
-    orchard_outplants1 <- matrix(NA, nrow = s_lab, ncol = s_orchard) # last year's
+    orchard_outplants <- matrix(0, nrow = s_lab, ncol = s_orchard) # this year's
+    orchard_outplants1 <- matrix(0, nrow = s_lab, ncol = s_orchard) # last year's
 
     for(ss in 1:s_lab){
 
@@ -635,7 +650,10 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       # 1-reef_prop[ss] = proportion lab recruits from ss lab treatment going to orchard
       # orchard_out_props[ss,] = proportion of the orchard outplants from lab treatment ss going to each orchard treatment
 
-      orchard_outplants1[ss, ] <- lab_pops[[ss]][i-1]*(1-rest_pars$reef_prop[ss])*rest_pars$orchard_out_props[ss,]
+      if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if recruits in ssth treatment were retained a year
+        orchard_outplants1[ss, ] <- lab_pops[[ss]][i-1]*(1-rest_pars$reef_prop[ss])*rest_pars$orchard_out_props[ss,]
+      }
+
     }
 
     # apply space constraints
