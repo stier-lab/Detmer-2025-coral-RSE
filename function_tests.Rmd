@@ -243,8 +243,8 @@ N0.l <- 1
 sett <- c(0.5) # fraction of larvae that successfully settle in each lab treatment
 s <- c(0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
 #n_retain <- c(100) # max number of new settlers retained in each lab treatment in the lab for a year 
-size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
-size_props[1, ] <- c(0.2, 0.8, 0, 0, 0)
+size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of recruits in each size class when they are outplanted
+size_props[1, ] <- c(0.2, 0.8, 0, 0, 0) # c(1, 0, 0, 0, 0)
 #lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
 lab_pars <- list(sett = sett, s = s, size_props = size_props)
 
@@ -662,8 +662,9 @@ dist_pars.o[[2]][[2]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, 
 sett <- c(0.5, 0.5) # fraction of larvae that successfully settle in each lab treatment
 s <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
 #n_retain <- c(0, 0) # max number of new settlers retained in each lab treatment in the lab for a year 
+# lab_treatments <- c("0_tile1", "1_tile1") # lab
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
-size_props[1, ] <- c(0.2, 0.8, 0, 0, 0) # first lab treatment
+size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment
 size_props[2, ] <- c(0.2, 0.8, 0, 0, 0) # second lab treatment
 #lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
 lab_pars <- list(sett = sett, s = s, size_props = size_props)
@@ -679,8 +680,8 @@ reef_out_props[1,] <- c(0, 0.5, 0.5) # from first lab treatment to each reef tre
 reef_out_props[2,] <- c(0, 0.5, 0.5) # from second lab treatment to each reef treatment (note the "none" reef treatment shouldn't get any outplants)
 
 orchard_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(orchard_treatments)) # proportion recruits going from each lab treatment to each orchard treatment
-orchard_out_props[1,] <- c(0.5, 0.5) # from first lab treatment to each orchard treatment
-orchard_out_props[2,] <- c(0.5, 0.5) # from second lab treatment to each orchard treatment
+orchard_out_props[1,] <- c(0, 1) # from first lab treatment to each orchard treatment
+orchard_out_props[2,] <- c(1, 0) # from second lab treatment to each orchard treatment
 
 # sizes allocated to each treatment
 reef_areas <- c(100, 100, 100)*10000 # m^2 given to each reef treatment (make sure to include none -- sum of reef_areas should be size of reef), convert to cm^2

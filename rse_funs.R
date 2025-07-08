@@ -181,7 +181,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
   #s_lab1 <- length(which(substr(lab_treatments, start = 1, stop = 1) == "1"))
 
   # sources of new recruits
-  source_reef <- s_lab + 1 # number of possible sources of reef recruits (+1 is for external recruits)
+  source_reef <- 1 + s_lab # number of possible sources of reef recruits (+1 is for external recruits)
   source_orchard <- s_lab # number of possible sources of orchard recruits
 
   # set up holding lists
@@ -624,10 +624,10 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       if(reef_treatments[ss] != "none"){ # if this isn't a reference site (where zero outplants are added)
 
         for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
-          reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + reef_outplants[rr-1,ss] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
 
           # add the recruits from the previous year
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*lab_pars$size_props[rr-1,] # size_props specifies the fractions of last years lab recruits that are now in each size class
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
         }
 
       }
@@ -716,9 +716,9 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     for(ss in 1:s_orchard){
 
         for(rr in 1:source_orchard){ # for each lab source
-          orchard_pops[[ss]][[rr]][1 ,i] <- orchard_pops[[ss]][[rr]][1 ,i] + orchard_outplants[ss,rr]
+          orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*lab_pars$size_props[rr,]
 
-          orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[ss,rr]*lab_pars$size_props[rr,]
+          orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*lab_pars$size_props[rr,]
 
         }
 
