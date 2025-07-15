@@ -8,7 +8,10 @@ output: html_document
 README: place to copy paste the model function for debugging and to think through model additions
 
 ```{r}
-# orchard subpopulations:
+ # reef subpops = length(lab_treatments)*length(reef_treatments)
+  # lab subpops = length(lab_treatments)
+
+  # orchard subpopulations:
   s_orchard <- length(orchard_treatments)
 
   # reef subpopulations:
@@ -597,7 +600,9 @@ README: place to copy paste the model function for debugging and to think throug
             rr.reef <- rest_pars$trans_reef[[ss]][[rr]][i,2] # [i, 2] = reef source subpopulation receiving the corals from the ith transplant from the ss/rr^th orchard population
 
             if(prop_fits[ss.reef] !=0){ # if there's room on this reef
-            reef_pops[[ss.reef]][[rr.reef]][ ,i] <- trans_colonies
+            reef_pops[[ss.reef]][[rr.reef]][ ,i] <-  reef_pops[[ss.reef]][[rr.reef]][ ,i] + trans_colonies
+            # and substract these from the orchard
+            orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] - trans_colonies
             }
 
           } # end of iteration over all source subpopulations in ss^th orchard
@@ -608,7 +613,6 @@ README: place to copy paste the model function for debugging and to think throug
 
   } # end of iteration over each year
 
- # return all the population metrics
 ```
 
 
