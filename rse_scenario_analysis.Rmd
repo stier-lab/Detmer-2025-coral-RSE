@@ -1,0 +1,18 @@
+---
+title: "rse_scenario_analysis"
+author: "Raine Detmer"
+date: "2025-07-11"
+output: html_document
+---
+
+README: trying out some initial scenario analyses
+
+To start: use their current framework and vary the lab capacity (with the assumption that all recruits that fit will be kept for one year). So x-axis = lab capacity and y-axis = restoration metrics after some number of years
+-- use a matrix from a growing population for the reference site and a matrix from a declining population for the intervention and control sites?
+-- and repeat simulations for different mortality parameters for the first size class (e.g., shouldn't matter if they have the same mortality rates). Maybe start with values from that Chamberland paper?
+
+-- start with no external recruitment?
+
+NOTE: should make a function that summarizes model outputs
+
+then repeat with disturbances? (and remember to use new disturbance function for generating disturbance parameters)
