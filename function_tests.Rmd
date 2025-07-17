@@ -107,7 +107,7 @@ A_mids <- c(0.1, 43, 369, 2158, 11171) # mean areas in each size class (cm^2)
 # restoration treatments
 orchard_treatments <- c("none") # orchard
 reef_treatments <- c("none") # reef
-lab_treatments <- c("1_none") # lab: all need to have prefix of either "0" (immediately outplanted) or "1" (outplanted after 1 year)
+lab_treatments <- c("1_T1") # lab: all need to have prefix of either "0" (immediately outplanted) or "1" (outplanted after 1 year) followed by a "TX" (tile type)
 
 
 # demographic parameters for each orchard and reef treatment
@@ -240,32 +240,37 @@ N0.l <- list()
 N0.l <- 1
 
 # lab parameters
-sett <- c(0.5) # fraction of larvae that successfully settle in each lab treatment
-s <- c(0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
+#sett <- c(0.5) # fraction of larvae that successfully settle in each lab treatment
+#s <- c(0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
 #n_retain <- c(100) # max number of new settlers retained in each lab treatment in the lab for a year 
+s0 <- c(0.9) # fraction of settled larvae in each lab treatment that survive to 2wk outplanting
+s1 <- c(0.9) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
+sett_props <- list(T1 = 1) # proportion of larvae that settle on each tile type
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of recruits in each size class when they are outplanted
 size_props[1, ] <- c(0.2, 0.8, 0, 0, 0) # c(1, 0, 0, 0, 0)
 #lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
-lab_pars <- list(sett = sett, s = s, size_props = size_props)
+#lab_pars <- list(sett = sett, s = s, size_props = size_props)
+lab_pars <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_props)
 
 
 # restoration strategy parameters
 orchard_yield <- 0 # percent of new orchard babies successfully collected
 reef_yield <- 0.1 # percent of new reef babies successfully collected
-lab_props <- 1 # proportion of new babies put in each lab treatment
+#lab_props <- 1 # proportion of new babies put in each lab treatment
 reef_prop <- 0.5 # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
 reef_out_props <- matrix(1, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion recruits going from each lab treatment to each orchard treatment (row = origin lab treatment, column = destination reef treatment)
 orchard_out_props <- matrix(1, nrow = length(lab_treatments), ncol = length(orchard_treatments)) # proportion recruits going from each lab treatment to each orchard treatment
 
 # sizes allocated to each treatment
 reef_areas <- c(50)*10000 # m^2 given to each reef treatment (make sure to include none -- sum of reef_areas should be size of reef), convert to cm^2
-lab_max <- c(5000) # number of settlers that can fit in each lab treatment
+lab_max <- c(5000) # total number of settlers that the lab can accommodate
+lab_retain_max <- c(1000) # total number of settlers that the lab can keep for a year
 orchard_size <- c(200) # number of individuals each orchard treatment has space for
 
 # coral transplanting
 transplant <- rep(0, years)
 
-rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, lab_props = lab_props, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, orchard_size = orchard_size, transplant = transplant)
+rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant)
 
 
 sim1 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
@@ -329,7 +334,7 @@ n <- 5
 
 orchard_treatments <- c("none", "algae_scrub") # orchard
 reef_treatments <- c("none", "algae_scrub", "urchin_outplant") # reef
-lab_treatments <- c("0_tile1", "1_tile1") # lab
+lab_treatments <- c("0_T1", "1_T2") # lab
 
 # demographic parameters for each orchard and reef treatment
 # reef parameters: survival
@@ -662,15 +667,15 @@ dist_pars.o[[2]][[2]] <- list(dist_surv = dist_surv.o, dist_Tmat = dist_Tmat.o, 
 
 
 # lab parameters
-sett <- c(0.5, 0.5) # fraction of larvae that successfully settle in each lab treatment
-s <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to time of outplanting
-#n_retain <- c(0, 0) # max number of new settlers retained in each lab treatment in the lab for a year 
-# lab_treatments <- c("0_tile1", "1_tile1") # lab
+s0 <- c(0.9, 0.9) # fraction of settled larvae in each lab treatment that survive to 2wk outplanting
+s1 <- c(0.9, 0.9) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
+sett_props <- list(T1 = 0.5, T2 = 0.5) # proportion of larvae that settle on each tile type
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
 size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment
 size_props[2, ] <- c(0.2, 0.8, 0, 0, 0) # second lab treatment
 #lab_pars <- list(sett = sett, s = s, n_retain = n_retain, size_props = size_props)
-lab_pars <- list(sett = sett, s = s, size_props = size_props)
+lab_pars <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_props)
+
 
 
 # restoration strategy parameters
@@ -688,8 +693,10 @@ orchard_out_props[2,] <- c(0.5, 0.5) # from second lab treatment to each orchard
 
 # sizes allocated to each treatment
 reef_areas <- c(100, 100, 100)*10000 # m^2 given to each reef treatment (make sure to include none -- sum of reef_areas should be size of reef), convert to cm^2
-lab_max <- c(5000, 5000) # number of settlers that can fit in each lab treatment
+lab_max <- c(5000) # total number of settlers that the lab can accommodate
+lab_retain_max <- c(0) # total number of settlers that the lab can keep for a year
 orchard_size <- c(11, 200) # number of individuals each orchard treatment has space for
+
 
 # coral transplanting
 transplant <- rep(0, years)
@@ -719,7 +726,7 @@ trans_reef[[2]] <- list() # second treatment
 trans_reef[[2]][[1]] <- null_mat2# first source
 trans_reef[[2]][[2]] <- null_mat2 # second source
 
-rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, lab_props = lab_props, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
 
 
 

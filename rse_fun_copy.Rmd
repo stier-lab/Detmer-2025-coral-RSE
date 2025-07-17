@@ -8,7 +8,9 @@ output: html_document
 README: place to copy paste the model function for debugging and to think through model additions
 
 ```{r}
- s_orchard <- length(orchard_treatments)
+
+  # orchard subpopulations:
+  s_orchard <- length(orchard_treatments)
 
   # reef subpopulations:
   s_reef <- length(reef_treatments)
@@ -24,6 +26,13 @@ README: place to copy paste the model function for debugging and to think throug
   #s_lab0 <- length(which(substr(lab_treatments, start = 1, stop = 1) == "0"))
   # subpopulations that are retained in the lab for a year
   #s_lab1 <- length(which(substr(lab_treatments, start = 1, stop = 1) == "1"))
+  
+  # tile types
+  tile_types <- rep(NA, s_lab)
+  
+  for(ss in 1:s_lab){
+    tile_types[ss] <- substr(lab_treatments[ss], start = 3, stop = 4) # T1, T2, etc.
+  }
 
   # sources of new recruits
   source_reef <- 1 + s_lab # number of possible sources of reef recruits (+1 is for external recruits)
@@ -351,34 +360,43 @@ README: place to copy paste the model function for debugging and to think throug
     }
 
     tot_babies <- sum(new_babies.o) + sum(new_babies.r, na.rm = T) # total new babies collected
+    
+    # make sure these don't exceed max lab capacity
+    tot_babies <- min(tot_babies, rest_pars$lab_max)
+    
+    # determine which of these can stay for a year
+    tot_settlers1 <- min(tot_babies, rest_pars$lab_retain_max)
+    
+    # remaining babies are outplanted right away
+    tot_settlers0 <- tot_babies - tot_settlers1
+    
+    # need parameter for max number that the lab can handle, and then a number for the max
+    # that can be retained for a year, and then have a hierarchy so everything that can be retained
+    # is and any leftovers get outplanted immediately
+    
+    # lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]
+    # tile_types
 
     # holding vector for settlers on each lab treatment that will be immediately outplanted
-
     out_settlers <- rep(0, s_lab)
 
     # put the new babies into each lab treatment and determine how many survive
     for(ss in 1:s_lab){
-
-      # settlers = prop babies put in ss^th treatment x prop of babies that successfully settle in this treatment x total babies
-      new_settlers <- min(rest_pars$lab_props[ss]*lab_pars$sett[ss]*tot_babies, rest_pars$lab_max[ss]) # rest_pars$lab_max[ss] = max number of settlers that can go in this treatment
-
-      # settlers that survive initial settlement
-      surv_settlers <- new_settlers*lab_pars$s[ss] # ADD density dependence here?
-
-      # store these in the lab population
-
-      lab_pops[[ss]][i] <- surv_settlers
-
-      # determine which of these will be outplanted immediately vs. retained for a year
-      # settlers that get retained for a year:
-      #lab_pops[[ss]][i] <- min(lab_pars$n_retain[ss], surv_settlers) # ADD any mortality that occurs over the next year here
-
-      # settlers that get outplanted immediately
-     # out_settlers[ss] <- surv_settlers - lab_pops[[ss]][i]
-
-      if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){ # if recruits in ss^th lab treatment are outplanted immediately
-        out_settlers[ss] <- lab_pops[[ss]][i]
+      
+      if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){ # if settlers in ss^th lab treatment are outplanted immediately
+        out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]
+        
+        # determine the fraction of these that survive to outplanting
+        out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss] # ADD density dependence here?
+        
       }
+      
+      if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if settlers in ss^th lab treatment are retained for a year
+        retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]
+        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss] # store these in the lab population
+      }
+      
+
 
     }
 
