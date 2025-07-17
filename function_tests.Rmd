@@ -407,7 +407,7 @@ frag_pars.r[[3]][[3]] <- frag_pars.r[[1]][[1]] # third source
 fec_pars.r <- list()
 fec_pars.r[[1]] <- list() # first subpop
 #fec_pars.r[[1]][[1]] <- c(0, 0.1, 1, 2) # first source
-fec_pars.r[[1]][[1]] <- c(0, 0, 0.1, 1, 2) # first source
+fec_pars.r[[1]][[1]] <- c(0, 0, 0.1, 1, 2)*50 # first source
 
 fec_pars.r[[2]] <- list()
 fec_pars.r[[2]][[1]] <- fec_pars.r[[1]][[1]]
@@ -683,13 +683,13 @@ reef_out_props[1,] <- c(0, 0.5, 0.5) # from first lab treatment to each reef tre
 reef_out_props[2,] <- c(0, 0.5, 0.5) # from second lab treatment to each reef treatment (note the "none" reef treatment shouldn't get any outplants)
 
 orchard_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(orchard_treatments)) # proportion recruits going from each lab treatment to each orchard treatment
-orchard_out_props[1,] <- c(0, 1) # from first lab treatment to each orchard treatment
-orchard_out_props[2,] <- c(1, 0) # from second lab treatment to each orchard treatment
+orchard_out_props[1,] <- c(0.5, 0.5) # from first lab treatment to each orchard treatment
+orchard_out_props[2,] <- c(0.5, 0.5) # from second lab treatment to each orchard treatment
 
 # sizes allocated to each treatment
 reef_areas <- c(100, 100, 100)*10000 # m^2 given to each reef treatment (make sure to include none -- sum of reef_areas should be size of reef), convert to cm^2
 lab_max <- c(5000, 5000) # number of settlers that can fit in each lab treatment
-orchard_size <- c(200, 200) # number of individuals each orchard treatment has space for
+orchard_size <- c(11, 200) # number of individuals each orchard treatment has space for
 
 # coral transplanting
 transplant <- rep(0, years)
@@ -752,7 +752,7 @@ reef3_tot <- apply(sim1$reef_pops[[3]][[1]], MARGIN = 2, sum) + apply(sim1$reef_
 
 
 orch1_tot <- apply(sim1$orchard_pops[[1]][[1]], MARGIN = 2, sum) + apply(sim1$orchard_pops[[1]][[2]], MARGIN = 2, sum)
-orch2_tot <- apply(sim1$orchard_pops[[2]][[1]], MARGIN = 2, sum) + apply(sim1$orchard_pops[[2]][[1]], MARGIN = 2, sum)
+orch2_tot <- apply(sim1$orchard_pops[[2]][[1]], MARGIN = 2, sum) + apply(sim1$orchard_pops[[2]][[2]], MARGIN = 2, sum)
 
 
 plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(reef1_tot, reef2_tot, reef3_tot, orch1_tot, orch2_tot)), xlab = "year", ylab = "Pop'n size", lwd = 2)
@@ -765,6 +765,15 @@ legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"),
 ```
 
 
+```{r}
+
+plot(x = c(1:years), y = sim1$orchard_pops[[1]][[1]][1,], type = "l", las = 1, ylim = c(-1,5))
+lines(x = c(1:years), y = sim1$orchard_pops[[1]][[1]][2,], type = "l", lty = 2)
+lines(x = c(1:years), y = sim1$orchard_pops[[1]][[1]][3,], type = "l", lty = 3)
+lines(x = c(1:years), y = sim1$orchard_pops[[1]][[1]][4,], type = "l", lty = 4)
+lines(x = c(1:years), y = sim1$orchard_pops[[1]][[1]][5,], type = "l", lty = 5)
+
+```
 
 
 

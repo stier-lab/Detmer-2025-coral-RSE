@@ -8,11 +8,7 @@ output: html_document
 README: place to copy paste the model function for debugging and to think through model additions
 
 ```{r}
- # reef subpops = length(lab_treatments)*length(reef_treatments)
-  # lab subpops = length(lab_treatments)
-
-  # orchard subpopulations:
-  s_orchard <- length(orchard_treatments)
+ s_orchard <- length(orchard_treatments)
 
   # reef subpopulations:
   s_reef <- length(reef_treatments)
@@ -507,7 +503,7 @@ README: place to copy paste the model function for debugging and to think throug
 
     # apply space constraints
     # calculate total number of recruits (from all lab treatments) going to each orchard treatment
-    #new_orchard_tots <- apply(orchard_outplants, 2, sum)
+    new_orchard_tots <- apply(orchard_outplants, 2, sum)
 
     # calculate total number of corals currently in each orchard subpopulation
     ind_tots <- rep(NA, s_orchard)
@@ -539,42 +535,76 @@ README: place to copy paste the model function for debugging and to think throug
         prop_fits2[pp] <- 1 # add the new recruits
       }
 
-      # open_ind_pp <- tot_ind_pp - occupied_ind_pp # number of new recruits that could fit in the orchard subpop
-      #
-      # new_ind_pp <- new_orchard_tots[pp] # total number of new recruits to put in orchard
-      #
-      # if(open_ind_pp <= 0){ # if there's no space left
-      #   prop_fits2[pp] <- 0 # proportion of new recruits that can be outplanted is 0
-      # } else if(new_ind_pp < open_ind_pp){ # if all of them fit
-      #   prop_fits2[pp] <- 1 # all the new recruits can be outplanted
-      # } else{ # if only some will fit, calculate what proportion will fit
-      #   prop_fits2[pp] <- 1-((new_ind_pp - open_ind_pp)/new_ind_pp)
-      # }
+      open_ind_pp <- tot_ind_pp - occupied_ind_pp # number of new recruits that could fit in the orchard subpop
+
+      new_ind_pp <- new_orchard_tots[pp] # total number of new recruits to put in orchard
+
+      if(open_ind_pp <= 0){ # if there's no space left
+        prop_fits2[pp] <- 0 # proportion of new recruits that can be outplanted is 0
+      } else if(new_ind_pp < open_ind_pp){ # if all of them fit
+        prop_fits2[pp] <- 1 # all the new recruits can be outplanted
+      } else{ # if only some will fit, calculate what proportion will fit
+        prop_fits2[pp] <- 1-((new_ind_pp - open_ind_pp)/new_ind_pp)
+      }
 
     }
 
     # update outplant matrix (remember row = lab treatment where recruits originated, column = orchard treatment where recruits are outplanted)
    # orchard_outplants <- orchard_outplants%*%matrix(prop_fits2, nrow = length(orchard_treatments), ncol = 1)
 
-    for(ss in 1:s_lab){
+    for(ss in 1:s_lab){ # for each lab treatment
       orchard_outplants[ss,] <- orchard_outplants[ss,]*prop_fits2
       orchard_outplants1[ss,] <- orchard_outplants1[ss,]*prop_fits2
     }
-
+    
     # add the outplants to the orchard subpopulations
     for(ss in 1:s_orchard){
-
-        for(rr in 1:source_orchard){ # for each lab source
-          orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*lab_pars$size_props[rr,]
-
-          orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*lab_pars$size_props[rr,]
-
-        }
-
+      
+      for(rr in 1:source_orchard){ # for each lab source
+        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*lab_pars$size_props[rr,]
+        
+        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*lab_pars$size_props[rr,]
+        
+      }
+      
+    }
+    
+    # also make a holding matrix for the recruits that didn't fit in the orchard and go to the reef instead
+    # want to distribute these evenly across all intervention reefs 
+    
+    # if there is at least one intervention reef
+    if(length(which(reef_treatments!="none")) > 0){
+      
+    extra_orchard_outplants <- matrix(0, nrow = s_lab, ncol = s_reef) # this year's
+    extra_orchard_outplants1 <- matrix(0, nrow = s_lab, ncol = s_reef) # last year's
+    
+    for(ss in 1:s_lab){ # for each lab treatment
+      
+      extra_orchard_outplants[ss,which(reef_treatments!="none")] <- rep(sum(orchard_outplants[ss,]*(1-prop_fits2))/(length(which(reef_treatments!="none"))), length(which(reef_treatments!="none"))) # this year's
+      extra_orchard_outplants1[ss,which(reef_treatments!="none")] <- rep(sum(orchard_outplants1[ss,]*(1-prop_fits2))/length(which(reef_treatments!="none")), length(which(reef_treatments!="none"))) # last year's
+      
     }
 
+    
+    # add the extras to the reef subpopulations (if there's room on the reef)
+      for(ss in 1:s_reef){
+        if(prop_fits[ss] !=0){
+        
+        if(reef_treatments[ss] != "none"){ # if this isn't a reference site (where zero outplants are added)
+          
+          for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
+            reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + extra_orchard_outplants[rr-1,ss]*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
+            
+            # add the recruits from the previous year
+            reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + extra_orchard_outplants1[rr-1,ss]*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
+          }
+        }
+      }
+    } # end of iteration over reef subpopulations
 
-    # now add any colony transplants
+  } # end of if(length(which(reef_treatments!="none")) > 0){
+
+    # now add any colony transplants from the orchard to the reef
 
     if(rest_pars$transplant[i]==1){ # if colonies are moved from orchard to reef this year
 
@@ -592,7 +622,7 @@ README: place to copy paste the model function for debugging and to think throug
             # make sure these don't exceed the numbers in the population
             for(nn in 1:n){ # for each size class
               # if number to transplant is greater than number available at this timepoint, then only transplant the number of colonies available
-              trans_colonies[n] <- ifelse(trans_colonies[n] > orchard_pops[[ss]][[rr]][n ,i], orchard_pops[[ss]][[rr]][n ,i], trans_colonies[n])
+              trans_colonies[nn] <- ifelse(trans_colonies[nn] > orchard_pops[[ss]][[rr]][nn ,i], orchard_pops[[ss]][[rr]][nn ,i], trans_colonies[nn])
             }
 
             # add the colonies to the correct reef population
@@ -613,8 +643,8 @@ README: place to copy paste the model function for debugging and to think throug
 
   } # end of iteration over each year
 
+ # return all the population metrics
 ```
-
 
 
 ```{r}
