@@ -681,7 +681,7 @@ lab_pars <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_pr
 # restoration strategy parameters
 orchard_yield <- 0 # percent of new orchard babies successfully collected
 reef_yield <- 0.1 # percent of new reef babies successfully collected
-lab_props <- c(0.5, 0.5) # proportion of new babies put in each lab treatment
+#lab_props <- c(0.5, 0.5) # proportion of new babies put in each lab treatment
 reef_prop <- c(0.5, 0.5) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
 reef_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion recruits going from each lab treatment to each reef treatment (row = origin lab treatment, column = destination reef treatment)
 reef_out_props[1,] <- c(0, 0.5, 0.5) # from first lab treatment to each reef treatment (note the "none" reef treatment shouldn't get any outplants)
