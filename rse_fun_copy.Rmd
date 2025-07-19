@@ -298,6 +298,9 @@ README: place to copy paste the model function for debugging and to think throug
           # now update the population sizes
           reef_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
 
+          # record this as the pre-outplant population size
+          reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
+          
           # amount of new larvae produced at the i^th time point:
           reef_rep[[ss]][[rr]][i] <- sum(reef_pops[[ss]][[rr]][ ,i]*reef_mat_pars[[ss]][[rr]]$fecundity[[i]])
 
