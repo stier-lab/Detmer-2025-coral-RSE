@@ -406,27 +406,22 @@ T1_props <- seq(from = 0, to = 1, length.out = 20) # proportion of tiles that ar
 
 par_set <- T1_props
 
-# holding vectors
-# reef population sizes at 5 years
-reef1.5 <- rep(NA, length(par_set))
-reef2.5 <- rep(NA, length(par_set))
 
-# reef population sizes at 10 years
-reef1.10 <- rep(NA, length(par_set))
-reef2.10 <- rep(NA, length(par_set))
+# holding matrices reef population size, area, and reproductive output at 5 and 10 years (rows = parameter values, columns = year in simulation)
+reef1_pop <- matrix(NA, nrow = length(par_set), ncol = 2)
+reef1_area <- matrix(NA, nrow = length(par_set), ncol = 2)
+reef1_rep <- matrix(NA, nrow = length(par_set), ncol = 2)
 
-# cumulative number of recruits outplanted
-reef_out2.5 <- rep(NA, length(par_set))
-reef_out2.10 <- rep(NA, length(par_set))
+reef2_pop <- matrix(NA, nrow = length(par_set), ncol = 2)
+reef2_area <- matrix(NA, nrow = length(par_set), ncol = 2)
+reef2_rep <- matrix(NA, nrow = length(par_set), ncol = 2)
+reef2_out <- matrix(NA, nrow = length(par_set), ncol = 2)
 
 
-# intervention reef reproductive output at 5 years
-rep1.5 <- rep(NA, length(par_set))
-rep2.5 <- rep(NA, length(par_set))
+# or just store the whole time series of all the values? but then each element of the list will be for a different parameter value which makes it tricky to plot...
+#reef1_list <- list()
+#reef2_list <- list()
 
-# intervention reef reproductive output at 10 years
-rep1.10 <- rep(NA, length(par_set))
-rep2.10 <- rep(NA, length(par_set))
 
 for(i in 1:length(par_set)){
   
@@ -435,24 +430,35 @@ lab_pars.i <- list(s0 = s0, s1 = s1, sett_props = sett_props.i, size_props = siz
 
 sim.i <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars.i, rest_pars, N0.r, N0.o, N0.l)
   
-  
 # save the results
-reef1.5[i] <- sum(sim.i$reef_pops_pre[[1]][[1]][,5])
-reef2.5[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,5]) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]) + sum(sim.i$reef_pops_pre[[2]][[3]][,5])
-reef1.10[i] <- sum(sim.i$reef_pops_pre[[1]][[1]][,10])
-reef2.10[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,10]) + sum(sim.i$reef_pops_pre[[2]][[2]][,10]) + sum(sim.i$reef_pops_pre[[2]][[3]][,10])
 
-# cumulative numbers of recruits outplanted
-reef_out2.5[i] <- sum(sim.i$reef_out[[2]][[2]][2:5]) + sum(sim.i$reef_out[[2]][[3]][2:5])
-reef_out2.10[i] <- sum(sim.i$reef_out[[2]][[2]][2:10]) + sum(sim.i$reef_out[[2]][[3]][2:10])
+reef1_pop[i,1] <- sum(sim.i$reef_pops_pre[[1]][[1]][,5])
+reef1_area[i,1] <- sum(sim.i$reef_pops_pre[[1]][[1]][,5]*A_mids)
+reef1_rep[i,1] <- sum(sim.i$reef_pops_pre[[1]][[1]][,5]*fec_pars.r[[1]][[1]])
 
-# intervention reef reproductive output at 5 years
-rep1.5[i] <- sum(sim.i$reef_pops_pre[[1]][[1]][,5]*fec_pars.r[[1]][[1]])
-rep2.5[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,5]*fec_pars.r[[2]][[1]]) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]*fec_pars.r[[2]][[2]]) + sum(sim.i$reef_pops_pre[[2]][[3]][,5]*fec_pars.r[[2]][[3]])
+reef1_pop[i,2] <- sum(sim.i$reef_pops_pre[[1]][[1]][,10])
+reef1_area[i,2] <- sum(sim.i$reef_pops_pre[[1]][[1]][,10]*A_mids)
+reef1_rep[i,2] <- sum(sim.i$reef_pops_pre[[1]][[1]][,10]*fec_pars.r[[1]][[1]])
 
-# intervention reef reproductive output at 10 years
-rep1.10[i] <- sum(sim.i$reef_pops_pre[[1]][[1]][,10]*fec_pars.r[[1]][[1]])
-rep2.10[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,10]*fec_pars.r[[2]][[1]]) + sum(sim.i$reef_pops_pre[[2]][[2]][,10]*fec_pars.r[[2]][[2]]) + sum(sim.i$reef_pops_pre[[2]][[3]][,10]*fec_pars.r[[2]][[3]])
+
+reef2_pop[i,1] <- sum(sim.i$reef_pops_pre[[2]][[1]][,5]) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]) + sum(sim.i$reef_pops_pre[[2]][[3]][,5])
+
+reef2_area[i,1] <- sum(sim.i$reef_pops_pre[[2]][[1]][,5]*A_mids) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]*A_mids) + sum(sim.i$reef_pops_pre[[2]][[3]][,5]*A_mids)
+
+reef2_rep[i,1] <-sum(sim.i$reef_pops_pre[[2]][[1]][,5]*fec_pars.r[[2]][[1]]) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]*fec_pars.r[[2]][[2]]) + sum(sim.i$reef_pops_pre[[2]][[3]][,5]*fec_pars.r[[2]][[3]])
+
+reef2_out[i,1] <- sum(sim.i$reef_out[[2]][[2]][2:5]) + sum(sim.i$reef_out[[2]][[3]][2:5])
+
+  
+reef2_pop[i,2] <- sum(sim.i$reef_pops_pre[[2]][[1]][,10]) + sum(sim.i$reef_pops_pre[[2]][[2]][,10]) + sum(sim.i$reef_pops_pre[[2]][[3]][,10])
+
+reef2_area[i,2] <- sum(sim.i$reef_pops_pre[[2]][[1]][,10]*A_mids) + sum(sim.i$reef_pops_pre[[2]][[2]][,10]*A_mids) + sum(sim.i$reef_pops_pre[[2]][[3]][,10]*A_mids)
+
+reef2_rep[i,2] <-sum(sim.i$reef_pops_pre[[2]][[1]][,10]*fec_pars.r[[2]][[1]]) + sum(sim.i$reef_pops_pre[[2]][[2]][,10]*fec_pars.r[[2]][[2]]) + sum(sim.i$reef_pops_pre[[2]][[3]][,10]*fec_pars.r[[2]][[3]])
+
+reef2_out[i,2] <- sum(sim.i$reef_out[[2]][[2]][2:10]) + sum(sim.i$reef_out[[2]][[3]][2:10])
+
+
 
 }
 
@@ -464,11 +470,23 @@ rep2.10[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,10]*fec_pars.r[[2]][[1]]) + sum
 
 ```{r}
 
-plot(x = T1_props, y = reef2.5, type = "l", ylim = c(0, 3), las = 1)
-lines(x = T1_props, y = reef2.10, lty = 2)
+plot(x = T1_props, y = reef2_pop[,1], type = "l", ylim = c(0, 3), las = 1)
+lines(x = T1_props, y = reef2_pop[,2], lty = 2)
 
-plot(x = T1_props, y = reef_out2.5, type = "l", las = 1, ylim = c(0, 4000))
-lines(x = T1_props, y = reef_out2.10, lty = 2)
+plot(x = T1_props, y = reef2_out[,1], type = "l", las = 1, ylim = c(0, 4000))
+lines(x = T1_props, y = reef2_out[,2], lty = 2)
+
+```
+
+
+
+```{r}
+
+#(0.005 - 0.001)/0.001
+
+0.001*5
+
+0.001*2
 
 ```
 
@@ -477,19 +495,58 @@ lines(x = T1_props, y = reef_out2.10, lty = 2)
 
 # try making a trade-off plot with T1_props on x-axis, number outplanted on y-axis, and point shading = population size
 
-plot(NULL, xlim=c(0,1), ylim=c(0,max(reef_out2.5)), ylab="Number outplanted", xlab="Prop. cement tiles", las = 1)
+par(mar=c(0, 0, 0, 0), oma = c(4, 4, 4, 0))
+plot(NULL, xlim=c(0,1), ylim=c(0,max(reef2_out[,1])), ylab=NA, xlab=NA, las = 1)
+#mtext(side = 3, "5x higher survival on ceramic")
+mtext(side = 3, "2x higher survival on ceramic")
+mtext(side = 1, "Proportion cement tiles", line = 2.5)
+mtext(side = 2, "Number outplanted", line = 2.5)
 for(i in 1:length(T1_props)){
-  points(x = T1_props[i], y = reef_out2.5[i], pch = 16, col = adjustcolor("dodgerblue2", alpha.f = (reef2.5[i]-min(reef2.5))/(max(reef2.5) - min(reef2.5))), cex = 1.5)
+  points(x = T1_props[i], y = reef2_out[i,1], pch = 16, col = adjustcolor("dodgerblue2", alpha.f = (reef2_pop[i,1]-min(reef2_pop[,1]))/(max(reef2_pop[,1]) - min(reef2_pop[,1]))), cex = 1.5)
+  points(x = T1_props[i], y = reef2_out[i,1], pch = 1, col = "dodgerblue2", cex = 1.5)
 }
 
-plot(NULL, xlim=c(0,1), ylim=c(0,max(reef_out2.10)), ylab="Number outplanted", xlab="Prop. cement tiles", las = 1)
+# try plotting number outplanted vs. reef metrics
+# plot(NULL, xlim=c(0,max(reef2_out[,1])), ylim=c(0,max(reef2_pop[,1])), ylab="Reef pop'n size", xlab="Number outplanted", las = 1)
+# for(i in 1:length(T1_props)){
+#   points(x = reef2_out[i,1], y = reef2_pop[i,1], pch = 16, col = adjustcolor("dodgerblue2", alpha.f = (T1_props[i]-min(T1_props))/(max(T1_props) - min(T1_props))), cex = 1.5)
+# }
+
+
+plot(NULL, xlim=c(0,1), ylim=c(0,max(reef2_out[,1])), ylab="Number outplanted", xlab="Prop. cement tiles", las = 1)
 for(i in 1:length(T1_props)){
-  points(x = T1_props[i], y = reef_out2.10[i], pch = 16, col = adjustcolor("dodgerblue2", alpha.f = (reef2.10[i]-min(reef2.10))/(max(reef2.10) - min(reef2.10))), cex = 1.5)
+  points(x = T1_props[i], y = reef2_out[i,1], pch = 16, col = adjustcolor("dodgerblue2", alpha.f = (reef2_area[i,1]-min(reef2_area[,1]))/(max(reef2_area[,1]) - min(reef2_area[,1]))), cex = 1.5)
 }
+
+
+# add a legend with a colorbar scale going from min to max values
+
+rampcols <- colorRampPalette(colors = c("gray99", "dodgerblue2"), space="Lab")(50) # 50 colors from blue to white   
+
+# legend
+ # set the height and width of the legend rectangle
+xl <- 1
+yb <- 1
+xr <- 1.25
+yt <- 2
+
+ plot(NA,type="n",ann=FALSE,xlim=c(1,2),ylim=c(1,2),xaxt="n",yaxt="n",bty="n")
+rect(
+     xl,
+     head(seq(yb,yt,(yt-yb)/50),-1), # the denominator needs to match the length of the color vector rampcols_2
+     xr,
+     tail(seq(yb,yt,(yt-yb)/50),-1),
+     col=rampcols, #colfunc(10)
+     border = NA
+    )
+
+
 
 ```
 
 seems to just flip from most coral at lowest prop to most at highest prop depending on how big the differences in mortality are
+
+Maybe a more interesting figure is to vary both settlement rates and mortality and see which combinations result in … what? Benefits of ceramic? Or for each combination calculate the optimal ratio of ceramic and cement?
 
 # Scenario 2: lab retention times
 
