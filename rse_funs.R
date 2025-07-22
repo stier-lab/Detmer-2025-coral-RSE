@@ -888,7 +888,167 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 # make function for creating summary data frames (total cover, total reproductive output)
 
 
+# make a simple function for doing population viability analyses (just need one population)
+#' @param years number of years in simulation
+#' @param n number of size classes
+#' @param A_mids areas at the midpoint of each size class
+#' @param surv_pars.r list with mean survival probabilities in each size class 
+#' @param growth_pars.r list with transition probabilities for each size class 
+#' @param shrink_pars.r list with shrinkage probabilities for each size class 
+#' @param frag_pars.r list with fragmentation probabilities for each size class 
+#' @param fec_pars.r list with mean fecundities of each size class 
+#' @param lambda mean number of external recruits each year
+#' @param sigma_s standard deviation of survival probabilities
+#' @param sigma_f standard deviation of fecundities
+#' @param ext_rand whether external recruitment is stochastic (TRUE) or not (FALSE)
+#' @param seeds vector with seeds for the random number generation for survival, fecundity, and recruitment
+#' @param dist_yrs vector of years when reef disturbance occurs
+#' @param dist_pars.r list with survival, growth/shrinkage (transition matrix) and fecundity parameters for each reef disturbance year
+#' @param dist_effects.r which demographic parameters are affected by each reef disturbance
+#' @param out_pars number of individuals in each size class to outplant at each timepoint
+#' @param N0.r initial population sizes 
 
+popvi_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r,
+                      fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r){
+  
+  
+  
+  # reef subpopulations:
+  s_reef <- 1
+  
+  # external recruitment
+  ext_rec <- Ext_fun(years, lambda, rand = ext_rand, seed1 = seeds[3])
+  
+  # sources of new recruits
+  source_reef <- 2 # number of possible sources of reef recruits (external and outplanted)
+  
+  # set up holding lists
+  reef_pops <- list() # holding list for population sizes of each reef subpopulation
+  reef_rep <- list() # holding list for total reproductive output from each reef subpopulation
+  reef_mat_pars <- list() # list with data frames with the transition matrix parameters for each reef subpop
+  
+  # reef population sizes before outplanting
+  reef_pops_pre <- list()
+  
+  for(ss in 1:s_reef){
+    
+    # sublists for all the different sources of recruits to this reef
+    reef_pops_ss <- list() # population sizes
+    reef_rep_ss <- list() # total reproductive output
+    reef_pops_pre_ss <- list() # population sizes before outplanting
+    reef_mat_pars_ss <- list() # matrix parameters
+    
+
+      
+      for(rr in 1:source_reef){ # for each possible source of recruits to this reef subpop
+        
+        # holding matrix for number of individuals in each size class of the ss^th reef subpop from the rr^th source in each year
+        reef_pops_ss[[rr]] <- matrix(NA, nrow = n, ncol = years)
+        
+        # holding matrix for total reproductive output by individuals in the ss^th reef subpop from the rr^th source each year
+        reef_rep_ss[[rr]] <- rep(NA, years)
+        
+        # holding matrix reef population size before outplanting
+        reef_pops_pre_ss[[rr]] <- matrix(NA, nrow = n, ncol = years)
+        
+        # add initial conditions
+        reef_pops_ss[[rr]][,1] <- N0.r[[ss]][[rr]]
+        reef_pops_pre_ss[[rr]][,1] <- N0.r[[ss]][[rr]]
+        
+        # and get the list with the transition matrix parameters
+        reef_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, surv_pars.r[[ss]][[rr]], growth_pars.r[[ss]][[rr]],
+                                               shrink_pars.r[[ss]][[rr]], frag_pars.r[[ss]][[rr]], fec_pars.r[[ss]][[rr]],
+                                               sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[ss]][[rr]],
+                                               dist_effects.r[[ss]][[rr]])
+        # fill in initial reproduction
+        reef_rep_ss[[rr]][1] <- sum(reef_pops_ss[[rr]][,1]*reef_mat_pars_ss[[rr]]$fecundity[[1]])
+        
+      }
+      
+      
+    
+    
+    # put all the sublists in the outer holding lists for each reef subpop
+    
+    reef_pops[[ss]] <- reef_pops_ss
+    reef_pops_pre[[ss]] <- reef_pops_pre_ss
+    reef_rep[[ss]] <- reef_rep_ss
+    reef_mat_pars[[ss]] <- reef_mat_pars_ss
+    
+    
+  }
+  
+  
+  for(i in 2:years){
+    
+    
+    # reef dynamics
+    
+    # update the population size using the transition matrix:
+    
+    for(ss in 1:s_reef){ # for each reef subpopulation
+        
+        for(rr in 1:source_reef){ # for each source of recruits
+          
+          # get the transition matrix
+          T_mat <- reef_mat_pars[[ss]][[rr]]$growth[[i]]
+          
+          # get the fragmentation matrix
+          F_mat <- reef_mat_pars[[ss]][[rr]]$fragmentation[[i]]
+          
+          
+          # get the survival probabilities
+          S_i <- reef_mat_pars[[ss]][[rr]]$survival[[i]] # survival
+          
+          # UPDATE survival with density dependence here
+          # (QUESTION: should this depend on total reef popn or just the subpopn size?)
+          
+          N_mat <- reef_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
+          N_mat <- N_mat*S_i # fractions surviving to current time point
+          
+          # now update the population sizes
+          reef_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
+          
+          # record this as the pre-outplant population size
+          reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
+          
+          # amount of new larvae produced at the i^th time point:
+          reef_rep[[ss]][[rr]][i] <- sum(reef_pops[[ss]][[rr]][ ,i]*reef_mat_pars[[ss]][[rr]]$fecundity[[i]])
+          
+          if(rr ==1){ # if this is the first source (external recruits)
+            
+            # add the external recruits
+            reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]
+            
+            # record this as the pre-outplant population size
+            reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
+          }
+          
+          
+          if(rr ==2){ # if this the second source (outplants)
+            # add the outplants to each size class
+            
+            reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + out_pars[i,]
+            
+          }
+          
+          
+        } # end of iterations over each source
+        
+      
+      
+    } # end of iterations over each reef subpop
+    
+    
+  } # end of iteration over each year
+  
+  # return all the population metrics
+  
+  return(list(reef_pops = reef_pops, reef_rep = reef_rep, reef_pops_pre = reef_pops_pre))
+  
+  
+}
 
 
 
