@@ -400,7 +400,7 @@ or even simpler: assume they don't have a choice, and just have fractions that s
 # started with 0.001 and 0.015
 
 surv_pars.r[[2]][[2]] <- c(0.001, 0.44, 0.53, 0.70, 0.84) # survival probabilities for second source of recruits to second reef subpop (first lab treatment)
-surv_pars.r[[2]][[3]] <- c(0.005, 0.44, 0.53, 0.70, 0.84) # survival probabilities for third source of recruits to second reef subpop (second lab treatment)
+surv_pars.r[[2]][[3]] <- c(0.01, 0.44, 0.53, 0.70, 0.84) # survival probabilities for third source of recruits to second reef subpop (second lab treatment)
 
 T1_props <- seq(from = 0, to = 1, length.out = 20) # proportion of tiles that are cement
 
@@ -547,6 +547,36 @@ rect(
 seems to just flip from most coral at lowest prop to most at highest prop depending on how big the differences in mortality are
 
 Maybe a more interesting figure is to vary both settlement rates and mortality and see which combinations result in … what? Benefits of ceramic? Or for each combination calculate the optimal ratio of ceramic and cement?
+
+
+```{r}
+# how to incorporate costs into a figure?
+
+# assume you have 100 tiles, cement costs $5 and ceramic costs $10 each
+
+tot_costs <- 100*T1_props*5 + 100*(1-T1_props)*15
+
+tot_costs # but remember this is per year so to get total costs over 5 years, need to multiply by 5
+
+
+plot(x = T1_props, y = tot_costs, type = "l", las = 1)
+lines(x = T1_props, y = reef2_pop[,1]*2000, type = "l", lty = 2)
+
+# plot cost per coral and reef population size
+par(mar=c(0, 0, 0, 0), oma = c(4, 4, 4, 4))
+plot(x = T1_props, y = tot_costs*5/reef2_out[,1], type = "l", las = 1, xaxt = "n", yaxt = "n", ylim = c(0, 30), xlab = NA, ylab = NA, lwd = 2)
+mtext(side = 1, "Proportion cement tiles", line = 2.5)
+mtext(side = 2, "Cost per coral outplanted", line = 2.5)
+mtext(side = 4, "Reef population size", line = 2.75)
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2))
+axis(side = 2, at = seq(from = 0, to = 30, by = 5), las = 1)
+axis(side = 4, at = seq(from = 0, to = 1.5, by = 0.25)*20, labels = seq(from = 0, to = 1.5, by = 0.25), las = 1)
+lines(x = T1_props, y = reef2_pop[,1]*20, type = "l", lty = 2, lwd = 2)
+legend(x = "topright", legend = c("cost per coral", "reef pop'n size"), lty = c(1, 2), bty = "n", inset = c(0.05, 0), lwd = 2)
+
+```
+
+
 
 # Scenario 2: lab retention times
 
