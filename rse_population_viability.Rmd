@@ -240,7 +240,7 @@ n_cols <- c("red", "orange", "green", "royalblue", "violet")
 
 # now for each external recruitment rate, want to plot the minimum number of outplants needed to reach the restoration goal
 
-plot(NULL, xlim=c(0,max(ext_rec_set)), ylim=c(0,50), ylab="Min. number outplanted", xlab="External recruitment rate", las = 1)
+plot(NULL, xlim=c(0,max(ext_rec_set)), ylim=c(0,40), ylab="Min. number to outplant", xlab="External recruitment rate", las = 1)
 popn <- rep(NA, length(ext_rec_set))
 for(k in 1:length(popn)){
   popn[k] <- out_set[min(which(pop1[,k] >= N_goal))]
@@ -266,7 +266,7 @@ for(k in 1:length(popn)){
   popn[k] <- out_set[min(which(pop5[,k] >= N_goal))]
 }
 lines(x = ext_rec_set, y = popn, lty = 5, col = n_cols[5], lwd = 2)
-legend("topleft", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol = 5, col = n_cols, lwd = 2)
+legend("topright", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol = 5, col = n_cols, lwd = 2, title = "Outplant size class")
 
 
 
@@ -282,7 +282,7 @@ legend("topleft", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol =
 
 A_goal <- 100000
 
-plot(NULL, xlim=c(0,max(ext_rec_set)), ylim=c(0,50), ylab="Min. number outplanted", xlab="External recruitment rate", las = 1)
+plot(NULL, xlim=c(0,max(ext_rec_set)), ylim=c(0,50), ylab="Min. number to outplant", xlab="External recruitment rate", las = 1)
 popn <- rep(NA, length(ext_rec_set))
 for(k in 1:length(popn)){
   popn[k] <- out_set[min(which(area1[,k] >= A_goal))]
@@ -411,7 +411,7 @@ frag_pars.k[[1]][[2]] <- frag_pars.k[[1]][[1]]
 
 
 ```{r}
-plot(NULL, xlim=c(min(frag_set),max(frag_set)), ylim=c(0,50), ylab="Min. number outplanted", xlab="fragmentation", las = 1)
+plot(NULL, xlim=c(min(frag_set),max(frag_set)), ylim=c(0,40), ylab="Min. number to outplant", xlab="Fragmentation", las = 1)
 popn <- rep(NA, length(frag_set))
 for(k in 1:length(popn)){
   popn[k] <- out_set[min(which(pop1[,k] >= N_goal))]
@@ -437,12 +437,12 @@ for(k in 1:length(popn)){
   popn[k] <- out_set[min(which(pop5[,k] >= N_goal))]
 }
 lines(x = frag_set, y = popn, lty = 5, col = n_cols[5], lwd = 2)
-legend("topleft", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol = 5, col = n_cols, lwd = 2)
+legend("topright", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol = 5, col = n_cols, lwd = 2, title = "Outplant size class")
 ```
 
 
 ```{r}
-plot(NULL, xlim=c(min(frag_set),max(frag_set)), ylim=c(0,50), ylab="Min. number outplanted", xlab="External recruitment rate", las = 1)
+plot(NULL, xlim=c(min(frag_set),max(frag_set)), ylim=c(0,50), ylab="Min. number to outplant", xlab="Fragmentation", las = 1)
 popn <- rep(NA, length(frag_set))
 for(k in 1:length(popn)){
   popn[k] <- out_set[min(which(area1[,k] >= A_goal))]
