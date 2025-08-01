@@ -8,8 +8,7 @@ output: html_document
 README: place to copy paste the model function for debugging and to think through model additions
 
 ```{r}
-
-  # reef subpops = length(lab_treatments)*length(reef_treatments)
+ # reef subpops = length(lab_treatments)*length(reef_treatments)
   # lab subpops = length(lab_treatments)
 
   # orchard subpopulations:
@@ -724,8 +723,7 @@ README: place to copy paste the model function for debugging and to think throug
     } # end of if statement for transplanting colonies
 
   } # end of iteration over each year
-
- # return all the population metrics
+  
 ```
 
 

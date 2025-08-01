@@ -576,7 +576,7 @@ legend(x = "topright", legend = c("cost per coral", "reef pop'n size"), lty = c(
 
 ```
 
-
+NOTE: check the Papke paper for data on growth rates on cement vs. ceramic tiles
 
 # Scenario 2: lab retention times
 
@@ -603,8 +603,8 @@ surv_pars.r[[1]] <- list() # first reef subpop (reference reef)
 surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) # survival probabilities for first source of recruits to first reef (external recruits); from 1st matrix in Vardi et al. 2012
 surv_pars.r[[2]] <- list() # second reef subpop (intervention reef)
 surv_pars.r[[2]][[1]] <- c(0.010, 0.44, 0.53, 0.70, 0.84) # survival probabilities for first source of recruits to second reef subpop (external recruits); from 2nd matrix in Vardi et al. 2012
-surv_pars.r[[2]][[2]] <- surv_pars.r[[2]][[1]] # survival probabilities for second source of recruits to second reef subpop (first lab treatment)
-surv_pars.r[[2]][[3]] <- surv_pars.r[[2]][[1]] # survival probabilities for third source of recruits to second reef subpop (second lab treatment)
+surv_pars.r[[2]][[2]] <- c(0.01, 0.44, 0.53, 0.70, 0.84) # survival probabilities for second source of recruits to second reef subpop (first lab treatment)
+surv_pars.r[[2]][[3]] <- c(0.01, 0.44, 0.53, 0.70, 0.84) # survival probabilities for third source of recruits to second reef subpop (second lab treatment)
 
 # reef parameters: growth
 growth_pars.r <- list()
@@ -799,12 +799,13 @@ dist_pars.o[[2]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[2]][
 
 
 # lab parameters
-s0 <- c(0.9, 0.9) # fraction of settled larvae in each lab treatment that survive to 2wk outplanting
-s1 <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
+s0 <- c(0.9, NA) # fraction of settled larvae in each lab treatment that survive to 2wk outplanting
+s1 <- c(NA, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
 sett_props <- list(T1 = 1) # proportion of larvae that settle on each tile type
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
 size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment
 size_props[2, ] <- c(0.6, 0.4, 0, 0, 0) # second lab treatment
+#size_props[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment
 lab_pars <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_props)
 
 
@@ -824,7 +825,7 @@ orchard_out_props[2,] <- c(0.5, 0.5) # from second lab treatment to each orchard
 # sizes allocated to each treatment
 reef_areas <- c(100, 100)*10000 # m^2 given to each reef treatment (make sure to include none -- sum of reef_areas should be size of reef), convert to cm^2
 lab_max <- c(5000) # total number of settlers that the lab can accommodate
-lab_retain_max <- c(1200) # total number of settlers that the lab can keep for a year
+lab_retain_max <- c(10000) # total number of settlers that the lab can keep for a year
 orchard_size <- c(200, 200) # number of individuals each orchard treatment has space for
 
 # coral transplanting
@@ -887,7 +888,7 @@ legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"),
 # check numbers being outplanted
 reef2_out_tot <- sim1$reef_out[[2]][[2]] + sim1$reef_out[[2]][[3]]
 
-reef2_out_tot
+#reef2_out_tot
 
 ```
 
@@ -901,7 +902,10 @@ Problem: if I add the outplanted recruits to the population size, then it always
 
 
 
-simulations: vary the number that can go in the 1 year outplant treatment and record the number after 5 years and 10 years
+simulations: vary the number that can go in the 1 year outplant treatment and record the number after 5 years (and 10 years?)
+
+
+start by plotting max lab capacity vs. number on reef with lines for different mortality rates in the lab? (UPDATE: start with different growth rates in the lab since the model seems more sensitive to how many of the year-old recruits grow into the second size class)
 
 
 NOTE: since the orchard isn't doing anything right now, just put all the lab recruits on the reef
@@ -910,24 +914,33 @@ NOTE: since the orchard isn't doing anything right now, just put all the lab rec
 
 #max_set <- seq(from = 0, to = 100, length.out = 20)
 
-lab_retain_max_set <- seq(from = 0, to = 1500, length.out = 100)
+lab_retain_max_set <- seq(from = 0, to = 500, length.out = 50)
 
-# holding vectors
-# reef population sizes at 5 years
-reef1.5 <- rep(NA, length(lab_retain_max_set))
-reef2.5 <- rep(NA, length(lab_retain_max_set))
+par_set <- lab_retain_max_set
 
-# reef population sizes at 10 years
-reef1.10 <- rep(NA, length(lab_retain_max_set))
-reef2.10 <- rep(NA, length(lab_retain_max_set))
+lab_growth_set <- seq(from = 0, to = 0.75, by = 0.25)
 
-# intervention reef reproductive output at 5 years
-rep1.5 <- rep(NA, length(lab_retain_max_set))
-rep2.5 <- rep(NA, length(lab_retain_max_set))
 
-# intervention reef reproductive output at 10 years
-rep1.10 <- rep(NA, length(lab_retain_max_set))
-rep2.10 <- rep(NA, length(lab_retain_max_set))
+# holding lists for reef population size, area, and reproductive output
+reef_popL <- list()
+reef_areaL <- list()
+reef_repL <- list()
+reef_outL <- list()
+
+
+for(j in 1:length(lab_growth_set)){
+  
+size_props.j <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props.j[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment
+size_props.j[2, ] <- c(1-lab_growth_set[j], lab_growth_set[j], 0, 0, 0) # second lab treatment
+lab_pars.j <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_props.j)
+
+
+# holding matrices reef population size, area, and reproductive output (rows = parameter values, columns = year in simulation when values are recorded)
+reef_pop <- matrix(NA, nrow = length(par_set), ncol = 1)
+reef_area <- matrix(NA, nrow = length(par_set), ncol = 1)
+reef_rep <- matrix(NA, nrow = length(par_set), ncol = 1)
+reef_out <- matrix(NA, nrow = length(par_set), ncol = 1)
 
 for(i in 1:length(lab_retain_max_set)){
   
@@ -936,51 +949,75 @@ for(i in 1:length(lab_retain_max_set)){
   
 rest_pars.i <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max.i, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
 
-sim.i <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars.i, N0.r, N0.o, N0.l)
+sim.i <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars.j, rest_pars.i, N0.r, N0.o, N0.l)
   
   
 # save the results
-reef1.5[i] <- sum(sim.i$reef_pops_pre[[1]][[1]][,5])
-reef2.5[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,5]) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]) + sum(sim.i$reef_pops_pre[[2]][[3]][,5])
-reef1.10[i] <- sum(sim.i$reef_pops_pre[[1]][[1]][,10])
-reef2.10[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,10]) + sum(sim.i$reef_pops_pre[[2]][[2]][,10]) + sum(sim.i$reef_pops_pre[[2]][[3]][,10])
 
-# intervention reef reproductive output at 5 years
-rep1.5[i] <- sum(sim.i$reef_pops_pre[[1]][[1]][,5]*fec_pars.r[[1]][[1]])
-rep2.5[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,5]*fec_pars.r[[2]][[1]]) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]*fec_pars.r[[2]][[2]]) + sum(sim.i$reef_pops_pre[[2]][[3]][,5]*fec_pars.r[[2]][[3]])
+reef_pop[i,1] <- sum(sim.i$reef_pops_pre[[2]][[1]][,5]) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]) + sum(sim.i$reef_pops_pre[[2]][[3]][,5])
 
-# intervention reef reproductive output at 10 years
-rep1.10[i] <- sum(sim.i$reef_pops_pre[[1]][[1]][,10]*fec_pars.r[[1]][[1]])
-rep2.10[i] <- sum(sim.i$reef_pops_pre[[2]][[1]][,10]*fec_pars.r[[2]][[1]]) + sum(sim.i$reef_pops_pre[[2]][[2]][,10]*fec_pars.r[[2]][[2]]) + sum(sim.i$reef_pops_pre[[2]][[3]][,10]*fec_pars.r[[2]][[3]])
+reef_area[i,1] <- sum(sim.i$reef_pops_pre[[2]][[1]][,5]*A_mids) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]*A_mids) + sum(sim.i$reef_pops_pre[[2]][[3]][,5]*A_mids)
+
+reef_rep[i,1] <-sum(sim.i$reef_pops_pre[[2]][[1]][,5]*fec_pars.r[[2]][[1]]) + sum(sim.i$reef_pops_pre[[2]][[2]][,5]*fec_pars.r[[2]][[2]]) + sum(sim.i$reef_pops_pre[[2]][[3]][,5]*fec_pars.r[[2]][[3]])
+
+reef_out[i,1] <- sum(sim.i$reef_out[[2]][[2]][2:5]) + sum(sim.i$reef_out[[2]][[3]][2:5])
 
 }
 
+# save the results for this lab growth rate
+reef_popL[[j]] <- reef_pop
+reef_areaL[[j]] <- reef_area
+reef_repL[[j]] <- reef_rep
+reef_outL[[j]] <- reef_out
+  
+}
+
+
+
 ```
 
-will want to repeat this for different lab growth rates
 
 
 
 ```{r}
-plot(x = lab_retain_max_set, y = reef2.5, type = "l", las = 1)
-lines(x = lab_retain_max_set, y = reef1.5, lty = 2)
+plot(x = lab_retain_max_set, y = reef_popL[[1]], type = "l", las = 1, ylim = c(0, max(reef_popL[[4]])), lty = 1, lwd = 2, xlab = NA, ylab = NA)
+mtext(side = 1, "No. recruits kept in lab for 1 yr", line = 2.5)
+mtext(side = 2, "Reef population size", line = 2.5)
+lines(x = lab_retain_max_set, y = reef_popL[[2]], lty = 2, lwd = 2)
+lines(x = lab_retain_max_set, y = reef_popL[[3]], lty = 3, lwd = 2)
+lines(x = lab_retain_max_set, y = reef_popL[[4]], lty = 4, lwd = 2)
+legend("topleft", legend = c(0, 0.25, 0.5, 0.75), lty = c(1, 2, 3, 4), lwd = 2, title = "Prop. year-old recruits in 2nd size class", ncol = 2)
 
-plot(x = lab_retain_max_set, y = reef2.10, type = "l", las = 1)
-lines(x = lab_retain_max_set, y = reef1.10, lty = 2)
+
+# plot(x = lab_retain_max_set, y = reef_areaL[[1]], type = "l", las = 1, ylim = c(0, max(reef_areaL[[4]])), lty = 1, lwd = 2, xlab = NA, ylab = NA)
+# mtext(side = 1, "No. recruits kept in lab for 1 yr", line = 2.5)
+# mtext(side = 2, "Reef coral cover", line = 2.5)
+# lines(x = lab_retain_max_set, y = reef_areaL[[2]], lty = 2, lwd = 2)
+# lines(x = lab_retain_max_set, y = reef_areaL[[3]], lty = 3, lwd = 2)
+# lines(x = lab_retain_max_set, y = reef_areaL[[4]], lty = 4, lwd = 2)
+# legend("topleft", legend = c(0, 0.25, 0.5, 0.75), lty = c(1, 2, 3, 4), lwd = 2, title = "Prop. year-old recruits in 2nd size class", ncol = 2)
 
 
-# reef2.10
-# sum(sim.i$reef_pops_pre[[2]][[1]][,10]) + sum(sim.i$reef_pops_pre[[2]][[2]][,10]) + sum(sim.i$reef_pops_pre[[2]][[3]][,10])
-# 
-# sum(sim.i$reef_pops_pre[[2]][[1]][,20]) + sum(sim.i$reef_pops_pre[[2]][[2]][,20]) + sum(sim.i$reef_pops_pre[[2]][[3]][,20])
+#plot(x = lab_retain_max_set, y = reef_outL[[1]], type = "l", las = 1)
+
+
+
 
 ```
 
 I think the flattening out is the part where max set is high enough that all the larvae are kept for a year, so changing the max beyond that point has no effect since the same number of larvae will go in the lab at each point
 
 
-with the proportion version, see a decline at high proportions because then you lose the immediate outplants...need to redo the lab treatments
 
-currently have numbers that can fit in each lab treatment and the proportions of larvae collected that can go in each treatment (max capacity)... should I change that? the proportion part will get more complicated if treatments include different tiles where settlement is more random, so will probably need to end up giving 1 yr priority and fill up all the one year spots first and then put the rest in the immediate outplanting case. and then there will be some total lab capacity as well
+thought: once we have an idea of a threshold for the populations (restoration target), could make plots with some parameter on x-axis (e.g., survival rate in lab) and then min lab capacity needed to reach target on the y-axis?
+
+
+# Scenario 3: orchard expansion
+
+switch to collecting from the orchard. Maybe for simplicity assume you are starting with a mature orchard (so it makes sense to collect from it) and the question is whether to expand it? then plot prop. recruits going to orchard on the x-axis and reef pop'n size on the y-axis at 2 years and 10 years (or something like that... expect benefits to materialize over longer time periods since it takes some time for the orchard recruits to mature)
+
+
+Eventually will want to allow collection from orchard vs. reef to be flexible (incorporate feedbacks where orchard collection only starts once there are mature orchard colonies)
+
 
 
