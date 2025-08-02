@@ -178,7 +178,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
   # subpopulations that will be outplanted immediately
   #s_lab0 <- length(which(substr(lab_treatments, start = 1, stop = 1) == "0"))
   # subpopulations that are retained in the lab for a year
-  #s_lab1 <- length(which(substr(lab_treatments, start = 1, stop = 1) == "1"))
+  s_lab1 <- length(which(substr(lab_treatments, start = 1, stop = 1) == "1"))
   
   # tile types
   tile_types <- rep(NA, s_lab)
@@ -569,11 +569,20 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     # make sure these don't exceed max lab capacity
     tot_babies <- min(tot_babies, rest_pars$lab_max)
     
-    # determine which of these can stay for a year
-    tot_settlers1 <- min(tot_babies, rest_pars$lab_retain_max)
+    if(s_lab1==0){ # if none of the lab treatments keep the recruits for a year
+      
+      tot_settlers0 <- tot_babies
+      tot_settlers1 <- 0
+      
+    } else{
+      
+      # determine how many can stay for a year
+      tot_settlers1 <- min(tot_babies, rest_pars$lab_retain_max)
+      
+      # remaining babies are outplanted right away
+      tot_settlers0 <- tot_babies - tot_settlers1
+    }
     
-    # remaining babies are outplanted right away
-    tot_settlers0 <- tot_babies - tot_settlers1
     
     # need parameter for max number that the lab can handle, and then a number for the max
     # that can be retained for a year, and then have a hierarchy so everything that can be retained
