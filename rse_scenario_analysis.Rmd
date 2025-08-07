@@ -82,11 +82,14 @@ orchard_treatments <- c("none", "algae") # two orchards
 reef_treatments <- c("none", "intervention") # reef (natural population and intervention site; note don't have a "control" because just include that as one of the simulations)
 lab_treatments <- c("0_T1", "0_T2") # lab (cement = T1, ceramic = T2)
 
+# thought: make reference reef population constant by using non-zero initial conditions and no growth and 100% survival
+
 # demographic parameters for each orchard and reef treatment
 # reef parameters: survival
 surv_pars.r <- list()
 surv_pars.r[[1]] <- list() # first reef subpop (reference reef) 
-surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) # survival probabilities for first source of recruits to first reef (external recruits); from 1st matrix in Vardi et al. 2012
+#surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) # survival probabilities for first source of recruits to first reef (external recruits); from 1st matrix in Vardi et al. 2012
+surv_pars.r[[1]][[1]] <- c(1, 1, 1, 1, 1) # for constant pop'n
 surv_pars.r[[2]] <- list() # second reef subpop (intervention reef)
 surv_pars.r[[2]][[1]] <- c(0.010, 0.44, 0.53, 0.70, 0.84) # survival probabilities for first source of recruits to second reef subpop (external recruits); from 2nd matrix in Vardi et al. 2012
 surv_pars.r[[2]][[2]] <- c(0.001, 0.44, 0.53, 0.70, 0.84) # survival probabilities for second source of recruits to second reef subpop (first lab treatment)
@@ -95,7 +98,8 @@ surv_pars.r[[2]][[3]] <- c(0.015, 0.44, 0.53, 0.70, 0.84) # survival probabiliti
 # reef parameters: growth
 growth_pars.r <- list()
 growth_pars.r[[1]] <- list() # first reef subpop
-growth_pars.r[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) # first source to first reef subpop (external recruits)
+#growth_pars.r[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) # first source to first reef subpop (external recruits)
+growth_pars.r[[1]][[1]] <- list(c(0, 0, 0, 0), c(0, 0, 0), c(0, 0), 0, NULL) # for constant population
 
 growth_pars.r[[2]] <- list() # second reef subpop (intervention)
 growth_pars.r[[2]][[1]] <- list(c(0.2, 0, 0, 0), c(0, 0, 0), c(0.038, 0), 0, NULL) # first source (ext recruits)
@@ -105,7 +109,8 @@ growth_pars.r[[2]][[3]] <- growth_pars.r[[2]][[1]] # third source (third lab tre
 # reef parameters: shrinkage
 shrink_pars.r <- list()
 shrink_pars.r[[1]] <- list() # first subpop
-shrink_pars.r[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.08), c(0, 0, 0.105), c(0, 0, 0.06, 0.11)) # first source
+# shrink_pars.r[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.08), c(0, 0, 0.105), c(0, 0, 0.06, 0.11)) # first source
+shrink_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0, 0, 0)) # constant population
 
 shrink_pars.r[[2]] <- list() # second subpop
 shrink_pars.r[[2]][[1]] <- list(NULL, c(0.01), c(0, 0.026), c(0, 0.11, 0.27), c(0, 0, 0, 0.15)) # first source 
@@ -115,8 +120,8 @@ shrink_pars.r[[2]][[3]] <- shrink_pars.r[[2]][[1]] # third source
 # reef parameters: fragmentation
 frag_pars.r <- list()
 frag_pars.r[[1]] <- list() # first subpop
-frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.06, 0.06), c(0, 0.28, 0.3, 0.23)) # first source
-#frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0, 0, 0))
+#frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.06, 0.06), c(0, 0.28, 0.3, 0.23)) # first source
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0, 0, 0)) # constant population
 
 frag_pars.r[[2]] <- list() # second subpop
 frag_pars.r[[2]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0, 0, 0)) # first source
@@ -194,7 +199,8 @@ seeds <- c(1000, 5000, 10000)
 # initial conditions in each reef subpopulation
 N0.r <- list()
 N0.r[[1]] <- list() # first reef subpop
-N0.r[[1]][[1]] <- c(10, 20, 20, 15, 5) # first source in first reef subpop (reference reef)
+#N0.r[[1]][[1]] <- c(10, 20, 20, 15, 5) # first source in first reef subpop (reference reef)
+N0.r[[1]][[1]] <- c(10, 20, 20, 35, 15)
 N0.r[[2]] <- list() # second reef subpop
 N0.r[[2]][[1]] <- rep(0, n) # first source
 N0.r[[2]][[2]] <- rep(0, n) # second source
@@ -290,7 +296,7 @@ s1 <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that surviv
 sett_props <- list(T1 = 0.5, T2 = 0.5) # proportion of larvae that settle on each tile type
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
 size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment (0_T1)
-size_props[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment (0_T2)
+size_props[2, ] <- c(0.9, 0.1, 0, 0, 0) # second lab treatment (0_T2)
 lab_pars <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_props)
 
 
@@ -389,6 +395,158 @@ sett_props consists of 1) proportion of tiles that are T1 or T2 and 2) larval pr
 or even simpler: assume they don't have a choice, and just have fractions that settle to each (e.g., 90% of the larvae offered cement settle on it, and 25% of the larvae offered ceramic settle on it)
 
 
+## basic timeseries
+
+100% ceramic, 0% ceramic, and 50%
+
+```{r}
+
+sett_props.100 <- list(T1 = 0, T2 = 1) # proportion of larvae that settle on each tile type
+lab_pars.100 <- list(s0 = s0, s1 = s1, sett_props = sett_props.100, size_props = size_props)
+
+
+T2_100 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars.100, rest_pars, N0.r, N0.o, N0.l)
+
+sett_props.50 <- list(T1 = 0.5, T2 = 0.5) # proportion of larvae that settle on each tile type
+lab_pars.50 <- list(s0 = s0, s1 = s1, sett_props = sett_props.50, size_props = size_props)
+
+T2_50 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars.50, rest_pars, N0.r, N0.o, N0.l)
+
+sett_props.0 <- list(T1 = 1, T2 = 0) # proportion of larvae that settle on each tile type
+lab_pars.0 <- list(s0 = s0, s1 = s1, sett_props = sett_props.0, size_props = size_props)
+
+T2_0 <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars.0, rest_pars, N0.r, N0.o, N0.l)
+
+reef_100 <- apply(T2_100$reef_pops_pre[[2]][[1]], MARGIN = 2, sum) + apply(T2_100$reef_pops_pre[[2]][[2]], MARGIN = 2, sum) + apply(T2_100$reef_pops_pre[[2]][[3]], MARGIN = 2, sum)
+
+reef_50 <- apply(T2_50$reef_pops_pre[[2]][[1]], MARGIN = 2, sum) + apply(T2_50$reef_pops_pre[[2]][[2]], MARGIN = 2, sum) + apply(T2_50$reef_pops_pre[[2]][[3]], MARGIN = 2, sum)
+
+reef_0 <- apply(T2_0$reef_pops_pre[[2]][[1]], MARGIN = 2, sum) + apply(T2_0$reef_pops_pre[[2]][[2]], MARGIN = 2, sum) + apply(T2_0$reef_pops_pre[[2]][[3]], MARGIN = 2, sum)
+
+plot(x = c(1:years), y = reef_100, type = "l", las = 1)
+lines(x = c(1:years), y = reef_50, type = "l")
+lines(x = c(1:years), y = reef_0, type = "l")
+
+```
+
+
+## heatmap
+
+proportion tiles and total invested in tiles
+
+need a way to relate total invested to lab_max
+
+```{r}
+
+# assume each tile can hold a max of 10 settlers, and ceramic are $2 each and cement are $1 each
+
+# $200 = $100 ceramic or $200 cement
+
+# inv_tot = total money invested
+# prop_ceramic = proportion tiles that are ceramic
+# p_ceramic = price per ceramic tile
+# p_cement = price per cement tile
+lab_max_fun <- function(inv_tot, prop_tiles, p_ceramic, p_cement, sett_per_tile){
+  
+  # get number of tiles
+  # inv_tot = p_ceramic*prop_tiles*x + p_cement*(1-prop_tiles)*x
+  # inv_tot = a*x + b*x = (a+b)*x
+  # x = (inv_tot)/(a + b)
+  
+  n_tiles <- floor(inv_tot/(p_ceramic*prop_tiles + p_cement*(1-prop_tiles)))
+  
+  lab_max <- n_tiles*sett_per_tile
+  
+  return(lab_max)
+    
+}
+
+lab_max_fun(inv_tot = 20, prop_tiles = 0.25, p_ceramic = 2, p_cement = 1, sett_per_tile = 10)/10
+
+16*0.25*2 + 16*0.75*1
+
+```
+
+
+
+now make the heatmap
+
+
+```{r}
+
+inv_set <- seq(from = 20, to = 500, by = 20)
+prop_set <- seq(from = 0, to = 1, length.out = 25)
+
+pop_mat <- matrix(NA, nrow = length(inv_set), ncol = length(prop_set))
+
+for(i in 1:length(inv_set)){
+  
+  for(j in 1:length(prop_set)){
+    
+    lab_max.ij <- lab_max_fun(inv_tot = inv_set[i], prop_tiles = prop_set[j], p_ceramic = 2, p_cement = 1, sett_per_tile = 10)
+    
+    sett_props.ij <- list(T1 = 1-prop_set[j], T2 = prop_set[j]) 
+lab_pars.ij <- list(s0 = s0, s1 = s1, sett_props = sett_props.ij, size_props = size_props)
+    
+rest_pars.ij <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max.ij, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+
+  sim.ij <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars.ij, rest_pars.ij, N0.r, N0.o, N0.l)
+    
+  
+  # record final population size
+  pop_mat[i,j] <- sum(sim.ij$reef_pops_pre[[2]][[1]][,years]) + sum(sim.ij$reef_pops_pre[[2]][[2]][,years]) + sum(sim.ij$reef_pops_pre[[2]][[3]][,years]) 
+  
+  }
+}
+
+```
+
+
+plot results
+
+```{r}
+
+pop_mat_test <- pop_mat
+
+pop_mat_test[nrow(pop_mat),] <- rep(0, nrow(pop_mat))
+
+pop_mat_test[,ncol(pop_mat)] <- rep(200, ncol(pop_mat))
+
+#filled.contour(pop_mat_test) # x = rows, y = columns
+
+
+# https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/filled.contour
+# https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/contour
+#filled.contour(x = inv_set, y = prop_set, z = pop_mat)
+
+#library(RColorBrewer)
+
+#rampcols <- colorRampPalette(colors = c("lightskyblue1", "darkblue"), space="Lab")(25) # 50 colors from white to blue
+
+# more detailed function description:
+# https://stat.ethz.ch/R-manual/R-devel/library/graphics/html/filled.contour.html
+
+filled.contour(x = inv_set, y = prop_set, pop_mat, 
+               color.palette = function(n) hcl.colors(n, "blues", rev = TRUE), plot.axes = {
+  axis(1)
+  axis(2)
+  contour(x = inv_set, y = prop_set, pop_mat, levels = 100, lwd = 2, drawlabels = F, add = T)})
+#legend("topleft", "100", lwd = 2, bty = "n")
+
+#  labcex = 1, method = "flattest", vfont = c("sans serif", "plain")
+
+# drawlabels = F
+
+# brewer.pal.info["Blues",]$maxcolors
+
+
+
+
+```
+
+NOTE: need to decide on a reef area (maybe estimate from sites they shared?) and then plot % cover instead of population size
+
+## initial simulations:
 
 ```{r}
 
