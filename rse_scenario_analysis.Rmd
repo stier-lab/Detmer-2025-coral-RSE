@@ -630,6 +630,8 @@ filled.contour(x = inv_set, y = prop_set, area_mat, key.title = title(main = exp
 mtext(side = 1, "Annual $ invested in tiles", line = 2.5, adj = 0.25)
 mtext(side = 2, "Prop. ceramic", line = 2.5)
 
+# vfont information: https://stat.ethz.ch/R-manual/R-devel/library/grDevices/html/Hershey.html
+
 # main = "Coral cover", sub = expression("("*m^2*")"), cex.main = 0.5, cex.sub = 0.5
 ```
 
@@ -1245,7 +1247,77 @@ legend("topleft", legend = c("All outplants 1 yr old", "[user choice]", "no yr o
 ## heatmap
 
 
+```{r}
 
+
+# lab parameters
+s0 <- c(0.9, NA) # fraction of settled larvae in each lab treatment that survive to 2wk outplanting
+s1 <- c(NA, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
+
+growth_set <- seq(from = 0, to = 1, length.out = 25)
+max_set <- seq(from = 0, to = 5000, length.out = 25)
+
+pop_mat <- matrix(NA, nrow = length(growth_set), ncol = length(max_set))
+#pcover_mat <- matrix(NA, nrow = length(inv_set), ncol = length(prop_set))
+area_mat <- matrix(NA, nrow = length(growth_set), ncol = length(max_set))
+
+for(i in 1:length(growth_set)){
+  
+  for(j in 1:length(max_set)){
+    
+   
+    # size props
+    size_props.ij <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props.ij[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment
+size_props.ij[2, ] <- c((1-growth_set[i]), growth_set[i], 0, 0, 0) # second lab treatment
+    
+lab_pars.ij <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_props.ij)
+
+lab_retain_max.ij <- max_set[j]
+    
+rest_pars.ij <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max.ij, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+
+  sim.ij <- rse_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars.ij, rest_pars.ij, N0.r, N0.o, N0.l)
+    
+  
+  # record final population size
+  pop_mat[i,j] <- sum(sim.ij$reef_pops_pre[[2]][[1]][,years]) + sum(sim.ij$reef_pops_pre[[2]][[2]][,years]) + sum(sim.ij$reef_pops_pre[[2]][[3]][,years]) 
+  
+  # record area covered
+  area_mat[i,j] <- (sum(sim.ij$reef_pops_pre[[2]][[1]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[2]][[2]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[2]][[3]][,years]*A_mids))/10000
+  
+  # record final % cover
+  #pcover_mat[i,j] <- (sum(sim.ij$reef_pops_pre[[2]][[1]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[2]][[2]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[2]][[3]][,years]*A_mids))/sum(reef_areas)*100
+  
+  }
+}
+
+# save results
+
+pop_mat.7 <- pop_mat
+area_mat.7 <- area_mat
+
+# repeat with higher lab mortality
+
+```
+
+
+plot heatmaps
+
+```{r}
+filled.contour(x = growth_set, y = max_set, area_mat, key.title = title(main = expression("Cover ("*m^2*")"), cex.main = 0.8, line = 0.5),
+               color.palette = function(n) hcl.colors(n, "blues", rev = TRUE), plot.axes = {
+  axis(1)
+  axis(2)
+  contour(x = growth_set, y = max_set, area_mat, levels = 20, lwd = 2, drawlabels = T, add = T, vfont = c("sans serif", "bold"), labcex = 1.1)})
+mtext(side = 1, "Lab growth rate", line = 2.5, adj = 0.25)
+mtext(side = 2, "Max # retained for yr", line = 2.5)
+
+#  zlim = c(0, 100) --> use if I want two plots with the same color bar scale
+
+```
+
+NOTE: instead of % cover, maybe coral/m2 would be a good metric?
 
 ## initial simulations
 simulations: vary the number that can go in the 1 year outplant treatment and record the number after 5 years (and 10 years?)
