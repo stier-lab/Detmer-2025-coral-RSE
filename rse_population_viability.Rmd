@@ -5,7 +5,7 @@ date: "2025-07-22"
 ---
 
 
-README: population viability analyses (how much do you have to outplant (and of what sizes) to get a growing/persistent population, how long does it take to reach this point, and once there can you stop outplanting?)
+README: sensitivity analyses and population viability analyses (how much do you have to outplant (and of what sizes) to get a growing/persistent population, how long does it take to reach this point, and once there can you stop outplanting?)
 
 
 ```{r}
@@ -15,6 +15,121 @@ source("rse_funs.R")
 
 ```
 
+# sensitivity analyses
+
+question: is it the parameters that matter or just the resultant lambda?
+
+
+```{r}
+
+# will need to make a function for calculating lambda
+
+```
+
+
+
+```{r}
+
+n_reps <- 10 # number of random replications to do
+
+
+# parameters that don't change
+years <- 20 # years in simulation
+n <- 5 # number of size classes
+
+A_mids <- c(0.1, 43, 369, 2158, 11171) # mean areas in each size class (cm^2)
+
+# reef parameters: fecundity
+fec_pars.r <- list()
+fec_pars.r[[1]] <- list() # first subpop
+fec_pars.r[[1]][[1]] <- c(0, 0, 0, 0, 0) # first source
+fec_pars.r[[1]][[2]] <- c(0, 0, 0, 0, 0)
+
+lambda <- 0 # external recruitment to reef
+
+# stochasticity parameters
+sigma_s <- 0
+sigma_f <- 0
+ext_rand <- FALSE
+seeds <- c(1000, 5000, 10000)
+
+# initial conditions in each reef subpopulation
+N0.r <- list()
+N0.r[[1]] <- list() # first reef subpop
+N0.r[[1]][[1]] <- rep(0, n) # first source in the reef (external recruits)
+N0.r[[1]][[2]] <- rep(0, n) # second source in the reef (outplants)
+
+# disturbance parameters
+dist_yrs <- NA # years when disturbance occurs, NA if none
+
+# effects of disturbance on each reef subpop
+dist_effects.r <- list()
+
+# disturbance parameters for each reef subpop
+dist_pars.r <- list()
+
+# restoration parameters
+out_pars <- matrix(10000, nrow = years, ncol = n) # never outplant any
+
+# holding vectors
+# final reef population size
+# final reef size structure
+
+# lambdas
+
+# set seed
+set.seed(100)
+
+# for each replication
+for(i in 1:n_rep){
+  
+  # get the stochastic parameters
+
+  
+  # demographic parameters for each orchard and reef treatment
+# reef parameters: survival
+surv_pars.r <- list()
+surv_pars.r[[1]] <- list() 
+surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) 
+surv_pars.r[[1]][[2]] <- surv_pars.r[[1]][[1]] # survival probabilities for second source of individuals to the reef (outplanted individuals)
+?runif()
+
+# reef parameters: growth
+growth_pars.r <- list()
+growth_pars.r[[1]] <- list() # first reef subpop
+# runif(n, min = 0, max = 1), but shrinkage + growth needs to sum to <=1 (and if you make it sum to 1, then the prop that stay in a size class will be zero). Maybe randomly draw an upper limit for growth, then an upper limit for shrinkage (from btw 0 and 1-growth limit) and then make the random numbers sum to each of these limits
+growth_pars.r[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) # first source to first reef subpop (external recruits)
+growth_pars.r[[1]][[2]] <- growth_pars.r[[1]][[1]] # outplanted
+
+# reef parameters: shrinkage
+shrink_pars.r <- list()
+shrink_pars.r[[1]] <- list() # first subpop
+shrink_pars.r[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.08), c(0, 0, 0.105), c(0, 0, 0.06, 0.11)) # first source
+shrink_pars.r[[1]][[2]] <- shrink_pars.r[[1]][[1]]  # outplanted
+
+# reef parameters: fragmentation
+frag_pars.r <- list()
+frag_pars.r[[1]] <- list() # first subpop
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.015, 0.015), c(0, 0.07, 0.08, 0.06)) 
+frag_pars.r[[1]][[2]] <- frag_pars.r[[1]][[1]] # outplanted
+
+
+
+
+sim1 <- popvi_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r,
+                      fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+  
+}
+
+
+
+
+
+```
+
+
+# how many to add
 
 ```{r}
 
