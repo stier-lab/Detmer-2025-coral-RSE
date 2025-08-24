@@ -5,7 +5,7 @@ date: "2025-06-16"
 output: html_document
 ---
 
-README: testing that the functions work
+README: original tests of whether the functions work
 
 
 load the functions
