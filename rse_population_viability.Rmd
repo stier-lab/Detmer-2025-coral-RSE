@@ -1,0 +1,589 @@
+---
+title: "rse_population_viability"
+output: html_document
+date: "2025-07-22"
+---
+
+
+README: sensitivity analyses and population viability analyses (how much do you have to outplant (and of what sizes) to get a growing/persistent population, how long does it take to reach this point, and once there can you stop outplanting?)
+
+
+```{r}
+
+source("coral_demographic_funs.R")
+source("rse_funs.R")
+
+```
+
+# sensitivity analyses
+
+question: is it the parameters that matter or just the resultant lambda?
+
+
+```{r}
+
+# will need to make a function for calculating lambda
+
+```
+
+
+
+```{r}
+
+n_reps <- 10 # number of random replications to do
+
+
+# parameters that don't change
+years <- 20 # years in simulation
+n <- 5 # number of size classes
+
+A_mids <- c(0.1, 43, 369, 2158, 11171) # mean areas in each size class (cm^2)
+
+# reef parameters: fecundity
+fec_pars.r <- list()
+fec_pars.r[[1]] <- list() # first subpop
+fec_pars.r[[1]][[1]] <- c(0, 0, 0, 0, 0) # first source
+fec_pars.r[[1]][[2]] <- c(0, 0, 0, 0, 0)
+
+lambda <- 0 # external recruitment to reef
+
+# stochasticity parameters
+sigma_s <- 0
+sigma_f <- 0
+ext_rand <- FALSE
+seeds <- c(1000, 5000, 10000)
+
+# initial conditions in each reef subpopulation
+N0.r <- list()
+N0.r[[1]] <- list() # first reef subpop
+N0.r[[1]][[1]] <- rep(0, n) # first source in the reef (external recruits)
+N0.r[[1]][[2]] <- rep(0, n) # second source in the reef (outplants)
+
+# disturbance parameters
+dist_yrs <- NA # years when disturbance occurs, NA if none
+
+# effects of disturbance on each reef subpop
+dist_effects.r <- list()
+
+# disturbance parameters for each reef subpop
+dist_pars.r <- list()
+
+# restoration parameters
+out_pars <- matrix(10000, nrow = years, ncol = n) # never outplant any
+
+# holding vectors
+# final reef population size
+# final reef size structure
+
+# lambdas
+
+# set seed
+set.seed(100)
+
+# for each replication
+for(i in 1:n_rep){
+  
+  # get the stochastic parameters
+
+  
+  # demographic parameters for each orchard and reef treatment
+# reef parameters: survival
+surv_pars.r <- list()
+surv_pars.r[[1]] <- list() 
+surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) 
+surv_pars.r[[1]][[2]] <- surv_pars.r[[1]][[1]] # survival probabilities for second source of individuals to the reef (outplanted individuals)
+?runif()
+
+# reef parameters: growth
+growth_pars.r <- list()
+growth_pars.r[[1]] <- list() # first reef subpop
+# runif(n, min = 0, max = 1), but shrinkage + growth needs to sum to <=1 (and if you make it sum to 1, then the prop that stay in a size class will be zero). Maybe randomly draw an upper limit for growth, then an upper limit for shrinkage (from btw 0 and 1-growth limit) and then make the random numbers sum to each of these limits
+growth_pars.r[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) # first source to first reef subpop (external recruits)
+growth_pars.r[[1]][[2]] <- growth_pars.r[[1]][[1]] # outplanted
+
+# reef parameters: shrinkage
+shrink_pars.r <- list()
+shrink_pars.r[[1]] <- list() # first subpop
+shrink_pars.r[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.08), c(0, 0, 0.105), c(0, 0, 0.06, 0.11)) # first source
+shrink_pars.r[[1]][[2]] <- shrink_pars.r[[1]][[1]]  # outplanted
+
+# reef parameters: fragmentation
+frag_pars.r <- list()
+frag_pars.r[[1]] <- list() # first subpop
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.015, 0.015), c(0, 0.07, 0.08, 0.06)) 
+frag_pars.r[[1]][[2]] <- frag_pars.r[[1]][[1]] # outplanted
+
+
+
+
+sim1 <- popvi_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r,
+                      fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+  
+}
+
+
+
+
+
+```
+
+
+# how many to add
+
+```{r}
+
+years <- 100
+n <- 5
+
+A_mids <- c(0.1, 43, 369, 2158, 11171) # mean areas in each size class (cm^2)
+
+
+# demographic parameters for each orchard and reef treatment
+# reef parameters: survival
+surv_pars.r <- list()
+surv_pars.r[[1]] <- list() 
+surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) # survival probabilities for first source of recruits to the reef (external recruits); from 1st matrix in Vardi et al. 2012
+#surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) # dying (2nd matrix)
+surv_pars.r[[1]][[2]] <- surv_pars.r[[1]][[1]] # survival probabilities for second source of individuals to the reef (outplanted individuals)
+
+
+# reef parameters: growth
+growth_pars.r <- list()
+growth_pars.r[[1]] <- list() # first reef subpop
+growth_pars.r[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) # first source to first reef subpop (external recruits)
+growth_pars.r[[1]][[2]] <- growth_pars.r[[1]][[1]]
+
+# reef parameters: shrinkage
+shrink_pars.r <- list()
+shrink_pars.r[[1]] <- list() # first subpop
+shrink_pars.r[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.08), c(0, 0, 0.105), c(0, 0, 0.06, 0.11)) # first source
+shrink_pars.r[[1]][[2]] <- shrink_pars.r[[1]][[1]]
+
+# reef parameters: fragmentation
+frag_pars.r <- list()
+frag_pars.r[[1]] <- list() # first subpop
+#frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.06, 0.06), c(0, 0.28, 0.3, 0.23)) # first source
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.015, 0.015), c(0, 0.07, 0.08, 0.06)) # dying
+#frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0.4, 0.5, 0.9))
+frag_pars.r[[1]][[2]] <- frag_pars.r[[1]][[1]]
+
+# reef parameters: fecundity
+fec_pars.r <- list()
+fec_pars.r[[1]] <- list() # first subpop
+fec_pars.r[[1]][[1]] <- c(0, 0, 5000, 50000, 100000) # first source
+fec_pars.r[[1]][[2]] <- fec_pars.r[[1]][[1]] 
+
+lambda <- 0 # external recruitment to reef
+
+# stochasticity parameters
+sigma_s <- 0
+sigma_f <- 0
+ext_rand <- FALSE
+seeds <- c(1000, 5000, 10000)
+
+# initial conditions in each reef subpopulation
+N0.r <- list()
+N0.r[[1]] <- list() # first reef subpop
+N0.r[[1]][[1]] <- rep(0, n) # first source in the reef (external recruits)
+N0.r[[1]][[2]] <- rep(0, n) # second source in the reef (outplants)
+
+# disturbance parameters
+dist_yrs <- c(years + 10) # years when disturbance occurs, NA if none
+
+# effects of disturbance on each reef subpop
+dist_effects.r <- list()
+dist_effects.r[[1]] <- list() # list where each element is the effects of disturbnce on corals from each source in the 1st reef subpop
+dist_effects.r[[1]][[1]] <- list() # effects of disturbances on corals from first source in first reef subpop
+dist_effects.r[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
+
+dist_effects.r[[1]][[2]] <- list() # effects of disturbances on corals from first source in first reef subpop
+dist_effects.r[[1]][[2]][[1]] <- c("survival") # effects of 1st disturbance on corals from second source in first reef subpop 
+
+# disturbance parameters for each reef subpop
+dist_pars.r <- list()
+
+# first reef subpop
+dist_pars.r[[1]] <- list() # first source in first reef subpop
+dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) # list of disturbance parameters for the third source in the third reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
+# dist_surv0 = list where ith element is the survival probabilities for the ith disturbance
+
+dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) 
+
+
+# restoration parameters
+out_pars <- matrix(0, nrow = years, ncol = n)
+out_pars[2,1] <- 0.1
+#out_pars[ ,1] <- c(1, 1, rep(0, years-2))#c(rep(1000, years/2), rep(0, years/2))
+#out_pars[ ,5] <- c(rep(0, years/2), rep(0, years/2))
+
+sim1 <- popvi_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r,
+                      fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+
+
+```
+
+
+```{r}
+
+reef_tot <- apply(sim1$reef_pops_pre[[1]][[1]], MARGIN = 2, sum) + apply(sim1$reef_pops_pre[[1]][[2]], MARGIN = 2, sum) 
+
+reef_Atot <- rep(NA, years)
+
+for(i in 1:years){
+  
+  reef_Atot[i] <- sum(sim1$reef_pops_pre[[1]][[1]][,i]*A_mids) + sum(sim1$reef_pops_pre[[1]][[2]][,i]*A_mids)
+  
+}
+
+
+plot(x = c(1:years), y = reef_tot, type = "l", las = 1)
+
+plot(x = c(1:years), y = reef_Atot, type = "l", las = 1)
+
+
+```
+
+If it's a dying population, it's going to stay that way (i.e., it will start to die as soon as outplanting stops). If it's a growing population, then it's going to grow and outplanting will only affect how quickly it grows. Also it seems like if it's dying, then external recruitment can't allow it to grow (so it will just maintain a population size approximately equal to the number of external recruits)
+
+
+
+start with a dying population, know that outplanting needs to be continuous to maintain the population? but the goal is to get a self sustaining population...but ignore that for now and just explore the number you'd need to outplant to reach some population threshold by some amount of time
+
+THOUGHT: could also vary the frequency of outplanting (e.g., once every year, once evey two years, etc.)
+
+and make the x-axis 1) external recruitment rate or 2) fragmentation of largest corals?
+
+First: x-axis = external recruitment rate
+
+```{r}
+ 
+ext_rec_set <- seq(from = 0, to = 50, length.out = 10) # external recruitment rate
+
+out_set <- seq(from = 0, to = 100, by = 1) # number outplanted each year
+
+t_goal <- 10 # amount of time in which you want to reach the restoration target
+
+# holding matrices for population sizes after 10 years
+pop1 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 1
+pop2 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 2
+pop3 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 3
+pop4 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 4
+pop5 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 5
+
+# holding matrices for area covered after 10 years
+area1 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 1
+area2 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 2
+area3 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 3
+area4 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 4
+area5 <- matrix(NA, nrow = length(out_set), ncol = length(ext_rec_set)) # outplanting size 5
+
+# outer for loop = external recruitment rate
+# inner for loop = number outplanted
+
+for(k in 1:length(ext_rec_set)){
+  
+  for(j in 1:length(out_set)){
+    
+    # outplanting size 1
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,1] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, lambda = ext_rec_set[k], sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop1[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area1[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+    
+    # outplanting size 2
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,2] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, lambda = ext_rec_set[k], sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop2[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area2[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+     # outplanting size 3
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,3] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, lambda = ext_rec_set[k], sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop3[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area3[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+    # outplanting size 4
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,4] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, lambda = ext_rec_set[k], sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop4[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area4[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+    # outplanting size 5
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,5] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, lambda = ext_rec_set[k], sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop5[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area5[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+  }
+  
+}
+
+```
+
+
+
+```{r}
+
+# plot results
+
+N_goal <- 100 # goal for population size on reef
+
+n_cols <- c("red", "orange", "green", "royalblue", "violet")
+
+# now for each external recruitment rate, want to plot the minimum number of outplants needed to reach the restoration goal
+
+plot(NULL, xlim=c(0,max(ext_rec_set)), ylim=c(0,40), ylab="Min. number to outplant", xlab="External recruitment rate", las = 1)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop1[,k] >= N_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 1, col = n_cols[1], lwd = 2)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop2[,k] >= N_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 2, col = n_cols[2], lwd = 2)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop3[,k] >= N_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 3, col = n_cols[3], lwd = 2)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop4[,k] >= N_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 4, col = n_cols[4], lwd = 2)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop5[,k] >= N_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 5, col = n_cols[5], lwd = 2)
+legend("topright", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol = 5, col = n_cols, lwd = 2, title = "Outplant size class")
+
+
+
+```
+
+
+```{r}
+# what if goal is based on area?
+# pop5[1,10]
+# area5[1,10]
+# 
+# area1[100, 10]
+
+A_goal <- 100000
+
+plot(NULL, xlim=c(0,max(ext_rec_set)), ylim=c(0,50), ylab="Min. number to outplant", xlab="External recruitment rate", las = 1)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area1[,k] >= A_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 1, col = n_cols[1], lwd = 2)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area2[,k] >= A_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 2, col = n_cols[2], lwd = 2)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area3[,k] >= A_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 3, col = n_cols[3], lwd = 2)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area4[,k] >= A_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 4, col = n_cols[4], lwd = 2)
+popn <- rep(NA, length(ext_rec_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area5[,k] >= A_goal))]
+}
+lines(x = ext_rec_set, y = popn, lty = 5, col = n_cols[5], lwd = 2)
+legend("topleft", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol = 5, col = n_cols, lwd = 2)
+
+```
+
+
+now repeat but vary fragmentation instead
+
+
+```{r}
+#frag_set <- seq(from = 0, to = 0.25, length.out = 10) # external recruitment rate
+frag_set <- seq(from = 1, to = 10, length.out = 10) # external recruitment rate
+
+out_set <- seq(from = 0, to = 100, by = 1) # number outplanted each year
+
+t_goal <- 10 # amount of time in which you want to reach the restoration target
+
+# holding matrices for population sizes after 10 years
+pop1 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 1
+pop2 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 2
+pop3 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 3
+pop4 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 4
+pop5 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 5
+
+# holding matrices for area covered after 10 years
+area1 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 1
+area2 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 2
+area3 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 3
+area4 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 4
+area5 <- matrix(NA, nrow = length(out_set), ncol = length(frag_set)) # outplanting size 5
+
+# outer for loop = external recruitment rate
+# inner for loop = number outplanted
+
+for(k in 1:length(frag_set)){
+  
+frag_pars.k <- list()
+frag_pars.k[[1]] <- list() # first subpop
+frag_pars.k[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.015, 0.015), c(0, 0.07, 0.08, 0.06)*frag_set[k]) 
+frag_pars.k[[1]][[2]] <- frag_pars.k[[1]][[1]]
+
+  
+  for(j in 1:length(out_set)){
+    
+    # outplanting size 1
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,1] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.k, fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop1[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area1[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+    
+    # outplanting size 2
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,2] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.k, fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop2[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area2[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+     # outplanting size 3
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,3] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.k, fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop3[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area3[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+    # outplanting size 4
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,4] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.k, fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop4[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area4[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+    # outplanting size 5
+    out_pars <- matrix(0, nrow = years, ncol = n)
+    out_pars[ ,5] <- rep(out_set[j])
+    
+    simjk <- popvi_mod(years = t_goal, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.k, fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
+                      dist_pars.r, dist_effects.r, out_pars, N0.r)
+    
+    pop5[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal])
+    area5[j,k] <- sum(simjk$reef_pops_pre[[1]][[1]][,t_goal]*A_mids) + sum(simjk$reef_pops_pre[[1]][[2]][,t_goal]*A_mids)
+    
+  }
+  
+}
+```
+
+
+
+
+```{r}
+plot(NULL, xlim=c(min(frag_set),max(frag_set)), ylim=c(0,40), ylab="Min. number to outplant", xlab="Fragmentation", las = 1)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop1[,k] >= N_goal))]
+}
+lines(x = frag_set, y = popn, lty = 1, col = n_cols[1], lwd = 2)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop2[,k] >= N_goal))]
+}
+lines(x = frag_set, y = popn, lty = 2, col = n_cols[2], lwd = 2)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop3[,k] >= N_goal))]
+}
+lines(x = frag_set, y = popn, lty = 3, col = n_cols[3], lwd = 2)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop4[,k] >= N_goal))]
+}
+lines(x = frag_set, y = popn, lty = 4, col = n_cols[4], lwd = 2)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(pop5[,k] >= N_goal))]
+}
+lines(x = frag_set, y = popn, lty = 5, col = n_cols[5], lwd = 2)
+legend("topright", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol = 5, col = n_cols, lwd = 2, title = "Outplant size class")
+```
+
+
+```{r}
+plot(NULL, xlim=c(min(frag_set),max(frag_set)), ylim=c(0,50), ylab="Min. number to outplant", xlab="Fragmentation", las = 1)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area1[,k] >= A_goal))]
+}
+lines(x = frag_set, y = popn, lty = 1, col = n_cols[1], lwd = 2)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area2[,k] >= A_goal))]
+}
+lines(x = frag_set, y = popn, lty = 2, col = n_cols[2], lwd = 2)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area3[,k] >= A_goal))]
+}
+lines(x = frag_set, y = popn, lty = 3, col = n_cols[3], lwd = 2)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area4[,k] >= A_goal))]
+}
+lines(x = frag_set, y = popn, lty = 4, col = n_cols[4], lwd = 2)
+popn <- rep(NA, length(frag_set))
+for(k in 1:length(popn)){
+  popn[k] <- out_set[min(which(area5[,k] >= A_goal))]
+}
+lines(x = frag_set, y = popn, lty = 5, col = n_cols[5], lwd = 2)
+legend("topleft", legend = as.character(c(1:5)), lty = c(1:5), bty = "n", ncol = 5, col = n_cols, lwd = 2)
+```
+
+
