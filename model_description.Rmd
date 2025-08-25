@@ -264,6 +264,7 @@ sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, fr
 ```
 
 
+UPDATE the growth parameters (see note at top of population viability analyses Rmd)
 
 ```{r}
 # plot results
