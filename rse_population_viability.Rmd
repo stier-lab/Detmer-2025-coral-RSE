@@ -8,6 +8,8 @@ date: "2025-07-22"
 README: sensitivity analyses and population viability analyses (how much do you have to outplant (and of what sizes) to get a growing/persistent population, how long does it take to reach this point, and once there can you stop outplanting?)
 
 
+NOTE: need to go through and reset the growth/shrinkage parameters in all the Rmd files because I think I set them before I added fragmentation to the model, so they were all standardized from the matrix that included fragmentation oin the Vardi paper?
+
 ```{r}
 
 source("coral_demographic_funs.R")
@@ -30,7 +32,7 @@ question: is it the parameters that matter or just the resultant lambda?
 
 ```{r}
 
-n_reps <- 10 # number of random replications to do
+n_rep <- 100 # number of random replications to do
 
 
 # parameters that don't change
@@ -45,6 +47,13 @@ fec_pars.r[[1]] <- list() # first subpop
 fec_pars.r[[1]][[1]] <- c(0, 0, 0, 0, 0) # first source
 fec_pars.r[[1]][[2]] <- c(0, 0, 0, 0, 0)
 
+# reef parameters: survival
+surv_pars.r <- list()
+surv_pars.r[[1]] <- list() 
+surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) 
+#surv_pars.r[[1]][[1]] <- c(0.010, 1-0.56, 1-0.47, 1-0.3, 1-0.16)
+surv_pars.r[[1]][[2]] <- surv_pars.r[[1]][[1]] # survival probabilities for second source of individuals to the reef (outplanted individuals)
+
 lambda <- 0 # external recruitment to reef
 
 # stochasticity parameters
@@ -57,28 +66,26 @@ seeds <- c(1000, 5000, 10000)
 N0.r <- list()
 N0.r[[1]] <- list() # first reef subpop
 N0.r[[1]][[1]] <- rep(0, n) # first source in the reef (external recruits)
-N0.r[[1]][[2]] <- rep(0, n) # second source in the reef (outplants)
+N0.r[[1]][[2]] <- rep(10, n) # second source in the reef (outplants)
 
 # disturbance parameters
 dist_yrs <- NA # years when disturbance occurs, NA if none
-
 # effects of disturbance on each reef subpop
 dist_effects.r <- list()
-
 # disturbance parameters for each reef subpop
 dist_pars.r <- list()
 
 # restoration parameters
-out_pars <- matrix(10000, nrow = years, ncol = n) # never outplant any
+out_pars <- matrix(c(0, 0, 0, 0, 0), nrow = years, ncol = n, byrow = T) # outplant 10,000 of the first size class each year?
 
-# holding vectors
-# final reef population size
-# final reef size structure
-
-# lambdas
+# holding vectors/matrices
+N_set <- rep(NA, n_rep) # final reef population size
+N_all <- matrix(NA, nrow = n_rep, ncol = n) # final reef size structure
+lambda_set <- rep(NA, n_rep) # lambdas
+sum_check <- rep(NA, n_rep) # checking the transition matrix columns always sum to 1
 
 # set seed
-set.seed(100)
+#set.seed(100)
 
 # for each replication
 for(i in 1:n_rep){
@@ -87,46 +94,138 @@ for(i in 1:n_rep){
 
   
   # demographic parameters for each orchard and reef treatment
-# reef parameters: survival
-surv_pars.r <- list()
-surv_pars.r[[1]] <- list() 
-surv_pars.r[[1]][[1]] <- c(0.010, 0.760, 0.870, 0.950, 0.999) 
-surv_pars.r[[1]][[2]] <- surv_pars.r[[1]][[1]] # survival probabilities for second source of individuals to the reef (outplanted individuals)
-?runif()
+#?runif()
+
 
 # reef parameters: growth
 growth_pars.r <- list()
 growth_pars.r[[1]] <- list() # first reef subpop
 # runif(n, min = 0, max = 1), but shrinkage + growth needs to sum to <=1 (and if you make it sum to 1, then the prop that stay in a size class will be zero). Maybe randomly draw an upper limit for growth, then an upper limit for shrinkage (from btw 0 and 1-growth limit) and then make the random numbers sum to each of these limits
-growth_pars.r[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) # first source to first reef subpop (external recruits)
+# also assume that you can't grow more than one size class in a year
+
+set.seed(i*10)
+G_lims <- runif(4, 0, 1) # upper limits for growth in each size class that can grow
+
+Gi <- rep(NA, length(G_lims))
+
+for(j in 1:length(G_lims)){
+  
+  Gi[j] <- runif(1, 0, G_lims[j])
+}
+
+growth_pars.r[[1]][[1]] <- list(c(Gi[1], 0, 0, 0), c(Gi[2], 0, 0), c(Gi[3], 0), Gi[4], NULL) # first source to first reef subpop (external recruits)
 growth_pars.r[[1]][[2]] <- growth_pars.r[[1]][[1]] # outplanted
 
 # reef parameters: shrinkage
+# upper limits for shrinkage
+SH_lims <- rep(NA, 4)
+SH_lims[4] <- runif(1, 0, 1) # no growth was possible for the largest size class
+
+for(j in 1:(length(SH_lims)-1)){
+  
+  SH_lims[j] <- runif(1, 0, 1-Gi[j])
+  
+}
+
+SHi <- rep(NA, 4)
+
+for(j in 1:length(SHi)){
+
+  SHi[j] <- runif(1, 0, SH_lims[j])
+}
+
+c2 <- runif(2, 0, SHi[2])
+c3 <- runif(3, 0, SHi[3])
+c4 <- runif(4, 0, SHi[4])
+
+
 shrink_pars.r <- list()
 shrink_pars.r[[1]] <- list() # first subpop
-shrink_pars.r[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.08), c(0, 0, 0.105), c(0, 0, 0.06, 0.11)) # first source
+shrink_pars.r[[1]][[1]] <- list(NULL, c(SHi[1]), c2/sum(c2)*SHi[2], c3/sum(c3)*SHi[3], c4/sum(c4)*SHi[4]) # first source
 shrink_pars.r[[1]][[2]] <- shrink_pars.r[[1]][[1]]  # outplanted
 
 # reef parameters: fragmentation
+# assuming the first three size classes are too small to produce viable fragments
 frag_pars.r <- list()
 frag_pars.r[[1]] <- list() # first subpop
-frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.015, 0.015), c(0, 0.07, 0.08, 0.06)) 
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), runif(3, 0, 0.1), runif(4, 0, 0.5)) 
 frag_pars.r[[1]][[2]] <- frag_pars.r[[1]][[1]] # outplanted
 
 
+# create and store the matrices (remember to include prop that stays the same)
+
+mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
+
+Tmat.i <- mats$growth[[1]]
+Fmat.i <- mats$fragmentation[[1]]
+
+# check the transition matrix columns always sum to <= 1
+sum_check[i] <- length(which(apply(Tmat.i, MARGIN = 2, FUN = sum) != 1))
+
+if(sum_check[i]!=0){
+  print(apply(Tmat.i, MARGIN = 2, FUN = sum))
+}
+
+
+# calculate lambda (population growth rate)
+pop_mat <-  (Tmat.i + Fmat.i) * matrix(surv_pars.r[[1]][[1]], nrow = n, ncol = n, byrow = T)
+lambda_set[i] <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
 
 
 sim1 <- popvi_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r,
                       fec_pars.r, lambda, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
                       dist_pars.r, dist_effects.r, out_pars, N0.r)
+
+
+# record final population size and size class
+N_set[i] <- sum(sim1$reef_pops_pre[[1]][[1]][,years]) + sum(sim1$reef_pops_pre[[1]][[2]][,years])
+
+N_all[i,] <- sim1$reef_pops_pre[[1]][[1]][,years] + sim1$reef_pops_pre[[1]][[2]][,years]
+
+#print(G_lims)
+
+#print(Gi)
+
   
 }
 
+which(sum_check!=0)
 
-
+#lambda_set
 
 
 ```
+
+
+```{r}
+
+
+plot(x = lambda_set, y = N_set, type = "p", pch = 16, las = 1, col = adjustcolor("black", alpha.f = 0.6))
+
+# maybe plots of proportion in each size class, with different colors for the different size classes?
+
+length(lambda_set)
+length(unique(lambda_set))
+
+# for(i in 1:n_rep){
+# 
+#   G_lims <- runif(4, 0, 1)
+# 
+#   print(G_lims)
+# 
+# }
+
+```
+
+
+
+
+```{r}
+# making numbers sum to 0.5
+#sum(c(1, 0.4, 3, 0.01)/sum(c(1, 0.4, 3, 0.01))*0.5)
+
+```
+
 
 
 # how many to add
