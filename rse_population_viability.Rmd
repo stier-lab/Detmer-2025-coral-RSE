@@ -32,7 +32,7 @@ question: is it the parameters that matter or just the resultant lambda?
 
 ```{r}
 
-n_rep <- 100 # number of random replications to do
+n_rep <- 150 # number of random replications to do
 
 
 # parameters that don't change
@@ -76,10 +76,16 @@ dist_effects.r <- list()
 dist_pars.r <- list()
 
 # restoration parameters
-out_pars <- matrix(c(0, 0, 0, 0, 0), nrow = years, ncol = n, byrow = T) # outplant 10,000 of the first size class each year?
+out_pars <- matrix(c(1000, 0, 0, 0, 0), nrow = years, ncol = n, byrow = T) # outplant 100 of the first size class each year?
 
 # holding vectors/matrices
 N_set <- rep(NA, n_rep) # final reef population size
+N_props <- list() # list where first element is vector with proportion of population in first size class, etc.
+N_props[[1]] <- rep(NA, n_rep)
+N_props[[2]] <- rep(NA, n_rep)
+N_props[[3]] <- rep(NA, n_rep)
+N_props[[4]] <- rep(NA, n_rep)
+N_props[[5]] <- rep(NA, n_rep)
 N_all <- matrix(NA, nrow = n_rep, ncol = n) # final reef size structure
 lambda_set <- rep(NA, n_rep) # lambdas
 sum_check <- rep(NA, n_rep) # checking the transition matrix columns always sum to 1
@@ -180,6 +186,12 @@ sim1 <- popvi_mod(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, f
 # record final population size and size class
 N_set[i] <- sum(sim1$reef_pops_pre[[1]][[1]][,years]) + sum(sim1$reef_pops_pre[[1]][[2]][,years])
 
+N_props[[1]][i] <- (sim1$reef_pops_pre[[1]][[1]][1,years] + sim1$reef_pops_pre[[1]][[2]][1,years])/N_set[i]
+N_props[[2]][i] <- (sim1$reef_pops_pre[[1]][[1]][2,years] + sim1$reef_pops_pre[[1]][[2]][2,years])/N_set[i]
+N_props[[3]][i] <- (sim1$reef_pops_pre[[1]][[1]][3,years] + sim1$reef_pops_pre[[1]][[2]][3,years])/N_set[i]
+N_props[[4]][i] <- (sim1$reef_pops_pre[[1]][[1]][4,years] + sim1$reef_pops_pre[[1]][[2]][4,years])/N_set[i]
+N_props[[5]][i] <- (sim1$reef_pops_pre[[1]][[1]][5,years] + sim1$reef_pops_pre[[1]][[2]][5,years])/N_set[i]
+
 N_all[i,] <- sim1$reef_pops_pre[[1]][[1]][,years] + sim1$reef_pops_pre[[1]][[2]][,years]
 
 #print(G_lims)
@@ -192,7 +204,8 @@ N_all[i,] <- sim1$reef_pops_pre[[1]][[1]][,years] + sim1$reef_pops_pre[[1]][[2]]
 which(sum_check!=0)
 
 #lambda_set
-
+# length(lambda_set)
+# length(unique(lambda_set))
 
 ```
 
@@ -200,12 +213,52 @@ which(sum_check!=0)
 ```{r}
 
 
-plot(x = lambda_set, y = N_set, type = "p", pch = 16, las = 1, col = adjustcolor("black", alpha.f = 0.6))
+par(oma = c(0, 2.5, 0, 2.5))
+plot(x = lambda_set, y = N_set, type = "p", pch = 16, las = 1, col = adjustcolor("black", alpha.f = 0.6), xlab = NA, ylab = NA)
+abline(v = 1, lty = 2)
+mtext(side = 1, expression("Population growth rate ("*lambda*")"), line = 2.5)
+mtext(side = 2, "Population size", line = 2.75)
 
-# maybe plots of proportion in each size class, with different colors for the different size classes?
 
-length(lambda_set)
-length(unique(lambda_set))
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 3))
+#layout.show(5)
+par(mar=c(0.25, 3, 0.5, 0), oma = c(4.5, 2.5, 1.75, 2.5))
+# make plots of proportion in each size class, with different colors for the different size classes
+plot(x = lambda_set, y = N_props[[1]], type = "p", pch = 16, las = 1, col = adjustcolor("black", alpha.f = 0.6), ylim = c(0, 1), xlab = NA, ylab = NA, xaxt = "n")
+#abline(v = 1, lty = 2)
+axis(side = 1, at = c(0.8, 0.9, 1, 1.1, 1.2), labels = NA)
+mtext(side = 1, expression("Population growth rate ("*lambda*")"), line = 2.5, outer = T)
+mtext(side = 2, "Prop. in size class", line = 0, outer = T)
+mtext(side = 3, "Class 1", line = -1.25)
+
+plot(x = lambda_set, y = N_props[[2]], type = "p", pch = 16, las = 1, col = adjustcolor("black", alpha.f = 0.6), ylim = c(0, 1), xlab = NA, ylab = NA, xaxt = "n")
+#abline(v = 1, lty = 2)
+axis(side = 1, at = c(0.8, 0.9, 1, 1.1, 1.2), labels = NA)
+mtext(side = 3, "Class 2", line = -1.25)
+#mtext(side = 1, expression("Population growth rate ("*lambda*")"), line = 2.5)
+#mtext(side = 2, "Prop. in class 2", line = 2.5)
+
+plot(x = lambda_set, y = N_props[[3]], type = "p", pch = 16, las = 1, col = adjustcolor("black", alpha.f = 0.6), ylim = c(0, 1), xlab = NA, ylab = NA, xaxt = "n")
+#abline(v = 1, lty = 2)
+axis(side = 1, at = c(0.8, 0.9, 1, 1.1, 1.2), labels = NA)
+mtext(side = 3, "Class 3", line = -1.25)
+#mtext(side = 1, expression("Population growth rate ("*lambda*")"), line = 2.5)
+#mtext(side = 2, "Prop. in class 3", line = 2.5)
+
+plot(x = lambda_set, y = N_props[[4]], type = "p", pch = 16, las = 1, col = adjustcolor("black", alpha.f = 0.6), ylim = c(0, 1), xlab = NA, ylab = NA)
+mtext(side = 3, "Class 4", line = -1.25)
+#abline(v = 1, lty = 2)
+#mtext(side = 1, expression("Population growth rate ("*lambda*")"), line = 2.5)
+#mtext(side = 2, "Prop. in class 4", line = 2.5)
+
+plot(x = lambda_set, y = N_props[[5]], type = "p", pch = 16, las = 1, col = adjustcolor("black", alpha.f = 0.6), ylim = c(0, 1), xlab = NA, ylab = NA)
+mtext(side = 3, "Class 5", line = -1.25)
+#abline(v = 1, lty = 2)
+#mtext(side = 1, expression("Population growth rate ("*lambda*")"), line = 2.5)
+#mtext(side = 2, "Prop. in class 5", line = 2.5)
+
+
 
 # for(i in 1:n_rep){
 # 
