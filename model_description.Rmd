@@ -18,38 +18,6 @@ source("rse_funs.R")
 
 
 
-```{r}
-# matrices from Vardi et al 2012
-# first year (growing pop'n)
-col1 <- c(0.6, 0.15, 0.01, 0)/sum(0.6, 0.15, 0.01, 0)
-col2 <- c(0.07, 0.69, 0.11, 0)/sum(0.07, 0.69, 0.11, 0)
-col3 <- c(0, 0.1, 0.74, 0.11)/sum(0, 0.1, 0.74, 0.11)
-col4 <- c(0, 0.06, 0.11, 0.83)/sum(0, 0.06, 0.11, 0.83)
-
-sum(col1)
-sum(col2)
-sum(col3)
-sum(col4)
-
-#list(col1[2:4], col2[3:4], col3[4], NULL) # growth parameters
-#list(NULL, col2[1], col3[1:2], col4[1:3]) # shrinkage
-
-# second year (declining population)
-col1 <- c(0.44, 0, 0, 0)/sum(0.44, 0, 0, 0)
-col2 <- c(0.14, 0.37, 0.02, 0)/sum(0.14, 0.37, 0.02, 0)
-col3 <- c(0.08, 0.19, 0.43, 0)/sum(0.08, 0.19, 0.43, 0)
-col4 <- c(0, 0, 0.13, 0.71)/sum(0, 0, 0.13, 0.71)
-
-sum(col1)
-sum(col2)
-sum(col3)
-sum(col4)
-
-list(col1[2:4], col2[3:4], col3[4], NULL) # growth parameters
-list(NULL, col2[1], col3[1:2], col4[1:3]) # shrinkage
-
-```
-
 
 ```{r}
 
@@ -78,21 +46,21 @@ surv_pars.r[[1]][[3]] <- c(0.01, 0.44, 0.53, 0.70, 0.84) # survival probabilitie
 # reef parameters: growth
 growth_pars.r <- list()
 growth_pars.r[[1]] <- list() # second reef subpop (intervention)
-growth_pars.r[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL) 
+growth_pars.r[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.12, 0, 0), c(0.11, 0), 0.07, NULL) 
 growth_pars.r[[1]][[2]] <- growth_pars.r[[1]][[1]] # second source (first lab treatment)
 growth_pars.r[[1]][[3]] <- growth_pars.r[[1]][[1]] # third source (third lab treatment)
 
 # reef parameters: shrinkage
 shrink_pars.r <- list()
 shrink_pars.r[[1]] <- list() # second subpop
-shrink_pars.r[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.026), c(0, 0.11, 0.27), c(0, 0, 0, 0.15)) # first source 
+shrink_pars.r[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.12), c(0, 0.02, 0.22), c(0, 0, 0, 0.09)) # first source 
 shrink_pars.r[[1]][[2]] <- shrink_pars.r[[1]][[1]] # second source
 shrink_pars.r[[1]][[3]] <- shrink_pars.r[[1]][[1]] # third source
 
 # reef parameters: fragmentation
 frag_pars.r <- list()
 frag_pars.r[[1]] <- list() # second subpop
-frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.06, 0.06), c(0, 0.28, 0.3, 0.23)) 
+frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.09, 0.06), c(0, 0.41, 0.31, 0.03)) 
 frag_pars.r[[1]][[2]] <- frag_pars.r[[1]][[1]] # second source
 frag_pars.r[[1]][[3]] <- frag_pars.r[[1]][[1]] # third source
 
@@ -112,13 +80,13 @@ surv_pars.o[[1]][[2]] <- surv_pars.o[[1]][[1]] # second source (second lab treat
 # orchard parameters: growth
 growth_pars.o <- list()
 growth_pars.o[[1]] <- list() # first treatment
-growth_pars.o[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.197, 0.0132, 0), c(0.126, 0), 0.1158, NULL)  # first source
+growth_pars.o[[1]][[1]] <- list(c(0.5, 0, 0, 0), c(0.12, 0, 0), c(0.11, 0), 0.07, NULL)   # first source
 growth_pars.o[[1]][[2]] <- growth_pars.o[[1]][[1]] # second source
 
 # orchard parameters: shrinkage
 shrink_pars.o <- list()
 shrink_pars.o[[1]] <- list() # first treatment
-shrink_pars.o[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.026), c(0, 0.11, 0.27), c(0, 0, 0, 0.15))  # first source
+shrink_pars.o[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.12), c(0, 0.02, 0.22), c(0, 0, 0, 0.09)) # first source
 shrink_pars.o[[1]][[2]] <- shrink_pars.o[[1]][[1]] # second source
 
 # orchard parameters: fragmentation
@@ -210,13 +178,14 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
 # lab parameters
 s0 <- c(0.9, 0.9) # fraction of settled larvae in each lab treatment that survive to 2wk outplanting
 s1 <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
-sett_props <- list(T1 = 0.5, T2 = 0.5) # proportion of larvae that settle on each tile type
+sett_props <- list(T1 = 0.95, T2 = 0.95) # proportion of larvae that settle on each tile type
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
 size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment (0_T1)
 size_props[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment (0_T2)
 lab_pars <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_props)
 
 # restoration strategy parameters
+tile_props <- list(T1 = 0.5, T2 = 0.5) # proportion of tiles that are each type
 orchard_yield <- 0 # percent of new orchard babies successfully collected
 reef_yield <- 0.001 # percent of new reef babies successfully collected and fertilized
 reef_prop <- c(0.5, 0.5) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
@@ -256,7 +225,7 @@ trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T) # first source corals in this orchard get transplanted to the second source of corals in the first reef
 trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # second source corals in this orchard get transplanted to the third source of corals in the second reef
 
-rest_pars <- list(orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
 
 
 sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)

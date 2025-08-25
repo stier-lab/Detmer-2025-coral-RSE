@@ -511,7 +511,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r
     for(ss in 1:s_lab){
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){ # if settlers in ss^th lab treatment are outplanted immediately
-        out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]
+        out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # determine the fraction of these that survive to outplanting
         out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss] # ADD density dependence here?
@@ -519,7 +519,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r
       }
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if settlers in ss^th lab treatment are retained for a year
-        retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]
+        retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss] # store these in the lab population
       }
       
@@ -1275,7 +1275,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
     for(ss in 1:s_lab){
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){ # if settlers in ss^th lab treatment are outplanted immediately
-        out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]
+        out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # determine the fraction of these that survive to outplanting
         out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss] # ADD density dependence here?
@@ -1283,7 +1283,7 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
       }
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if settlers in ss^th lab treatment are retained for a year
-        retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]
+        retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss] # store these in the lab population
       }
       
