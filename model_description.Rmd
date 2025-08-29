@@ -43,6 +43,13 @@ surv_pars.r[[1]][[3]] <- c(0.01, 0.44, 0.53, 0.70, 0.84) # survival probabilitie
 # if there were more reef treatments/subpopulations:
 # surv_pars.r[[2]] <- list(), then define surv_pars.r[[2]][[1]], [[2]][[2]], [[2]][[3]]
 
+# density dependent survival (smallest size class only for now)
+dens_pars.r <- list()
+dens_pars.r[[1]] <- list() # first reef treatment/subpop
+dens_pars.r[[1]][[1]] <- 0
+dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]]
+dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]]
+
 # reef parameters: growth
 growth_pars.r <- list()
 growth_pars.r[[1]] <- list() # second reef subpop (intervention)
@@ -76,6 +83,12 @@ surv_pars.o <- list()
 surv_pars.o[[1]] <- list() # first treatment
 surv_pars.o[[1]][[1]] <- c(0.010, 0.44, 0.53, 0.70, 0.84) # first source (first lab treatment)
 surv_pars.o[[1]][[2]] <- surv_pars.o[[1]][[1]] # second source (second lab treatment)
+
+# density dependent survival (smallest size class only for now)
+dens_pars.o <- list()
+dens_pars.o[[1]] <- list() # first orchard
+dens_pars.o[[1]][[1]] <- 0
+dens_pars.o[[1]][[2]] <- dens_pars.o[[1]][[1]]
 
 # orchard parameters: growth
 growth_pars.o <- list()
@@ -176,13 +189,15 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
 
 
 # lab parameters
-s0 <- c(0.9, 0.9) # fraction of settled larvae in each lab treatment that survive to 2wk outplanting
+s0 <- c(0.9, 0.9) # fraction of settled larvae in each lab treatment that survive to immediate outplanting
 s1 <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
+m0 <- c(0, 0) # density dependent mortality rate of larvae in each lab treatment that get outplanted immediately
+m1 <- c(0, 0) # density dependent mortality rate of larvae in each lab treatment that get outplanted after 1 year
 sett_props <- list(T1 = 0.95, T2 = 0.95) # proportion of larvae that settle on each tile type
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
 size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment (0_T1)
 size_props[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment (0_T2)
-lab_pars <- list(s0 = s0, s1 = s1, sett_props = sett_props, size_props = size_props)
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props)
 
 # restoration strategy parameters
 tile_props <- list(T1 = 0.5, T2 = 0.5) # proportion of tiles that are each type
@@ -228,7 +243,7 @@ trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # sec
 rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
 
 
-sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 ```
 
@@ -247,8 +262,6 @@ legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"),
 
 
 ```
-
-
 
 test disturbance
 

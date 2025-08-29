@@ -155,12 +155,12 @@ dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 
 #' @param N0.o initial population sizes in each orchard subpopulation
 #' @param N0.l initial population sizes in each lab subpopulation
 
-rse_mod1 <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r,
-                    fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o,
-                    fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs,
-                    dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o,
-                    orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars,
-                    N0.r, N0.o, N0.l){
+rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, 
+                     frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, 
+                     shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, 
+                     ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, 
+                     dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, 
+                     rest_pars, N0.r, N0.o, N0.l){
   
   # reef subpops = length(lab_treatments)*length(reef_treatments)
   # lab subpops = length(lab_treatments)
@@ -365,8 +365,16 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r
           # get the survival probabilities
           S_i <- reef_mat_pars[[ss]][[rr]]$survival[[i]] # survival
           
-          # UPDATE survival with density dependence here
-          # (QUESTION: should this depend on total reef popn or just the subpopn size?)
+        
+          # update survival of the smallest size class with density dependence 
+          # need to get total population size across all size classes and sources to this reef subpopulation
+          N_all <- rep(NA, source_reef)
+          
+          for(rrr in 1:source_reef){
+            N_all[rrr] <- sum(reef_pops[[ss]][[rrr]][,i-1])
+          }
+          
+          S_i[1] <- S_i[1]*exp(-dens_pars.r[[ss]][[rr]]*sum(N_all))
           
           N_mat <- reef_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
           N_mat <- N_mat*S_i # fractions surviving to current time point
@@ -439,11 +447,20 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r
         # get the survival probabilities for this year
         S_i <- orchard_mat_pars[[ss]][[rr]]$survival[[i]] # survival
         
-        # UPDATE survival with density dependence here
-        # (QUESTION: should this depend on total reef popn or just the subpopn size?)
+        # update survival of smallest size classes with density dependence here
+        N_all <- rep(NA, source_orchard)
+        
+        for(rrr in 1:source_orchard){
+          N_all[rrr] <- sum(orchard_pops[[ss]][[rrr]][,i-1])
+        }
+        
+        S_i[1] <- S_i[1]*exp(-dens_pars.o[[ss]][[rr]]*sum(N_all))
+        
+        N_mat <- reef_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
+        N_mat <- N_mat*S_i # fractions surviving to current time point
+        
         
         N_mat <- orchard_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
-        
         N_mat <- N_mat*S_i # fractions surviving to current time point
         
         # now update the population sizes:
@@ -514,13 +531,13 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r
         out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # determine the fraction of these that survive to outplanting
-        out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss] # ADD density dependence here?
+        out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss]*exp(-lab_pars$m0[ss]*out_settlers[ss]) # m0 = density dependent mortality rate
         
       }
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if settlers in ss^th lab treatment are retained for a year
         retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
-        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss] # store these in the lab population
+        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*retain_settlers[ss]) # store survivors in the lab population
       }
       
       
