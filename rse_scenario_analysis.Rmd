@@ -545,7 +545,6 @@ proportion tiles and total invested in tiles
 
 
 
-
 ```{r}
 
 inv_set <- seq(from = 20, to = 500, by = 20)
