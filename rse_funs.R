@@ -537,7 +537,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if settlers in ss^th lab treatment are retained for a year
         retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
-        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*retain_settlers[ss]) # store survivors in the lab population
+        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*retain_settlers) # store survivors in the lab population
       }
       
       
