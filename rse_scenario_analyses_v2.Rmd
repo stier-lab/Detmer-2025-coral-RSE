@@ -1456,9 +1456,9 @@ money invested in orchard (prop. to orchard size) on the x-axis
 prop_set1 <- c(0, 0.5, 1) # proportion outplanted to reef
 cap_set1 <- seq(from = 0, to = 500, length.out = 25) # max orchard capacity
 
-pop_mat1 <- matrix(NA, nrow = length(cap_set), ncol = length(prop_set))
+pop_mat1 <- matrix(NA, nrow = length(cap_set1), ncol = length(prop_set1))
 #pcover_mat <- matrix(NA, nrow = length(inv_set), ncol = length(prop_set))
-area_mat1 <- matrix(NA, nrow = length(cap_set), ncol = length(prop_set))
+area_mat1 <- matrix(NA, nrow = length(cap_set1), ncol = length(prop_set1))
 
 for(i in 1:length(prop_set1)){
   
@@ -1473,10 +1473,10 @@ rest_pars.ij <- list(tile_props = tile_props, orchard_yield = orchard_yield, ree
     
   
   # record final population size
-  pop_mat1[i,j] <- sum(sim.ij$reef_pops_pre[[1]][[1]][,years]) + sum(sim.ij$reef_pops_pre[[1]][[2]][,years])
+  pop_mat1[j,i] <- sum(sim.ij$reef_pops_pre[[1]][[1]][,years]) + sum(sim.ij$reef_pops_pre[[1]][[2]][,years])
   
   # record area covered
-  area_mat1[i,j] <- (sum(sim.ij$reef_pops_pre[[1]][[1]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[1]][[2]][,years]*A_mids))/10000
+  area_mat1[j,i] <- (sum(sim.ij$reef_pops_pre[[1]][[1]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[1]][[2]][,years]*A_mids))/10000
   
   # record final % cover
   #pcover_mat[i,j] <- (sum(sim.ij$reef_pops_pre[[2]][[1]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[2]][[2]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[2]][[3]][,years]*A_mids))/sum(reef_areas)*100
@@ -1494,17 +1494,18 @@ rest_pars.ij <- list(tile_props = tile_props, orchard_yield = orchard_yield, ree
 ```{r}
 
 
-plot(x = cap_set1, y = area_mat1[1,], type = "l", las = 1, col = col_set[3], lwd = 2, xlab = NA, ylab = NA, ylim = c(0, 0.3))
+plot(x = cap_set1, y = area_mat1[,1], type = "l", las = 1, col = col_set[3], lwd = 2, xlab = NA, ylab = NA, ylim = c(0, 0.3))
 mtext(side = 1, "investment in orchard", line = 2, cex = 1.1)
 mtext(side = 2, expression("Coral Cover ("*m^2*")"), line = 2.5, cex = 1.1)
-lines(x = cap_set1, y = area_mat1[2,], type = "l", col = col_set[2], lwd = 2)
-lines(x = cap_set1, y = area_mat1[3,], type = "l", col = col_set[1], lwd = 2)
-legend("topleft", legend = c("0% to reef", "50% to reef", "100% to reef"), lwd = 2, col = col_set, bty = "n")
+lines(x = cap_set1, y = area_mat1[,2], type = "l", col = col_set[2], lwd = 2)
+lines(x = cap_set1, y = area_mat1[,3], type = "l", col = col_set[1], lwd = 2)
+legend("topleft", legend = c("100% to reef", "50% to reef", "0% to reef"), lwd = 2, col = col_set, bty = "n")
 
 
 ```
 
-remember the surplus always goes to the reef, and the bigger the orchard is the lower the surplus
+remember the surplus always goes to the reef, and the bigger the orchard capacity is the lower the surplus (except bigger orchard also equals bigger production so I think as the orchard gets really big you can actually get an increase in the surplus, which is why reef cover increases even if 0% is going to the reef). And when 100% goes to the reef, orchard capacity doesn't matter (only the initial conditions) since the orchard will never grow
+
 
 ## heatmap
 
@@ -1530,10 +1531,10 @@ rest_pars.ij <- list(tile_props = tile_props, orchard_yield = orchard_yield, ree
     
   
   # record final population size
-  pop_mat[i,j] <- sum(sim.ij$reef_pops_pre[[1]][[1]][,years]) + sum(sim.ij$reef_pops_pre[[1]][[2]][,years])
+  pop_mat[j,i] <- sum(sim.ij$reef_pops_pre[[1]][[1]][,years]) + sum(sim.ij$reef_pops_pre[[1]][[2]][,years])
   
   # record area covered
-  area_mat[i,j] <- (sum(sim.ij$reef_pops_pre[[1]][[1]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[1]][[2]][,years]*A_mids))/10000
+  area_mat[j,i] <- (sum(sim.ij$reef_pops_pre[[1]][[1]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[1]][[2]][,years]*A_mids))/10000
   
   # record final % cover
   #pcover_mat[i,j] <- (sum(sim.ij$reef_pops_pre[[2]][[1]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[2]][[2]][,years]*A_mids) + sum(sim.ij$reef_pops_pre[[2]][[3]][,years]*A_mids))/sum(reef_areas)*100
@@ -1567,5 +1568,5 @@ mtext(side = 1, "Prop. outplanted to reef", line = 2, adj = 0.25, cex = 1.1)
 mtext(side = 2, "Orchard size (max)", line = 2.5, cex = 1.1)
 
 ```
-
+CHECK AXES ARE CORRECT
 
