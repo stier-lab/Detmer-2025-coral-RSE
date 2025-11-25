@@ -112,6 +112,122 @@ dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 
 
 }
 
+#' parameterization function
+#' make a function that takes data frames with parameter values as inputs and returns them in list form for the model
+#' @param par_type "survival", "growth", or "fragmentation"
+#' @param sample_dt if T, randomly sample a row from the full dataframe; if F, use the summ_metric from the summ_df
+#' @param summ_df data frame (or list of dataframes) with summarized values (mean and 95% confidence intervals)
+#' @param summ_metric metric indicating which summarized value to use (mean, Q05, Q95)
+#' @param full_df data frame (or list of dataframes) with all available estimates of parameter values
+#' @param n_sample number of samples from the full data frame to take (if sample_dt == T)
+par_list_fun <- function(){
+  
+if(par_type == "survival"){ # survival data
+  
+  if(sample_dt == T){ # if using summarized data
+    
+    surv_pars <- summ_df[, summ_metric]
+    
+  } else{ # if taking a random sample
+    
+    surv_pars <- matrix(NA, nrow = n_sample, ncol = 5)
+    
+    for(k in unique(full_df$size_class)){ # for each size class present
+      
+      df_sub <- full_df[which(full_df$size_class == k), ] # parameters for kth size class
+      
+        all_index <- c(1:nrow(df_sub))
+        
+        if(n_sample > nrow(df_sub)){ # if n_sample is bigger than the number of parameter values to sample from
+          
+          print("sample size too big; resampling parameter values")
+          
+          ki <- sample(all_index, size = n_sample, replace = T)
+      
+        } else{
+          
+          ki <- sample(all_index, size = n_sample, replace = F)
+        }
+        
+        surv_pars[, k] <- df_sub$prop_survived[ki]
+      
+    }
+    
+  } # end of ifelse for whether to sample survival parameter values
+  
+}  # end of if par_type == "survival"
+  
+  
+  if(par_type == "growth"){ # growth data
+    
+    if(sample_dt == T){
+      
+      growth_pars <- list(summ_df[[1]][-1, summ_metric], 
+                          summ_df[[2]][-c(1:2), summ_metric],
+                          summ_df[[3]][-c(1:3), summ_metric],
+                          summ_df[[4]][-c(1:4), summ_metric],
+                          NULL)
+      
+      shrink_pars <- list(NULL, 
+                          summ_df[[2]][1, summ_metric],
+                          summ_df[[3]][c(1:2), summ_metric],
+                          summ_df[[4]][c(1:3), summ_metric],
+                          summ_df[[5]][c(1:4), summ_metric])
+    } else{
+      
+  
+      # get the vectors with the rows to sample
+      ki_all <- matrix(NA, nrow = n_sample, ncol = 5)
+      
+      for(k in 1:5){ # for each size class present
+        
+        df_sub <- full_df[[k]] # parameters for kth size class
+        
+        all_index <- c(1:nrow(df_sub))
+        
+        if(n_sample > nrow(df_sub)){ # if n_sample is bigger than the number of parameter values to sample from
+          
+          print("sample size too big; resampling parameter values")
+          
+          ki <- sample(all_index, size = n_sample, replace = T)
+          
+        } else{
+          
+          ki <- sample(all_index, size = n_sample, replace = F)
+        }
+        
+        ki_all[ ,k] <- ki
+        
+      }
+      
+      # now fill in the growth and shrink parameters
+      growth_pars <- list()
+      shrink_pars <- list()
+      
+      for(i in 1:n_sample){
+        
+        growth_pars[[i]] <- list(full_df[[1]][ki_all[i, k], -1], 
+                                 full_df[[2]][ki_all[i, k], -c(1:2)],
+                                 full_df[[3]][ki_all[i, k], -c(1:3)],
+                                 full_df[[4]][ki_all[i, k], -c(1:4)],
+                                 NULL)
+        
+        shrink_pars[[i]] <- list(NULL, 
+                                 full_df[[2]][ki_all[i, k], 1],
+                                 full_df[[3]][ki_all[i, k], c(1:2)],
+                                 full_df[[4]][ki_all[i, k], c(1:3)],
+                                 full_df[[5]][ki_all[i, k], c(1:4)])
+
+      
+      }
+      
+    } # end of ifelse for whether to sample growth/shrink parameter values
+    
+  }
+  
+}
+
+
 #' lab function
 #' make a function that takes the number of new babies from the orchard as an input and
 #' returns the number of outplants that can go to the reef
