@@ -105,7 +105,8 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
     for(cc in 2:n){ # for each column of the transition matrix (i.e., each size class) except the smallest
 
        #Ti_mat[1:(cc-1), cc] <- Ti_mat[1:(cc-1), cc] + frag_pars[[cc]] # add probabilities of producing fragments in each smaller size class
-      Fi_mat[1:(cc-1), cc] <- frag_pars[[cc]]
+      #Fi_mat[1:(cc-1), cc] <- frag_pars[[cc]]
+      Fi_mat[1:cc, cc] <- frag_pars[[cc]]
 
     } # end of third loop over columns
 
