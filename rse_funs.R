@@ -120,11 +120,13 @@ dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 
 #' @param summ_metric metric indicating which summarized value to use (mean, Q05, Q95)
 #' @param full_df data frame (or list of dataframes) with all available estimates of parameter values
 #' @param n_sample number of samples from the full data frame to take (if sample_dt == T)
-par_list_fun <- function(){
+#' 
+par_list_fun <- function(par_type, sample_dt, summ_df, summ_metric, full_df, n_sample){
+  
   
 if(par_type == "survival"){ # survival data
   
-  if(sample_dt == T){ # if using summarized data
+  if(sample_dt == F){ # if using summarized data
     
     surv_pars <- summ_df[, summ_metric]
     
@@ -160,7 +162,7 @@ if(par_type == "survival"){ # survival data
   
   if(par_type == "growth"){ # growth data
     
-    if(sample_dt == T){
+    if(sample_dt == F){ # if using summarized data
       
       growth_pars <- list(summ_df[[1]][-1, summ_metric], 
                           summ_df[[2]][-c(1:2), summ_metric],
@@ -173,7 +175,8 @@ if(par_type == "survival"){ # survival data
                           summ_df[[3]][c(1:2), summ_metric],
                           summ_df[[4]][c(1:3), summ_metric],
                           summ_df[[5]][c(1:4), summ_metric])
-    } else{
+      
+    } else{ # if taking random samples
       
   
       # get the vectors with the rows to sample
@@ -206,26 +209,82 @@ if(par_type == "survival"){ # survival data
       
       for(i in 1:n_sample){
         
-        growth_pars[[i]] <- list(full_df[[1]][ki_all[i, k], -1], 
-                                 full_df[[2]][ki_all[i, k], -c(1:2)],
-                                 full_df[[3]][ki_all[i, k], -c(1:3)],
-                                 full_df[[4]][ki_all[i, k], -c(1:4)],
+        growth_pars[[i]] <- list(full_df[[1]][ki_all[i, 1], -1], 
+                                 full_df[[2]][ki_all[i, 2], -c(1:2)],
+                                 full_df[[3]][ki_all[i, 3], -c(1:3)],
+                                 full_df[[4]][ki_all[i, 4], -c(1:4)],
                                  NULL)
         
         shrink_pars[[i]] <- list(NULL, 
-                                 full_df[[2]][ki_all[i, k], 1],
-                                 full_df[[3]][ki_all[i, k], c(1:2)],
-                                 full_df[[4]][ki_all[i, k], c(1:3)],
-                                 full_df[[5]][ki_all[i, k], c(1:4)])
+                                 full_df[[2]][ki_all[i, 2], 1],
+                                 full_df[[3]][ki_all[i, 3], c(1:2)],
+                                 full_df[[4]][ki_all[i, 4], c(1:3)],
+                                 full_df[[5]][ki_all[i, 5], c(1:4)])
 
       
       }
       
     } # end of ifelse for whether to sample growth/shrink parameter values
     
+  } # end of if par_type = growth
+  
+  if(par_type == "fragmentation"){ # fragmentation data
+    
+    if(sample_dt == F){ # if using summarized data
+      # list(NULL, c(0, 0), c(0, 0, 0), c(F4_SC1, F4_SC2, F4_SC3, F4_SC4), c(F5_SC1, F5_SC2, F5_SC3, F5_SC4, F5_SC5)) 
+      
+      frag_pars <- list(NULL, c(0, 0), c(0, 0, 0),
+      c(summ_df[which(summ_df$frag_type == "F4_SC1") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC2") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC3") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC4") ,summ_metric]),
+      c(summ_df[which(summ_df$frag_type == "F5_SC1") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC2") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC3") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC4") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC5") ,summ_metric]))
+      
+    } else{ # if taking random sample
+      
+      all_index <- c(1:nrow(full_df))
+      
+      if(n_sample > nrow(full_df)){ # if n_sample is bigger than the number of parameter values to sample from
+        
+        print("sample size too big; resampling parameter values")
+        
+        ki <- sample(all_index, size = n_sample, replace = T)
+        
+      } else{
+        
+        ki <- sample(all_index, size = n_sample, replace = F)
+      }
+      
+      # now fill in the fragmentation parameters
+      frag_pars <- list()
+      
+      for(i in 1:n_sample){
+        
+        df_sub <- full_df[ki[i], ]
+        
+        frag_pars[[i]] <- list(NULL, c(0, 0), c(0, 0, 0),
+                               c(df_sub$F4_SC1, df_sub$F4_SC2, df_sub$F4_SC3, df_sub$F4_SC4),
+                               c(df_sub$F5_SC1, df_sub$F5_SC2, df_sub$F5_SC3, df_sub$F5_SC4, df_sub$F5_SC5))
+        
+      }
+      
+      
+      
+    } # end of ifelse for whether to sample 
+    
+  } # end of if par_type = fragmentation
+  
+  # return values
+  if(par_type == "survival"){
+    return(list(surv_pars = surv_pars))
   }
   
-}
+  if(par_type == "growth"){
+    return(list(growth_pars = growth_pars, shrink_pars = shrink_pars))
+  }
+  
+  if(par_type == "fragmentation"){
+    return(list(frag_pars = frag_pars))
+  }
+  
+} # end of function
 
 
 #' lab function
