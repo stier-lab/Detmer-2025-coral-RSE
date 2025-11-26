@@ -287,6 +287,76 @@ if(par_type == "survival"){ # survival data
 } # end of function
 
 
+# function for setting up reef and orchard survival, growth/shrinkage, and fragmentation parameter values using summarized data
+# assumes all reefs have same parameters, all orchards have same parameters, and all lab treatments have same parameters
+#' @param n_reef number of intervention reefs
+#' @param n_orchard number of orchards
+#' @param n_lab number of lab treatments
+#' @param summ_metric_list named list specifying the summary metrics (mean, Q05, or Q95) to use for each type of parameter (field_surv, field_growth, field_shrink, field_frag, nurs_surv, nurs_growth, nurs_shrink)
+
+default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_surv, field_growth, nurs_surv, nurs_growth, apal_frag_summ){
+  
+  # reef
+  surv_pars.r <- list() # reef survival
+  growth_pars.r <- list() # reef growth
+  shrink_pars.r <- list() # reef shrinkage 
+  frag_pars.r <- list() # reef fragmentation 
+  
+  # get the parameter values
+  surv_pars1 <- par_list_fun(par_type = "survival", sample_dt = F, summ_df = field_surv$SC_surv_summ_df, summ_metric = summ_metric_list$field_surv, full_df = NA, n_sample = NA)$surv_pars
+  growth_pars1 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = field_growth$summ_list, summ_metric = summ_metric$field_growth, full_df = NA, n_sample = NA)$growth_pars
+  shrink_pars1 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = field_growth$summ_list, summ_metric = summ_metric$field_shrink, full_df = NA, n_sample = NA)$shrink_pars
+  frag_pars1 <- par_list_fun(par_type = "fragmentation", sample_dt = F, summ_df = apal_frag_summ, summ_metric = "mean", full_df = NA, n_sample = NA)$frag_pars
+  
+  for(i in 1:n_reef){ # for each reef
+    
+    surv_pars.r[[i]] <- list() # ith reef treatment/subpop
+    growth_pars.r[[i]] <- list()
+    shrink_pars.r[[i]] <- list()
+    frag_pars.r[[i]] <- list()
+    
+    for(j in 1:(n_lab + 1)){ # for each source to each reef
+      
+      surv_pars.r[[i]][[j]] <- surv_pars1 # survival probabilities for jth source of recruits to ith reef subpop (external recruits)
+      growth_pars.r[[i]][[j]] <- growth_pars1
+      shrink_pars.r[[i]][[j]] <- shrink_pars1
+      frag_pars.r[[i]][[j]] <- frag_pars1
+    }
+    
+  }
+  
+  # orchard
+  surv_pars.o <- list() # orchard survival
+  growth_pars.o <- list() # orchard growth
+  shrink_pars.o <- list() # orchard shrinkage 
+  
+  # get the parameter values
+  surv_pars2 <- par_list_fun(par_type = "survival", sample_dt = F, summ_df = nurs_surv$SC_surv_summ_df, summ_metric = summ_metric_list$nurs_surv, full_df = NA, n_sample = NA)$surv_pars
+  growth_pars2 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = nurs_growth$summ_list, summ_metric = summ_metric$nurs_growth, full_df = NA, n_sample = NA)$growth_pars
+  shrink_pars2 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = nurs_growth$summ_list, summ_metric = summ_metric$nurs_shrink, full_df = NA, n_sample = NA)$shrink_pars
+  
+
+  for(i in 1:n_orchard){ # for each orchard
+    
+    surv_pars.o[[i]] <- list() # ith reef treatment/subpop
+    growth_pars.o[[i]] <- list()
+    shrink_pars.o[[i]] <- list()
+    
+    for(j in 1:n_lab){ # for each source to each orchard
+      
+      surv_pars.o[[i]][[j]] <- surv_pars2 # survival probabilities for jth source of recruits to ith reef subpop (external recruits)
+      growth_pars.o[[i]][[j]] <- growth_pars2
+      shrink_pars.o[[i]][[j]] <- shrink_pars2
+      
+      # NOTE: need to update the nursery data frames input into the function by filling in the larger size classes with the field data
+      
+    }
+    
+  }
+  
+  
+}
+
 #' lab function
 #' make a function that takes the number of new babies from the orchard as an input and
 #' returns the number of outplants that can go to the reef
