@@ -134,12 +134,72 @@ par_test <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = nurs_grow
 nurs_growth$summ_list
 
 
-par_test # remember the nursery data don't include the larger size classes so will need to fill in with the field data
+par_test # remember the nursery data don't include the larger size classes so will need to fill in with the field data. Do this outside the function (modify the input data frames)
 
 ```
 
 
-make function for default model parameterization (no differences among treatments); then update any parameters that do differ among treatments manually outside of this function
+```{r}
+# test summarized parameter function
+
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
+
+# nursery data only available for size classes 1-2, so use the field data for the larger size classes
+nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
+
+nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
+nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
+nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
+
+summ_pars_test1 <- default_pars_fun(n_reef = 1, n_orchard = 1, n_lab = 2, summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+ 
+summ_pars_test1$surv_pars.r
+
+
+summ_pars_test1$frag_pars.o
+
+```
+
+
+```{r}
+# test random parameter function
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
+
+# nursery data only available for size classes 1-2, so use the field data for larger size classes
+nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
+
+nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
+nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
+nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
+
+rand_test1 <- rand_pars_fun(n_reef = 2, n_orchard = 1, n_lab = 2, n_sample = 2, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
+
+rand_test1$surv_pars_L.r[[1]]
+
+#rand_test1$frag_pars_L.o[[1]]
+
+# test_list <- list()
+# 
+# test_list[[1]] <- 1
+# test_list[[2]] <- 1
+# 
+# test_list <- list()
+# 
+# test_list[[1]] <- list()
+# test_list[[2]] <- list()
+# 
+# test_list[[1]][[1]] <- 1
+# test_list[[2]][[1]] <- 1
+
+```
+
+
 
 ```{r}
 
@@ -163,16 +223,31 @@ lab_treatments <- c("0_T1", "0_T2") # lab (cement = T1, ceramic = T2). "TX" is t
 
 
 # demographic parameters for each orchard and reef treatment/subpopulation
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
 
-surv_pars1 <- par_list_fun(par_type = "survival", sample_dt = F, summ_df = field_surv$SC_surv_summ_df, summ_metric = "mean", full_df = NA, n_sample = NA)$surv_pars
+# nursery data only available for size classes 1-2, so use the field data for the larger size classes
+nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
+
+nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
+nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
+nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
+
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
 # reef parameters: survival
-surv_pars.r <- list()
-surv_pars.r[[1]] <- list() # first reef treatment/subpop
-surv_pars.r[[1]][[1]] <- surv_pars1 # survival probabilities for first source of recruits to first reef subpop (external recruits)
-surv_pars.r[[1]][[2]] <- surv_pars1 # survival probabilities for second source of recruits to first reef subpop (first lab treatment)
-surv_pars.r[[1]][[3]] <- surv_pars1 # survival probabilities for third source of recruits to first reef subpop (second lab treatment)
-# if there were more reef treatments/subpopulations:
-# surv_pars.r[[2]] <- list(), then define surv_pars.r[[2]][[1]], [[2]][[2]], [[2]][[3]]
+surv_pars.r <- all_pars$surv_pars.r
+
+# reef parameters: growth
+growth_pars.r <- all_pars$growth_pars.r
+
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars$shrink_pars.r
+
+# reef parameters: fragmentation
+frag_pars.r <- all_pars$frag_pars.r
 
 # density dependent survival (smallest size class only for now)
 dens_pars.r <- list()
@@ -180,27 +255,6 @@ dens_pars.r[[1]] <- list() # first reef treatment/subpop
 dens_pars.r[[1]][[1]] <- 0
 dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]]
 dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]]
-
-# reef parameters: growth
-growth_pars.r <- list()
-growth_pars.r[[1]] <- list() # second reef subpop (intervention)
-growth_pars.r[[1]][[1]] <- list(c(0.182), c(0.36, 0.001, 0), c(0.11, 0), 0.10, NULL) 
-growth_pars.r[[1]][[2]] <- growth_pars.r[[1]][[1]] # second source (first lab treatment)
-growth_pars.r[[1]][[3]] <- growth_pars.r[[1]][[1]] # third source (third lab treatment)
-
-# reef parameters: shrinkage
-shrink_pars.r <- list()
-shrink_pars.r[[1]] <- list() # second subpop
-shrink_pars.r[[1]][[1]] <- list(NULL, c(0.066), c(0.034, 0.15), c(0.024, 0.021, 0.15), c(0.007, 0.001, 0.0132, 0.0998)) # first source 
-shrink_pars.r[[1]][[2]] <- shrink_pars.r[[1]][[1]] # second source
-shrink_pars.r[[1]][[3]] <- shrink_pars.r[[1]][[1]] # third source
-
-# reef parameters: fragmentation
-frag_pars.r <- list()
-frag_pars.r[[1]] <- list() # second subpop
-frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.09, 0.06), c(0, 0.41, 0.31, 0.03)) 
-frag_pars.r[[1]][[2]] <- frag_pars.r[[1]][[1]] # second source
-frag_pars.r[[1]][[3]] <- frag_pars.r[[1]][[1]] # third source
 
 # reef parameters: fecundity (for tracking reef reproductive output)
 fec_pars.r <- list()
@@ -210,10 +264,16 @@ fec_pars.r[[1]][[2]] <- fec_pars.r[[1]][[1]]
 fec_pars.r[[1]][[3]] <- fec_pars.r[[1]][[1]]
 
 # orchard parameters: survival
-surv_pars.o <- list()
-surv_pars.o[[1]] <- list() # first treatment
-surv_pars.o[[1]][[1]] <- c(0.89, 0.93, 0.74, 0.89, 0.93) # first source (first lab treatment)
-surv_pars.o[[1]][[2]] <- surv_pars.o[[1]][[1]] # second source (second lab treatment)
+surv_pars.o <- all_pars$surv_pars.o
+
+# orchard parameters: growth
+growth_pars.o <- all_pars$growth_pars.o
+
+# orchard parameters: shrinkage
+shrink_pars.o <- all_pars$shrink_pars.o
+
+# orchard parameters: fragmentation
+frag_pars.o <- all_pars$frag_pars.o
 
 # density dependent survival (smallest size class only for now)
 dens_pars.o <- list()
@@ -221,24 +281,7 @@ dens_pars.o[[1]] <- list() # first orchard
 dens_pars.o[[1]][[1]] <- 0
 dens_pars.o[[1]][[2]] <- dens_pars.o[[1]][[1]]
 
-# orchard parameters: growth
-growth_pars.o <- list()
-growth_pars.o[[1]] <- list() # first treatment
-growth_pars.o[[1]][[1]] <- list(c(0.066, 0.007, 0, 0), c(0.44, 0, 0), c(0.11, 0), 0.10, NULL)   # first source
-growth_pars.o[[1]][[2]] <- growth_pars.o[[1]][[1]] # second source
-
-# orchard parameters: shrinkage
-shrink_pars.o <- list()
-shrink_pars.o[[1]] <- list() # first treatment
-shrink_pars.o[[1]][[1]] <- list(NULL, c(0.01), c(0.034, 0.15), c(0.024, 0.021, 0.15), c(0.007, 0.001, 0.0132, 0.0998)) # first source
-shrink_pars.o[[1]][[2]] <- shrink_pars.o[[1]][[1]] # second source
-
-# orchard parameters: fragmentation
-frag_pars.o <- list()
-frag_pars.o[[1]] <- list() # first treatment
-frag_pars.o[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0, 0, 0)) # first source
-frag_pars.o[[1]][[2]] <- frag_pars.o[[1]][[1]] # second source
-
+# orchard parameters: fecundity
 fec_pars.o <- list()
 fec_pars.o[[1]] <- list() # first treatment
 fec_pars.o[[1]][[1]] <- c(0, 0, 5000, 50000, 100000) # first source
@@ -529,14 +572,31 @@ lab_treatments <- c("0_T1", "0_T2") # lab (cement = T1, ceramic = T2). "TX" is t
 
 
 # demographic parameters for each orchard and reef treatment/subpopulation
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
+
+# nursery data only available for size classes 1-2, so use the field data for the larger size classes
+nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
+
+nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
+nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
+nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
+
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
 # reef parameters: survival
-surv_pars.r <- list()
-surv_pars.r[[1]] <- list() # first reef treatment/subpop
-surv_pars.r[[1]][[1]] <- c(0.016, 0.67, 0.74, 0.89, 0.93) # survival probabilities for first source of recruits to first reef subpop (external recruits)
-surv_pars.r[[1]][[2]] <- c(0.016, 0.67, 0.74, 0.89, 0.93) # survival probabilities for second source of recruits to first reef subpop (first lab treatment)
-surv_pars.r[[1]][[3]] <- c(0.016, 0.67, 0.74, 0.89, 0.93) # survival probabilities for third source of recruits to first reef subpop (second lab treatment)
-# if there were more reef treatments/subpopulations:
-# surv_pars.r[[2]] <- list(), then define surv_pars.r[[2]][[1]], [[2]][[2]], [[2]][[3]]
+surv_pars.r <- all_pars$surv_pars.r
+
+# reef parameters: growth
+growth_pars.r <- all_pars$growth_pars.r
+
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars$shrink_pars.r
+
+# reef parameters: fragmentation
+frag_pars.r <- all_pars$frag_pars.r
 
 # density dependent survival (smallest size class only for now)
 dens_pars.r <- list()
@@ -544,27 +604,6 @@ dens_pars.r[[1]] <- list() # first reef treatment/subpop
 dens_pars.r[[1]][[1]] <- 0
 dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]]
 dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]]
-
-# reef parameters: growth
-growth_pars.r <- list()
-growth_pars.r[[1]] <- list() # second reef subpop (intervention)
-growth_pars.r[[1]][[1]] <- list(c(0.182), c(0.36, 0.001, 0), c(0.11, 0), 0.10, NULL) 
-growth_pars.r[[1]][[2]] <- growth_pars.r[[1]][[1]] # second source (first lab treatment)
-growth_pars.r[[1]][[3]] <- growth_pars.r[[1]][[1]] # third source (third lab treatment)
-
-# reef parameters: shrinkage
-shrink_pars.r <- list()
-shrink_pars.r[[1]] <- list() # second subpop
-shrink_pars.r[[1]][[1]] <- list(NULL, c(0.066), c(0.034, 0.15), c(0.024, 0.021, 0.15), c(0.007, 0.001, 0.0132, 0.0998)) # first source 
-shrink_pars.r[[1]][[2]] <- shrink_pars.r[[1]][[1]] # second source
-shrink_pars.r[[1]][[3]] <- shrink_pars.r[[1]][[1]] # third source
-
-# reef parameters: fragmentation
-frag_pars.r <- list()
-frag_pars.r[[1]] <- list() # second subpop
-frag_pars.r[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0.09, 0.06), c(0, 0.41, 0.31, 0.03)) 
-frag_pars.r[[1]][[2]] <- frag_pars.r[[1]][[1]] # second source
-frag_pars.r[[1]][[3]] <- frag_pars.r[[1]][[1]] # third source
 
 # reef parameters: fecundity (for tracking reef reproductive output)
 fec_pars.r <- list()
@@ -574,10 +613,16 @@ fec_pars.r[[1]][[2]] <- fec_pars.r[[1]][[1]]
 fec_pars.r[[1]][[3]] <- fec_pars.r[[1]][[1]]
 
 # orchard parameters: survival
-surv_pars.o <- list()
-surv_pars.o[[1]] <- list() # first treatment
-surv_pars.o[[1]][[1]] <- c(0.89, 0.93, 0.74, 0.89, 0.93) # first source (first lab treatment)
-surv_pars.o[[1]][[2]] <- surv_pars.o[[1]][[1]] # second source (second lab treatment)
+surv_pars.o <- all_pars$surv_pars.o
+
+# orchard parameters: growth
+growth_pars.o <- all_pars$growth_pars.o
+
+# orchard parameters: shrinkage
+shrink_pars.o <- all_pars$shrink_pars.o
+
+# orchard parameters: fragmentation
+frag_pars.o <- all_pars$frag_pars.o
 
 # density dependent survival (smallest size class only for now)
 dens_pars.o <- list()
@@ -585,24 +630,7 @@ dens_pars.o[[1]] <- list() # first orchard
 dens_pars.o[[1]][[1]] <- 0
 dens_pars.o[[1]][[2]] <- dens_pars.o[[1]][[1]]
 
-# orchard parameters: growth
-growth_pars.o <- list()
-growth_pars.o[[1]] <- list() # first treatment
-growth_pars.o[[1]][[1]] <- list(c(0.066, 0.007, 0, 0), c(0.44, 0, 0), c(0.11, 0), 0.10, NULL)   # first source
-growth_pars.o[[1]][[2]] <- growth_pars.o[[1]][[1]] # second source
-
-# orchard parameters: shrinkage
-shrink_pars.o <- list()
-shrink_pars.o[[1]] <- list() # first treatment
-shrink_pars.o[[1]][[1]] <- list(NULL, c(0.01), c(0.034, 0.15), c(0.024, 0.021, 0.15), c(0.007, 0.001, 0.0132, 0.0998)) # first source
-shrink_pars.o[[1]][[2]] <- shrink_pars.o[[1]][[1]] # second source
-
-# orchard parameters: fragmentation
-frag_pars.o <- list()
-frag_pars.o[[1]] <- list() # first treatment
-frag_pars.o[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0, 0, 0)) # first source
-frag_pars.o[[1]][[2]] <- frag_pars.o[[1]][[1]] # second source
-
+# orchard parameters: fecundity
 fec_pars.o <- list()
 fec_pars.o[[1]] <- list() # first treatment
 fec_pars.o[[1]][[1]] <- c(0, 0, 5000, 50000, 100000) # first source
@@ -740,10 +768,37 @@ rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_y
 
 sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
-```
+# calculate lambda
+mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
+
+Tmat.i <- mats$growth[[1]]
+Fmat.i <- mats$fragmentation[[1]]
 
 
-```{r}
+# calculate lambda (population growth rate)
+pop_mat <-  (Tmat.i + Fmat.i) * matrix(surv_pars.r[[1]][[1]], nrow = n, ncol = n, byrow = T)
+lambda_1 <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
+
+lambda_1
+
+# add confidence intervals
+# highest survival, growth, and fragmentation; lowest shrinkage
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q95", field_growth = "Q95", field_shrink = "Q05", field_frag = "Q95", nurs_surv = "Q95", nurs_growth = "Q95", nurs_shrink = "Q05"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters
+surv_pars.r <- all_pars$surv_pars.r
+growth_pars.r <- all_pars$growth_pars.r
+shrink_pars.r <- all_pars$shrink_pars.r
+frag_pars.r <- all_pars$frag_pars.r
+
+# orchard parameters
+surv_pars.o <- all_pars$surv_pars.o
+growth_pars.o <- all_pars$growth_pars.o
+shrink_pars.o <- all_pars$shrink_pars.o
+frag_pars.o <- all_pars$frag_pars.o
+
+
+sim1_up <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 # calculate lambda
 mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
@@ -758,14 +813,64 @@ lambda_1 <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
 
 lambda_1
 
+
+# lowest survival, growth, and fragmentation; highest shrinkage
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q05", field_growth = "Q05", field_shrink = "Q95", field_frag = "Q05", nurs_surv = "Q05", nurs_growth = "Q05", nurs_shrink = "Q95"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters
+surv_pars.r <- all_pars$surv_pars.r
+growth_pars.r <- all_pars$growth_pars.r
+shrink_pars.r <- all_pars$shrink_pars.r
+frag_pars.r <- all_pars$frag_pars.r
+
+# orchard parameters
+surv_pars.o <- all_pars$surv_pars.o
+growth_pars.o <- all_pars$growth_pars.o
+shrink_pars.o <- all_pars$shrink_pars.o
+frag_pars.o <- all_pars$frag_pars.o
+
+
+sim1_low <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+# calculate lambda
+mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
+
+Tmat.i <- mats$growth[[1]]
+Fmat.i <- mats$fragmentation[[1]]
+
+
+# calculate lambda (population growth rate)
+pop_mat <-  (Tmat.i + Fmat.i) * matrix(surv_pars.r[[1]][[1]], nrow = n, ncol = n, byrow = T)
+lambda_1 <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
+
+lambda_1
+
+```
+
+
+```{r}
+
+
 # plot results
 
 reef1_tot <- apply(sim1$reef_pops_pre[[1]][[1]], MARGIN = 2, sum) + apply(sim1$reef_pops_pre[[1]][[2]], MARGIN = 2, sum) + apply(sim1$reef_pops_pre[[1]][[3]], MARGIN = 2, sum)
 orch1_tot <- apply(sim1$orchard_pops_pre[[1]][[1]], MARGIN = 2, sum) + apply(sim1$orchard_pops_pre[[1]][[2]], MARGIN = 2, sum)
 
-plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Pop'n size", lwd = 2)
+reef1_up <- apply(sim1_up$reef_pops_pre[[1]][[1]], MARGIN = 2, sum) + apply(sim1_up$reef_pops_pre[[1]][[2]], MARGIN = 2, sum) + apply(sim1_up$reef_pops_pre[[1]][[3]], MARGIN = 2, sum)
+orch1_tot <- apply(sim1_up$orchard_pops_pre[[1]][[1]], MARGIN = 2, sum) + apply(sim1_up$orchard_pops_pre[[1]][[2]], MARGIN = 2, sum)
+
+reef1_low <- apply(sim1_low$reef_pops_pre[[1]][[1]], MARGIN = 2, sum) + apply(sim1_low$reef_pops_pre[[1]][[2]], MARGIN = 2, sum) + apply(sim1_low$reef_pops_pre[[1]][[3]], MARGIN = 2, sum)
+orch1_tot <- apply(sim1_low$orchard_pops_pre[[1]][[1]], MARGIN = 2, sum) + apply(sim1_low$orchard_pops_pre[[1]][[2]], MARGIN = 2, sum)
+
+plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_up[1:10]), max(orch1_tot))), xlab = "year", ylab = "Pop'n size", lwd = 2, xlim = c(1, 10))
+polygon(x = c(c(1:years), rev(c(1:years))), y = c(reef1_up, rev(reef1_low)), col = adjustcolor("gray", alpha.f = 0.5), border = NA)
+lines(x = c(1:years), y = reef1_tot)
 #lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
 #legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 
 
 ```
+
+random iterations: first make a function for summarizing model results (total population size and total area covered) and calculating lambda (then show histogram of lambda values)
+
+
