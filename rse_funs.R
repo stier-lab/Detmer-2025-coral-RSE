@@ -1189,7 +1189,209 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   
 }
 
+# function for calculating lambda from the transition matrix parameters
 
+pop_lambda_fun <- function(surv_pars, growth_pars, shrink_pars, frag_pars){
+  
+  # growth/shrinkage and fragmentation matrices
+  all_mats <- G_fun(1, n = 5, growth_pars, shrink_pars, frag_pars)
+  G_list <- all_mats$G_list
+  Fr_list <- all_mats$Fr_list
+  
+  Tmat.i <- G_list[[1]]
+  Fmat.i <- Fr_list[[1]]
+  
+  # calculate lambda (population growth rate)
+  pop_mat <-  (Tmat.i + Fmat.i) * matrix(surv_pars, nrow = 5, ncol = 5, byrow = T)
+  lambda_1 <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
+  
+  return(lambda_1)
+  
+}
+
+# function for summarizing model output
+#' @param model_sim full output from model simulation
+#' @param years number of years in model simulation
+#' @param location "reef" or "orchard"
+#' @param metric metric of choice ("ind" = number of individuals, "area_m2" = area covered in m2, "production" = reproductive output)
+#' @param n_reef number of reefs
+#' @param n_orchard number of orchards
+#' @param n_lab number of treatments
+
+model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab){
+  
+  if(location == "reef"){
+    
+    if(metric == "ind"){
+      
+      # holding matrix for total population size in each reef at each time point
+      out_mat <- matrix(NA, nrow = years, ncol = n_reef)
+      
+      for(i in 1:n_reef){ # for each reef
+        
+        reef_tot <- apply(model_sim$reef_pops_pre[[i]][[1]], MARGIN = 2, sum)
+        
+        if(n_lab > 0){ # if there was at least one lab source
+          
+          for(j in 1:n_lab){ # add total individuals from each lab source
+            
+            reef_tot <- reef_tot + apply(model_sim$reef_pops_pre[[i]][[1 + j]], MARGIN = 2, sum)
+          }
+          
+        }
+        
+        out_mat[,i] <- reef_tot
+        
+      }
+      
+    } # end of if metric == ind
+    
+    if(metric == "area_m2"){
+      
+      out_mat <- matrix(NA, nrow = years, ncol = n_reef)
+      
+      for(i in 1:n_reef){ # for each reef
+        
+        reef_tot <- rep(NA, years)
+        
+        for(tt in 1:years){ # for each timestep
+          
+          reef_tot_tt <- sum(model_sim$reef_pops_pre[[i]][[1]][,tt]*A_mids) # calculate total area covered by individuals on ith reef from first source
+          
+          if(n_lab > 0){ # if there was at least one lab source
+            
+            for(j in 1:n_lab){ # add total individuals from each lab source
+              
+              reef_tot_tt <- reef_tot_tt + sum(model_sim$reef_pops_pre[[i]][[1 + j]][,tt]*A_mids)
+            }
+            
+          }
+          
+          reef_tot[tt] <- reef_tot_tt/10000 # convert from cm2 to m2
+          
+        }
+        
+        out_mat[,i] <- reef_tot
+      }
+      
+    } # end of if metric == area_m2
+    
+    
+    if(metric == "production"){
+      
+      # holding matrix for total population size in each reef at each time point
+      out_mat <- matrix(NA, nrow = years, ncol = n_reef)
+      
+      for(i in 1:n_reef){ # for each reef
+        
+        reef_tot <- model_sim$reef_rep[[i]][[1]]
+        
+        if(n_lab > 0){ # if there was at least one lab source
+          
+          for(j in 1:n_lab){ # add total individuals from each lab source
+            
+            reef_tot <- reef_tot + model_sim$reef_rep[[i]][[1 + j]]
+          }
+          
+        }
+        
+        out_mat[,i] <- reef_tot
+        
+      }
+      
+    } # end of if metric == production
+    
+    
+  } # end of if location == reef
+  
+  
+  if(location == "orchard"){
+    
+    if(metric == "ind"){
+      
+      # holding matrix for total population size in each orchard at each time point
+      out_mat <- matrix(NA, nrow = years, ncol = n_orchard)
+      
+      for(i in 1:n_orchard){ # for each orchard
+        
+        orchard_tot <- apply(model_sim$orchard_pops_pre[[i]][[1]], MARGIN = 2, sum)
+        
+        if(n_lab > 0){ # if there was at least one lab source
+          
+          for(j in 1:n_lab){ # add total individuals from each lab source
+            
+            orchard_tot <- orchard_tot + apply(model_sim$orchard_pops_pre[[i]][[j]], MARGIN = 2, sum)
+          }
+          
+        }
+        
+        out_mat[,i] <- orchard_tot
+        
+      }
+      
+    } # end of if metric == ind
+    
+    if(metric == "area_m2"){
+      
+      out_mat <- matrix(NA, nrow = years, ncol = n_orchard)
+      
+      for(i in 1:n_orchard){ # for each orchard
+        
+        orchard_tot <- rep(NA, years)
+        
+        for(tt in 1:years){ # for each timestep
+          
+          orchard_tot_tt <- sum(model_sim$orchard_pops_pre[[i]][[1]][,tt]*A_mids) # calculate total area covered by individuals on ith orchard from first source
+          
+          if(n_lab > 0){ # if there was at least one lab source
+            
+            for(j in 1:n_lab){ # add total individuals from each lab source
+              
+              orchard_tot_tt <- orchard_tot_tt + sum(model_sim$orchard_pops_pre[[i]][[j]][,tt]*A_mids)
+            }
+            
+          }
+          
+          orchard_tot[tt] <- orchard_tot_tt/10000
+          
+        }
+        
+        out_mat[,i] <- orchard_tot
+      }
+      
+    } # end of if metric == area_m2
+    
+    
+    if(metric == "production"){
+      
+      # holding matrix for total population size in each orchard at each time point
+      out_mat <- matrix(NA, nrow = years, ncol = n_orchard)
+      
+      for(i in 1:n_orchard){ # for each orchard
+        
+        orchard_tot <- model_sim$orchard_rep[[i]][[1]]
+        
+        if(n_lab > 0){ # if there was at least one lab source
+          
+          for(j in 1:n_lab){ # add total individuals from each lab source
+            
+            orchard_tot <- orchard_tot + model_sim$orchard_rep[[i]][[j]]
+          }
+          
+        }
+        
+        out_mat[,i] <- orchard_tot
+        
+      }
+      
+    } # end of if metric == production
+    
+    
+  } # end of if location == orchard
+  
+  return(out_mat)
+  
+} 
 
 
 

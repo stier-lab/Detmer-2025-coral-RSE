@@ -665,7 +665,7 @@ N0.l[[2]] <- 0
 
 
 # disturbance parameters
-dist_yrs <- c(years + 10) # years when disturbance occurs, can set to > years for none
+dist_yrs <- NA#c(years + 10) # years when disturbance occurs, can set to > years for none
 
 # effects of disturbance on each reef subpop
 dist_effects.r <- list()
@@ -837,13 +837,17 @@ mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], s
 
 Tmat.i <- mats$growth[[1]]
 Fmat.i <- mats$fragmentation[[1]]
-
+#mats
 
 # calculate lambda (population growth rate)
 pop_mat <-  (Tmat.i + Fmat.i) * matrix(surv_pars.r[[1]][[1]], nrow = n, ncol = n, byrow = T)
 lambda_1 <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
 
 lambda_1
+
+pop_lambda_fun(surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]])
+
+
 
 ```
 
@@ -871,6 +875,111 @@ lines(x = c(1:years), y = reef1_tot)
 
 ```
 
+```{r}
+# with summary function
+
+reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+#orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+reef1_up <- model_summ(model_sim = sim1_up, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+reef1_low <- model_summ(model_sim = sim1_low, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+
+plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_up[1:10]), max(orch1_tot))), xlab = "year", ylab = "Pop'n size", lwd = 2, xlim = c(1, 10))
+polygon(x = c(c(1:years), rev(c(1:years))), y = c(reef1_up, rev(reef1_low)), col = adjustcolor("gray", alpha.f = 0.5), border = NA)
+lines(x = c(1:years), y = reef1_tot)
+#lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
+#legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
+
+reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+reef1_up <- model_summ(model_sim = sim1_up, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+reef1_low <- model_summ(model_sim = sim1_low, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+#sum(sim1$reef_pops_pre[[1]][[1]][,1]*A_mids)/10000 
+
+
+plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_up[1:10]), max(orch1_tot))), xlab = "year", ylab = "Area covered", lwd = 2, xlim = c(1, 10))
+polygon(x = c(c(1:years), rev(c(1:years))), y = c(reef1_up, rev(reef1_low)), col = adjustcolor("gray", alpha.f = 0.5), border = NA)
+lines(x = c(1:years), y = reef1_tot)
+
+
+reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "production", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+reef1_up <- model_summ(model_sim = sim1_up, location = "reef", metric = "production", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+reef1_low <- model_summ(model_sim = sim1_low, location = "reef", metric = "production", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+#sum(sim1$reef_pops_pre[[1]][[1]][,1]*A_mids)/10000 
+
+
+plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_up[1:10]), max(orch1_tot))), xlab = "year", ylab = "Reproduction", lwd = 2, xlim = c(1, 10))
+polygon(x = c(c(1:years), rev(c(1:years))), y = c(reef1_up, rev(reef1_low)), col = adjustcolor("gray", alpha.f = 0.5), border = NA)
+lines(x = c(1:years), y = reef1_tot)
+
+```
+
+
+
 random iterations: first make a function for summarizing model results (total population size and total area covered) and calculating lambda (then show histogram of lambda values)
+
+
+```{r}
+
+# number of iterations
+n_sample1 <- 100
+
+# holding vector for population lambdas
+lambda_set <- rep(NA, n_sample1)
+
+# holding matrix for population sizes
+Nmat <- matrix(NA, nrow = years, ncol = n_sample1)
+
+# get the parameter sets
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
+
+# nursery data only available for size classes 1-2, so use the field data for larger size classes
+nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
+
+nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
+nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
+nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
+
+all_pars <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
+
+
+for(i in 1:n_sample1){
+  
+  
+  sim_i <- rse_mod1(years, n, A_mids, surv_pars.r = all_pars$surv_pars_L.r[[i]], dens_pars.r, growth_pars.r = all_pars$growth_pars_L.r[[i]], shrink_pars.r = all_pars$shrink_pars_L.r[[i]], frag_pars.r = all_pars$frag_pars_L.r[[i]], fec_pars.r, surv_pars.o = all_pars$surv_pars_L.o[[i]], dens_pars.o, growth_pars.o = all_pars$growth_pars_L.o[[i]], shrink_pars.o = all_pars$shrink_pars_L.o[[i]], frag_pars.o = all_pars$frag_pars_L.o[[i]], fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+  
+  Nmat[,i] <- model_summ(model_sim = sim_i, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+  lambda_set[i] <- pop_lambda_fun(all_pars$surv_pars_L.r[[i]][[1]][[1]], all_pars$growth_pars_L.r[[i]][[1]][[1]], all_pars$shrink_pars_L.r[[i]][[1]][[1]], all_pars$frag_pars_L.r[[i]][[1]][[1]])
+  
+}
+
+
+```
+
+
+```{r}
+
+plot(x = c(1:years), y = Nmat[,1], type = "l", col = adjustcolor("black", alpha.f = 0.25), las = 1, ylim = c(0, max(Nmat)), xlab = "year", ylab = "population size")
+for(i in 2:n_sample1){
+  lines(x = c(1:years), y = Nmat[,i], col = adjustcolor("black", alpha.f = 0.25))
+}
+
+hist(lambda_set, xlab = "lambda")
+
+```
+
+
 
 
