@@ -1314,7 +1314,7 @@ model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab){
       
       for(i in 1:n_orchard){ # for each orchard
         
-        orchard_tot <- apply(model_sim$orchard_pops_pre[[i]][[1]], MARGIN = 2, sum)
+        orchard_tot <- 0 # placeholder vector
         
         if(n_lab > 0){ # if there was at least one lab source
           
@@ -1341,13 +1341,13 @@ model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab){
         
         for(tt in 1:years){ # for each timestep
           
-          orchard_tot_tt <- sum(model_sim$orchard_pops_pre[[i]][[1]][,tt]*A_mids) # calculate total area covered by individuals on ith orchard from first source
+          orchard_tot_tt <- 0 # placeholder vector
           
           if(n_lab > 0){ # if there was at least one lab source
             
             for(j in 1:n_lab){ # add total individuals from each lab source
               
-              orchard_tot_tt <- orchard_tot_tt + sum(model_sim$orchard_pops_pre[[i]][[j]][,tt]*A_mids)
+              orchard_tot_tt <- orchard_tot_tt + sum(model_sim$orchard_pops_pre[[i]][[j]][,tt]*A_mids) # calculate total area covered by individuals on ith orchard from jth source
             }
             
           }
@@ -1369,7 +1369,7 @@ model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab){
       
       for(i in 1:n_orchard){ # for each orchard
         
-        orchard_tot <- model_sim$orchard_rep[[i]][[1]]
+        orchard_tot <- 0 # placeholder vector
         
         if(n_lab > 0){ # if there was at least one lab source
           
