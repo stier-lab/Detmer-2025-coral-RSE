@@ -970,16 +970,26 @@ for(i in 1:n_sample1){
 
 ```{r}
 
-plot(x = c(1:years), y = Nmat[,1], type = "l", col = adjustcolor("black", alpha.f = 0.25), las = 1, ylim = c(0, max(Nmat)), xlab = "year", ylab = "population size")
+par(mfrow = c(2, 1))
+layout(matrix(c(1, 2), nrow = 1, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 1))
+#layout.show(2)
+par(mar=c(0, 3, 3, 0.1), oma = c(4.5, 1, 2, 0.1))
+
+
+plot(x = c(1:years), y = Nmat[,1], type = "l", col = adjustcolor("black", alpha.f = 0.25), las = 1, ylim = c(0, max(Nmat)), xlab = NA, ylab = NA)
+mtext(side = 1, "Year", line = 2)
+mtext(side = 2, "Population size", line = 2.25)
 for(i in 2:n_sample1){
   lines(x = c(1:years), y = Nmat[,i], col = adjustcolor("black", alpha.f = 0.25))
 }
 
-hist(lambda_set, xlab = "lambda")
+hist(lambda_set, main = NA, xlab = NA, ylab = NA, las = 1)
+mtext(side = 1, "Lambda", line = 2)
+mtext(side = 2, "Frequency", line = 2)
 
 ```
 
-try using the disturbance function to allow parameters to change each year?
+try using the disturbance function to allow parameters to change each year
 
 ```{r}
 dist_yrs <- c(1:years) # years when disturbance occurs, can set to > years or NA for none
