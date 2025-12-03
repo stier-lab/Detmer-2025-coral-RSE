@@ -77,11 +77,16 @@ lab_treatments <- c("0_T1") # lab (cement = T1, ceramic = T2). "TX" is tile type
 all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
 
+#all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q05", field_growth = "Q05", field_shrink = "Q05", field_frag = "Q05", nurs_surv = "Q05", nurs_growth = "Q05", nurs_shrink = "Q05"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+#all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q95", field_growth = "Q95", field_shrink = "Q95", field_frag = "Q95", nurs_surv = "Q95", nurs_growth = "Q95", nurs_shrink = "Q95"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+
 # demographic parameters for each orchard and reef treatment/subpopulation
 # density dependent survival (smallest size class only for now)
 dens_pars.r <- list()
 dens_pars.r[[1]] <- list() # first reef treatment/subpop
-dens_pars.r[[1]][[1]] <- 0
+dens_pars.r[[1]][[1]] <- 0.0001
 dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]]
 #dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]]
 
@@ -105,7 +110,7 @@ frag_pars.r <- all_pars$frag_pars.r
 # orchard parameters: density dependent survival (smallest size class only for now)
 dens_pars.o <- list()
 dens_pars.o[[1]] <- list() # first orchard
-dens_pars.o[[1]][[1]] <- 0
+dens_pars.o[[1]][[1]] <- 0.0001
 dens_pars.o[[1]][[2]] <- dens_pars.o[[1]][[1]]
 
 # orchard parameters: fecundity
@@ -126,7 +131,7 @@ frag_pars.o <- all_pars$frag_pars.o
 
 lambda <- 0 # external recruitment to reef
 
-lambda_R <- 3350000 # mean number of larvae produced by reference reefs each year
+lambda_R <- 10000 # mean number of larvae produced by reference reefs each year
 
 # stochasticity parameters
 sigma_s <- 0
@@ -225,10 +230,9 @@ orchard_out_props[1,] <- c(1) # from first lab treatment to each orchard
 
 # sizes allocated to each treatment
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
-lab_max <- c(5000) # total number of settlers that the lab can accommodate
+lab_max <- c(4000*10) # total number of settlers that the lab can accommodate
 lab_retain_max <- c(0) # total number of settlers that the lab can keep for a year
-orchard_size <- c(100000) # number of individuals each orchard treatment has space for
-
+orchard_size <- c(30*80) # number of individuals each orchard treatment has space for (80 stars x 30 tiles per star, in reality might be larger if there can be more than one recruit per tile)
 
 
 # coral transplanting
@@ -290,6 +294,142 @@ could also make a trade-off plot to show overlap of multiple objectives: x-axis 
 Once costs are incorporated: repeat with y-axis = optimal proportion to outplant for max m2 corals on reef per dollar spent? (ROI)
 -- as placeholder for now, assume there is some maintenance in the orchard that increases with orchard size (e.g., algal scrubbing)
 
+
+## optimization functions
+
+```{r}
+
+# function of orchard size, value to optimize ("reef_area", "reef_ROI"), starting bounds, and error tolerance (define other parameters outside the function)
+
+reef_prop_opt <- function(orchard_size, opt_value, left0 = 0, right0 = 1, error_tol = 0.01){
+  
+  # assign the initial upper and lower reef_prop values
+  right <- right0
+  left <- left0
+  
+  # placeholder values for the orchard costs (CHANGE)
+        c0 <- 1 # startup costs
+        c1 <- 1 # maintenance costs
+  
+  
+  while(right-left > error_tol){ # while the difference btw the upper and lower values is greater than the error tolerance
+    
+    # calculate the midpoints
+    # ternary search algorithm so divide range into thirds
+    mid1 <- left + (right-left)/3 # add 1/3 of the range
+    mid2 <- right - (right-left)/3 # subtract 1/3 of the range
+    
+    # run the model with  reef_prop = mid1 and mid2
+rest_pars1 <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = mid1, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars1, N0.r, N0.o, N0.l)
+
+
+rest_pars2 <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = mid2, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+
+sim2 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars2, N0.r, N0.o, N0.l)
+
+      if(opt_value == "reef_area"){ # if optimizing area on the reef
+        
+        # record reef areas
+        out1 <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+        out2 <- model_summ(model_sim = sim2, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+        
+        out1 <- out1[length(out1)]
+        out2 <- out2[length(out2)]
+
+        if(out1 > out2){ # if value at the left is greater than value to the right
+        right <- mid2 # the max is to the left so make the rightmost point the right midpoint
+      } else{
+        left <- mid1 # otherwise the max is to the right so make the leftmost point the left midpoint
+      }
+        
+      } # end of if opt_value = "reef_area"
+
+     if(opt_value == "reef_ROI"){ # if optimizing return on investment (area on reef per amount spend on orchard maintenance)
+       
+       # record reef areas
+        out1 <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+        out2 <- model_summ(model_sim = sim2, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+        
+        out1 <- out1[length(out1)]
+        out2 <- out2[length(out2)]
+
+        # record total spent on orchard maintenance
+        # baseline cost that depends on orchard size (reef stars) + per area cost of maintaining the orchard colonies each year
+        orch1 <- model_summ(model_sim = sim1, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+        orch2 <- model_summ(model_sim = sim2, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+      
+        
+        cost1 <- c0*orchard_size + sum(orch1*c1)
+        cost2 <- c0*orchard_size + sum(orch2*c1)
+        
+        out1 <- out1/cost1
+        out2 <- out2/cost2
+        
+        if(out1 > out2){ # if value at the left is greater than value to the right
+        right <- mid2 # the max is to the left so make the rightmost point the right midpoint
+      } else{
+        left <- mid1 # otherwise the max is to the right so make the leftmost point the left midpoint
+      }
+        
+      } # end of if opt_value = "reef_ROI"
+      
+  } # end of while loop
+  
+  # record the values at the optimum
+ reef_area_opt <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+ 
+ orchard_area_opt <- model_summ(model_sim = sim1, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+ 
+ ROI_opt <- c0*orchard_size + sum(orchard_area_opt*c1)
+  
+  # return optimal reef_prop and the reef and orchard metrics at this optimum
+  return(list(reef_prop_opt = mid1, reef_area_opt = reef_area_opt, ROI_opt = ROI_opt, orchard_area_opt = orchard_area_opt)) 
+  
+  
+}
+
+```
+
+
+
+
+test the optimum
+
+```{r}
+
+opt_test <- reef_prop_opt(orchard_size, opt_value = "reef_ROI", left0 = 0, right0 = 1, error_tol = 0.01)
+
+opt_test$reef_prop_opt
+
+
+prop_set <- seq(from = 0, to = 1, length.out = 100)
+
+area_set <- rep(NA, length(prop_set))
+
+for(i in 1:length(prop_set)){
+  
+  rest_pars.i <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = prop_set[i], reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+
+sim.i <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars.i, N0.r, N0.o, N0.l)
+
+areas.i <- model_summ(model_sim = sim.i, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+  
+area_set[i] <- areas.i[length(areas.i)]
+
+}
+
+
+plot(x = prop_set, y = area_set, type = "l", las = 1)
+abline(v = opt_test$reef_prop_opt)
+
+#prop_set[which(area_set == max(area_set))]
+
+```
+
+optimum seems to be very sensitive to how many babies you can get from the orchard (if you get a lot, then you don't need a big orchard). So if you decrease orchard yield and/or orchard fecundity or increase orchard mortality, then you will get a lower optimal proportion
+-- it's also sensitive to density dependent mortality rate so try to get a good estimate of that
 
 ## basic timeseries
 
