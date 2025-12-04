@@ -328,7 +328,8 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
   # orchard
   surv_pars.o <- list() # orchard survival
   growth_pars.o <- list() # orchard growth
-  shrink_pars.o <- list() # orchard shrinkage 
+  shrink_pars.o <- list() # orchard shrinkage
+  frag_pars.o <- list() # orchard fragmentation
   
   # get the parameter values
   surv_pars2 <- par_list_fun(par_type = "survival", sample_dt = F, summ_df = nurs_surv$SC_surv_summ_df, summ_metric = summ_metric_list$nurs_surv, full_df = NA, n_sample = NA)$surv_pars
@@ -747,9 +748,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
           F_mat <- reef_mat_pars[[ss]][[rr]]$fragmentation[[i]]
           
           # if the reef is full, assume none of the fragments produced over the last year result in new colonies
-          if(sum(reef_pops[[ss]][[1]][ ,i-1]*A_mids) >= rest_pars$reef_areas[ss]){
-            F_mat <- 0*F_mat
-          }
+          # if(sum(reef_pops[[ss]][[1]][ ,i-1]*A_mids) >= rest_pars$reef_areas[ss]){
+          #   F_mat <- 0*F_mat
+          # }
           
           # get the survival probabilities
           S_i <- reef_mat_pars[[ss]][[rr]]$survival[[i]] # survival
@@ -757,14 +758,14 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         
           # update survival of the smallest size class with density dependence: 
           # first need to get total population size across all size classes and sources to this reef subpopulation
-          N_all <- rep(NA, source_reef)
-          
-          for(rrr in 1:source_reef){
-            N_all[rrr] <- sum(reef_pops[[ss]][[rrr]][,i-1])
-          }
-          
-          # now update survival based on the total population size on this reef
-          S_i[1] <- S_i[1]*exp(-dens_pars.r[[ss]][[rr]]*sum(N_all))
+          # N_all <- rep(NA, source_reef)
+          # 
+          # for(rrr in 1:source_reef){
+          #   N_all[rrr] <- sum(reef_pops[[ss]][[rrr]][,i-1])
+          # }
+          # 
+          # # now update survival based on the total population size on this reef
+          # S_i[1] <- S_i[1]*exp(-dens_pars.r[[ss]][[rr]]*sum(N_all))
           
           N_mat <- reef_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
           N_mat <- N_mat*S_i # fractions surviving to current time point
@@ -780,20 +781,24 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
           
           if(rr ==1){ # if this is the first source (external recruits)
             # add the external recruits if they fit
-            tot_area1 <- rest_pars$reef_areas[ss] # total area devoted to the ss^th reef treatment
-            occupied_area1 <- sum(reef_pops[[ss]][[rr]][ ,i]*A_mids) # total area currently occupied
-            open_area1 <- tot_area1 - occupied_area1 # area that is available for new recruits
-            new_area1 <- ext_rec[i]*ext_props[ss]*A_mids[1] # area that the new recruits will need
+            # tot_area1 <- rest_pars$reef_areas[ss] # total area devoted to the ss^th reef treatment
+            # occupied_area1 <- sum(reef_pops[[ss]][[rr]][ ,i]*A_mids) # total area currently occupied
+            # open_area1 <- tot_area1 - occupied_area1 # area that is available for new recruits
+            # new_area1 <- ext_rec[i]*ext_props[ss]*A_mids[1] # area that the new recruits will need
+            # 
+            # if(open_area1 <= 0){ # if there's no space left
+            #   prop_rec <- 0 # proportion of new recruits that can be outplanted is 0
+            # } else if(new_area1 < open_area1){ # if all of them fit
+            #   prop_rec <- 1 # all the new recruits can be outplanted
+            # } else{ # if only some will fit, calculate what proportion will fit
+            #   prop_rec <- 1-((new_area1 - open_area1)/new_area1)
+            # }
+            # 
+            # reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
+            # 
             
-            if(open_area1 <= 0){ # if there's no space left
-              prop_rec <- 0 # proportion of new recruits that can be outplanted is 0
-            } else if(new_area1 < open_area1){ # if all of them fit
-              prop_rec <- 1 # all the new recruits can be outplanted
-            } else{ # if only some will fit, calculate what proportion will fit
-              prop_rec <- 1-((new_area1 - open_area1)/new_area1)
-            }
-            
-            reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
+            # add external recruits
+            reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]
             
             # record this as the pre-outplant population size
             reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
@@ -827,21 +832,22 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         # get the fragmentation matrix
         F_mat <- orchard_mat_pars[[ss]][[rr]]$fragmentation[[i]]
         
-        if(ind_tots_s >= rest_pars$orchard_size[ss]){ # if the orchard is full
-          F_mat <- 0*F_mat # assume no fragments survive
-        }
+        # if(ind_tots_s >= rest_pars$orchard_size[ss]){ # if the orchard is full
+        #   F_mat <- 0*F_mat # assume no fragments survive
+        # }
         
         # get the survival probabilities for this year
         S_i <- orchard_mat_pars[[ss]][[rr]]$survival[[i]] # survival
         
         # update survival of smallest size classes with density dependence 
-        N_all <- rep(NA, source_orchard)
-        
-        for(rrr in 1:source_orchard){
-          N_all[rrr] <- sum(orchard_pops[[ss]][[rrr]][,i-1]) # total number of corals from rrr^th source in ss^th orchard
-        }
-        
-        S_i[1] <- S_i[1]*exp(-dens_pars.o[[ss]][[rr]]*sum(N_all))
+        # N_all <- rep(NA, source_orchard)
+        # 
+        # for(rrr in 1:source_orchard){
+        #   N_all[rrr] <- sum(orchard_pops[[ss]][[rrr]][,i-1]) # total number of corals from rrr^th source in ss^th orchard
+        # }
+        # 
+        # S_i[1] <- S_i[1]*exp(-dens_pars.o[[ss]][[rr]]*sum(N_all))
+        # 
         
         N_mat <- orchard_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
         N_mat <- N_mat*S_i # fractions surviving to current time point
