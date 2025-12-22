@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coral RSE Model — Complete Architecture</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0a;
+      color: #e5e5e5;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+      border-bottom: 1px solid #222;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .title em {
+      color: #22c55e;
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .equation {
+      font-family: 'Times New Roman', serif;
+      font-size: 16px;
+      color: #888;
+      letter-spacing: 1px;
+    }
+
+    .main-container {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      min-height: calc(100vh - 70px);
+    }
+
+    .diagram-area {
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar {
+      background: #111;
+      border-left: 1px solid #222;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .panel {
+      background: #151515;
+      border: 1px solid #222;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: #1a1a1a;
+      padding: 12px 16px;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .panel-subtitle {
+      font-size: 11px;
+      color: #666;
+      margin-left: auto;
+    }
+
+    .panel-content {
+      padding: 16px;
+    }
+
+    /* System Overview Panel */
+    #system-overview {
+      flex: 1;
+      min-height: 500px;
+    }
+
+    #system-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Bottom panels */
+    .bottom-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* Size Structure */
+    #size-structure .panel-icon { background: #16a34a; }
+    #lifecycle-svg { width: 100%; height: 180px; }
+
+    /* Transition Matrix */
+    #transition-matrix .panel-icon { background: #7c3aed; }
+    #matrix-svg { width: 100%; height: 180px; }
+
+    /* Annual Cycle */
+    #annual-cycle .panel-icon { background: #2563eb; }
+
+    .cycle-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cycle-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: #1a1a1a;
+      border-radius: 6px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .cycle-step:hover {
+      background: #222;
+    }
+
+    .cycle-step.active {
+      border-left-color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+    }
+
+    .cycle-step.active .step-num {
+      background: #22c55e;
+      color: #000;
+    }
+
+    .step-text {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    /* Sidebar sections */
+    .sidebar-section {
+      margin-bottom: 24px;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .param-group {
+      background: #1a1a1a;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .param-group-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .param-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .param-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 11px;
+    }
+
+    .param-name {
+      color: #888;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .param-value {
+      color: #22c55e;
+      font-family: 'SF Mono', monospace;
+      font-weight: 500;
+    }
+
+    /* Legend */
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 11px;
+      color: #888;
+    }
+
+    .legend-line {
+      width: 24px;
+      height: 2px;
+    }
+
+    .legend-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+    }
+
+    /* Node styles for SVG */
+    .node-rect {
+      rx: 6;
+      ry: 6;
+    }
+
+    .node-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      fill: #fff;
+      text-anchor: middle;
+    }
+
+    .node-sublabel {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      fill: rgba(255,255,255,0.6);
+      text-anchor: middle;
+    }
+
+    .flow-path {
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    .flow-label {
+      font-family: 'SF Mono', monospace;
+      font-size: 10px;
+      text-anchor: middle;
+    }
+
+    /* Simulation controls */
+    .sim-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .sim-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #333;
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sim-btn:hover {
+      background: #222;
+      border-color: #444;
+    }
+
+    .sim-btn.active {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #000;
+    }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-box {
+      background: #1a1a1a;
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #22c55e;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: #666;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Equation panel */
+    .equation-box {
+      background: #1a1a1a;
+      border-radius: 6px;
+      padding: 16px;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .equation-main {
+      font-family: 'Times New Roman', serif;
+      font-size: 18px;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .equation-legend {
+      font-size: 10px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .equation-var {
+      color: #22c55e;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">Coral RSE Model — <em>Acropora palmata</em></div>
+    <div class="equation">N(t+1) = S · (T + F) · N(t) + R</div>
+  </header>
+
+  <div class="main-container">
+    <div class="diagram-area">
+      <!-- Main System Overview -->
+      <div class="panel" id="system-overview">
+        <div class="panel-header">
+          <div class="panel-icon" style="background: #22c55e;">SYS</div>
+          <div class="panel-title">System Overview</div>
+          <div class="panel-subtitle">4 compartments · 12 flows</div>
+        </div>
+        <div class="panel-content" style="height: calc(100% - 50px); padding: 0;">
+          <svg id="system-svg"></svg>
+        </div>
+      </div>
+
+      <!-- Bottom row of panels -->
+      <div class="bottom-panels">
+        <!-- Size Structure -->
+        <div class="panel" id="size-structure">
+          <div class="panel-header">
+            <div class="panel-icon">SC</div>
+            <div class="panel-title">Reef Size Structure</div>
+          </div>
+          <div class="panel-content">
+            <svg id="lifecycle-svg"></svg>
+          </div>
+        </div>
+
+        <!-- Transition Matrix -->
+        <div class="panel" id="transition-matrix">
+          <div class="panel-header">
+            <div class="panel-icon">T</div>
+            <div class="panel-title">Transition Matrix</div>
+          </div>
+          <div class="panel-content">
+            <svg id="matrix-svg"></svg>
+          </div>
+        </div>
+
+        <!-- Annual Cycle -->
+        <div class="panel" id="annual-cycle">
+          <div class="panel-header">
+            <div class="panel-icon">CY</div>
+            <div class="panel-title">Annual Cycle</div>
+          </div>
+          <div class="panel-content">
+            <div class="cycle-steps" id="cycle-steps"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Simulation -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Simulation</div>
+        <div class="sim-controls">
+          <button class="sim-btn active" id="btn-play">Play</button>
+          <button class="sim-btn" id="btn-pause">Pause</button>
+          <button class="sim-btn" id="btn-reset">Reset</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-value" id="stat-reef">0</div>
+            <div class="stat-label">Reef</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="stat-orchard">0</div>
+            <div class="stat-label">Orchard</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="stat-lab">0</div>
+            <div class="stat-label">Lab</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="stat-year">1</div>
+            <div class="stat-label">Year</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reef Parameters -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Parameters</div>
+
+        <div class="param-group">
+          <div class="param-group-title">
+            <div class="param-dot" style="background: #16a34a;"></div>
+            Reef
+          </div>
+          <div class="param-row">
+            <span class="param-name">surv_pars</span>
+            <span class="param-value">0.4-0.9</span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">reef_areas</span>
+            <span class="param-value">10,000 cm²</span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">reef_yield</span>
+            <span class="param-value">0.5-0.75</span>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-group-title">
+            <div class="param-dot" style="background: #2563eb;"></div>
+            Lab
+          </div>
+          <div class="param-row">
+            <span class="param-name">sett_props</span>
+            <span class="param-value">T1, T2</span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">s0, s1</span>
+            <span class="param-value">0.7-0.9</span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">lab_max</span>
+            <span class="param-value">~10,000</span>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-group-title">
+            <div class="param-dot" style="background: #7c3aed;"></div>
+            Orchard
+          </div>
+          <div class="param-row">
+            <span class="param-name">orchard_yield</span>
+            <span class="param-value">0.001</span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">orchard_size</span>
+            <span class="param-value">varies</span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">trans_mats</span>
+            <span class="param-value">matrix</span>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-group-title">
+            <div class="param-dot" style="background: #475569;"></div>
+            External
+          </div>
+          <div class="param-row">
+            <span class="param-name">lambda</span>
+            <span class="param-value">~10,000</span>
+          </div>
+          <div class="param-row">
+            <span class="param-name">lambda_R</span>
+            <span class="param-value">~10,000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Legend</div>
+        <div class="legend-item">
+          <div class="legend-line" style="background: #22c55e;"></div>
+          <span>Primary flow (to reef)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="background: #444; background-image: repeating-linear-gradient(90deg, #444 0, #444 4px, transparent 4px, transparent 8px);"></div>
+          <span>Feedback / collection</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background: #16a34a;"></div>
+          <span>Reef (target)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background: #2563eb;"></div>
+          <span>Lab (settlement)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background: #7c3aed;"></div>
+          <span>Orchard (nursery)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background: #475569;"></div>
+          <span>External (wild)</span>
+        </div>
+      </div>
+
+      <!-- Equation -->
+      <div class="equation-box">
+        <div class="equation-main">N(t+1) = [S · (T + F)] · N(t) + R</div>
+        <div class="equation-legend">
+          <span class="equation-var">S</span> = Survival ·
+          <span class="equation-var">T</span> = Transition ·
+          <span class="equation-var">F</span> = Fragmentation<br>
+          <span class="equation-var">N</span> = Population ·
+          <span class="equation-var">R</span> = Recruitment
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // STATE
+    // ============================================
+    const state = {
+      playing: true,
+      year: 1,
+      currentStep: 0,
+      reef: 100,
+      orchard: 50,
+      lab: 200
+    };
+
+    const cycleSteps = [
+      { num: 1, text: 'Survival & Growth', desc: 'Apply S·(T+F) to populations' },
+      { num: 2, text: 'Reproduction', desc: 'Calculate larvae production' },
+      { num: 3, text: 'Larvae Collection', desc: 'Collect from reef & orchard' },
+      { num: 4, text: 'Lab Processing', desc: 'Settle larvae on tiles' },
+      { num: 5, text: 'Outplanting', desc: 'Move settlers to reef/orchard' },
+      { num: 6, text: 'Transplanting', desc: 'Move orchard colonies to reef' }
+    ];
+
+    // ============================================
+    // MAIN SYSTEM DIAGRAM
+    // ============================================
+    function drawSystemDiagram() {
+      const container = document.getElementById('system-svg');
+      const rect = container.parentElement.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      const svg = d3.select('#system-svg')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('viewBox', `0 0 ${width} ${height}`);
+
+      svg.selectAll('*').remove();
+
+      // Calculate positions based on container size
+      const cx = width / 2;
+      const cy = height / 2;
+      const spread = Math.min(width, height) * 0.35;
+
+      const nodes = {
+        external: { x: cx - spread, y: cy - spread * 0.5, w: 120, h: 60, color: '#475569', label: 'EXTERNAL', sub: 'Wild Reefs' },
+        lab:      { x: cx, y: cy - spread * 0.7, w: 120, h: 60, color: '#2563eb', label: 'LAB', sub: 'Settlement' },
+        orchard:  { x: cx + spread, y: cy - spread * 0.5, w: 120, h: 60, color: '#7c3aed', label: 'ORCHARD', sub: 'Nursery' },
+        reef:     { x: cx, y: cy + spread * 0.4, w: 200, h: 100, color: '#16a34a', label: 'REEF', sub: 'Restoration Target', primary: true }
+      };
+
+      // Defs for markers
+      const defs = svg.append('defs');
+
+      defs.append('marker')
+        .attr('id', 'arrow-green')
+        .attr('viewBox', '0 -4 8 8')
+        .attr('refX', 7)
+        .attr('refY', 0)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-3L8,0L0,3Z')
+        .attr('fill', '#22c55e');
+
+      defs.append('marker')
+        .attr('id', 'arrow-gray')
+        .attr('viewBox', '0 -4 8 8')
+        .attr('refX', 7)
+        .attr('refY', 0)
+        .attr('markerWidth', 5)
+        .attr('markerHeight', 5)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-3L8,0L0,3Z')
+        .attr('fill', '#444');
+
+      // Draw flows
+      const flowG = svg.append('g').attr('class', 'flows');
+      const particleG = svg.append('g').attr('class', 'particles');
+
+      const flows = [
+        // Primary flows TO reef
+        {
+          path: `M${nodes.external.x},${nodes.external.y + nodes.external.h/2} Q${cx - spread*0.5},${cy + spread*0.2} ${nodes.reef.x - nodes.reef.w/3},${nodes.reef.y - nodes.reef.h/2}`,
+          label: 'lambda', primary: true
+        },
+        {
+          path: `M${nodes.lab.x},${nodes.lab.y + nodes.lab.h/2} L${nodes.reef.x},${nodes.reef.y - nodes.reef.h/2}`,
+          label: 'outplant', primary: true
+        },
+        {
+          path: `M${nodes.orchard.x},${nodes.orchard.y + nodes.orchard.h/2} Q${cx + spread*0.5},${cy + spread*0.2} ${nodes.reef.x + nodes.reef.w/3},${nodes.reef.y - nodes.reef.h/2}`,
+          label: 'transplant', primary: true
+        },
+        // Feedback flows
+        {
+          path: `M${nodes.external.x + nodes.external.w/3},${nodes.external.y - nodes.external.h/2} Q${cx - spread*0.3},${cy - spread*0.9} ${nodes.lab.x - nodes.lab.w/3},${nodes.lab.y - nodes.lab.h/2}`,
+          label: 'lambda_R', primary: false
+        },
+        {
+          path: `M${nodes.reef.x - nodes.reef.w/4},${nodes.reef.y - nodes.reef.h/2} C${cx - spread*0.6},${cy - spread*0.3} ${cx - spread*0.3},${cy - spread*0.6} ${nodes.lab.x - nodes.lab.w/2},${nodes.lab.y}`,
+          label: 'collection', primary: false
+        },
+        {
+          path: `M${nodes.lab.x + nodes.lab.w/2},${nodes.lab.y} Q${cx + spread*0.3},${cy - spread*0.5} ${nodes.orchard.x - nodes.orchard.w/3},${nodes.orchard.y - nodes.orchard.h/2}`,
+          label: '', primary: false
+        },
+        {
+          path: `M${nodes.orchard.x - nodes.orchard.w/3},${nodes.orchard.y - nodes.orchard.h/2} Q${cx + spread*0.2},${cy - spread*0.8} ${nodes.lab.x + nodes.lab.w/3},${nodes.lab.y - nodes.lab.h/2}`,
+          label: 'larvae', primary: false
+        }
+      ];
+
+      flows.forEach((f, i) => {
+        const path = flowG.append('path')
+          .attr('class', 'flow-path')
+          .attr('d', f.path)
+          .attr('stroke', f.primary ? '#22c55e' : '#333')
+          .attr('stroke-width', f.primary ? 3 : 1.5)
+          .attr('stroke-dasharray', f.primary ? 'none' : '6,4')
+          .attr('marker-end', f.primary ? 'url(#arrow-green)' : 'url(#arrow-gray)');
+
+        f.el = path.node();
+        f.len = path.node().getTotalLength();
+
+        // Add label
+        if (f.label) {
+          const midPoint = path.node().getPointAtLength(f.len * 0.5);
+          flowG.append('text')
+            .attr('class', 'flow-label')
+            .attr('x', midPoint.x)
+            .attr('y', midPoint.y - 8)
+            .attr('fill', f.primary ? '#4ade80' : '#666')
+            .attr('font-weight', f.primary ? '600' : '400')
+            .text(f.label);
+        }
+      });
+
+      // Draw nodes
+      const nodeG = svg.append('g').attr('class', 'nodes');
+
+      Object.entries(nodes).forEach(([id, n]) => {
+        const g = nodeG.append('g').attr('transform', `translate(${n.x}, ${n.y})`);
+
+        // Node rectangle
+        g.append('rect')
+          .attr('class', 'node-rect')
+          .attr('x', -n.w/2)
+          .attr('y', -n.h/2)
+          .attr('width', n.w)
+          .attr('height', n.h)
+          .attr('fill', n.color)
+          .attr('stroke', n.primary ? '#4ade80' : 'none')
+          .attr('stroke-width', n.primary ? 3 : 0);
+
+        // Label
+        g.append('text')
+          .attr('class', 'node-label')
+          .attr('y', -5)
+          .text(n.label);
+
+        // Sublabel
+        g.append('text')
+          .attr('class', 'node-sublabel')
+          .attr('y', 12)
+          .text(n.sub);
+
+        // Size classes in reef
+        if (id === 'reef') {
+          const scY = 32;
+          for (let i = 0; i < 5; i++) {
+            const scX = -50 + i * 25;
+            const r = 8 + i * 1.5;
+            g.append('circle')
+              .attr('cx', scX)
+              .attr('cy', scY)
+              .attr('r', r)
+              .attr('fill', 'rgba(255,255,255,0.1)')
+              .attr('stroke', 'rgba(255,255,255,0.5)')
+              .attr('stroke-width', 1.5);
+            g.append('text')
+              .attr('x', scX)
+              .attr('y', scY + 4)
+              .attr('font-size', 9)
+              .attr('fill', 'rgba(255,255,255,0.7)')
+              .attr('text-anchor', 'middle')
+              .text(i + 1);
+          }
+        }
+
+        // Lab tile types
+        if (id === 'lab') {
+          const tiles = ['T1', 'T2'];
+          tiles.forEach((t, i) => {
+            g.append('rect')
+              .attr('x', -35 + i * 40)
+              .attr('y', 18)
+              .attr('width', 30)
+              .attr('height', 16)
+              .attr('rx', 3)
+              .attr('fill', 'rgba(255,255,255,0.1)')
+              .attr('stroke', 'rgba(255,255,255,0.3)');
+            g.append('text')
+              .attr('x', -20 + i * 40)
+              .attr('y', 29)
+              .attr('font-size', 9)
+              .attr('fill', 'rgba(255,255,255,0.7)')
+              .attr('text-anchor', 'middle')
+              .text(t);
+          });
+        }
+      });
+
+      // Animate particles
+      function emitParticle(flow) {
+        if (!state.playing || !flow.el) return;
+
+        const particle = particleG.append('circle')
+          .attr('r', flow.primary ? 4 : 2.5)
+          .attr('fill', flow.primary ? '#4ade80' : '#555');
+
+        particle.transition()
+          .duration(flow.primary ? 2000 : 2500)
+          .ease(d3.easeLinear)
+          .attrTween('transform', function() {
+            return function(t) {
+              const point = flow.el.getPointAtLength(t * flow.len);
+              return `translate(${point.x}, ${point.y})`;
+            };
+          })
+          .remove();
+      }
+
+      // Start particle emission
+      function startParticles() {
+        flows.forEach((f, i) => {
+          setInterval(() => emitParticle(f), f.primary ? 800 : 1200);
+        });
+      }
+
+      startParticles();
+    }
+
+    // ============================================
+    // LIFECYCLE DIAGRAM
+    // ============================================
+    function drawLifecycle() {
+      const svg = d3.select('#lifecycle-svg');
+      const width = 280;
+      const height = 180;
+
+      svg.attr('viewBox', `0 0 ${width} ${height}`);
+      svg.selectAll('*').remove();
+
+      const sizeClasses = [
+        { id: 'SC1', range: '0-10', r: 12 },
+        { id: 'SC2', range: '10-100', r: 16 },
+        { id: 'SC3', range: '100-900', r: 20 },
+        { id: 'SC4', range: '900-4k', r: 24 },
+        { id: 'SC5', range: '>4000', r: 28 }
+      ];
+
+      const startX = 35;
+      const spacing = 50;
+      const y = 60;
+
+      // Defs
+      const defs = svg.append('defs');
+      defs.append('marker')
+        .attr('id', 'arr-growth')
+        .attr('viewBox', '0 -3 6 6')
+        .attr('refX', 5)
+        .attr('refY', 0)
+        .attr('markerWidth', 4)
+        .attr('markerHeight', 4)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-2L6,0L0,2Z')
+        .attr('fill', '#22c55e');
+
+      defs.append('marker')
+        .attr('id', 'arr-shrink')
+        .attr('viewBox', '0 -3 6 6')
+        .attr('refX', 5)
+        .attr('refY', 0)
+        .attr('markerWidth', 4)
+        .attr('markerHeight', 4)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-2L6,0L0,2Z')
+        .attr('fill', '#f59e0b');
+
+      defs.append('marker')
+        .attr('id', 'arr-frag')
+        .attr('viewBox', '0 -3 6 6')
+        .attr('refX', 5)
+        .attr('refY', 0)
+        .attr('markerWidth', 4)
+        .attr('markerHeight', 4)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-2L6,0L0,2Z')
+        .attr('fill', '#8b5cf6');
+
+      // Draw growth arrows (top)
+      for (let i = 0; i < 4; i++) {
+        const x1 = startX + i * spacing + sizeClasses[i].r + 4;
+        const x2 = startX + (i + 1) * spacing - sizeClasses[i + 1].r - 4;
+        svg.append('path')
+          .attr('d', `M${x1},${y - 15} L${x2},${y - 15}`)
+          .attr('stroke', '#22c55e')
+          .attr('stroke-width', 2)
+          .attr('fill', 'none')
+          .attr('marker-end', 'url(#arr-growth)');
+      }
+
+      // Draw shrinkage arrows (bottom)
+      for (let i = 1; i < 5; i++) {
+        const x1 = startX + i * spacing - sizeClasses[i].r - 4;
+        const x2 = startX + (i - 1) * spacing + sizeClasses[i - 1].r + 4;
+        svg.append('path')
+          .attr('d', `M${x1},${y + 15} L${x2},${y + 15}`)
+          .attr('stroke', '#f59e0b')
+          .attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', '4,3')
+          .attr('fill', 'none')
+          .attr('marker-end', 'url(#arr-shrink)');
+      }
+
+      // Draw fragmentation arrows (curved, from SC4 and SC5)
+      [3, 4].forEach(i => {
+        const x1 = startX + i * spacing;
+        svg.append('path')
+          .attr('d', `M${x1},${y + sizeClasses[i].r + 5} Q${x1 - 30},${y + 60} ${startX},${y + sizeClasses[0].r + 5}`)
+          .attr('stroke', '#8b5cf6')
+          .attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', '3,3')
+          .attr('fill', 'none')
+          .attr('marker-end', 'url(#arr-frag)');
+      });
+
+      // Draw size class circles
+      sizeClasses.forEach((sc, i) => {
+        const x = startX + i * spacing;
+
+        svg.append('circle')
+          .attr('cx', x)
+          .attr('cy', y)
+          .attr('r', sc.r)
+          .attr('fill', 'rgba(34, 197, 94, 0.2)')
+          .attr('stroke', '#22c55e')
+          .attr('stroke-width', 2);
+
+        svg.append('text')
+          .attr('x', x)
+          .attr('y', y + 4)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 10)
+          .attr('font-weight', 600)
+          .attr('fill', '#fff')
+          .text(sc.id);
+
+        svg.append('text')
+          .attr('x', x)
+          .attr('y', y + sc.r + 14)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 8)
+          .attr('fill', '#666')
+          .text(sc.range + ' cm²');
+      });
+
+      // Legend
+      const legendY = 155;
+      const items = [
+        { color: '#22c55e', label: 'Growth', dash: false },
+        { color: '#f59e0b', label: 'Shrinkage', dash: true },
+        { color: '#8b5cf6', label: 'Fragmentation', dash: true }
+      ];
+
+      items.forEach((item, i) => {
+        const x = 30 + i * 90;
+        svg.append('line')
+          .attr('x1', x)
+          .attr('y1', legendY)
+          .attr('x2', x + 20)
+          .attr('y2', legendY)
+          .attr('stroke', item.color)
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', item.dash ? '4,3' : 'none');
+        svg.append('text')
+          .attr('x', x + 25)
+          .attr('y', legendY + 4)
+          .attr('font-size', 9)
+          .attr('fill', '#888')
+          .text(item.label);
+      });
+    }
+
+    // ============================================
+    // TRANSITION MATRIX
+    // ============================================
+    function drawMatrix() {
+      const svg = d3.select('#matrix-svg');
+      const width = 280;
+      const height = 180;
+
+      svg.attr('viewBox', `0 0 ${width} ${height}`);
+      svg.selectAll('*').remove();
+
+      // Example transition matrix values
+      const matrix = [
+        [0.3, 0.1, 0.05, 0.02, 0.01],  // To SC1
+        [0.5, 0.4, 0.1, 0.05, 0.02],   // To SC2
+        [0.1, 0.4, 0.5, 0.1, 0.05],    // To SC3
+        [0, 0.1, 0.3, 0.6, 0.1],       // To SC4
+        [0, 0, 0.05, 0.2, 0.8]         // To SC5
+      ];
+
+      const cellSize = 28;
+      const startX = 55;
+      const startY = 35;
+
+      // Color scale
+      const colorScale = d3.scaleSequential(d3.interpolateGreens)
+        .domain([0, 0.8]);
+
+      // Labels
+      const labels = ['SC1', 'SC2', 'SC3', 'SC4', 'SC5'];
+
+      // Column headers (From)
+      svg.append('text')
+        .attr('x', startX + cellSize * 2.5)
+        .attr('y', 15)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', 10)
+        .attr('fill', '#666')
+        .text('From size class');
+
+      labels.forEach((l, i) => {
+        svg.append('text')
+          .attr('x', startX + i * cellSize + cellSize / 2)
+          .attr('y', 28)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 9)
+          .attr('fill', '#888')
+          .text(l);
+      });
+
+      // Row headers (To)
+      svg.append('text')
+        .attr('x', 12)
+        .attr('y', startY + cellSize * 2.5)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', 10)
+        .attr('fill', '#666')
+        .attr('transform', `rotate(-90, 12, ${startY + cellSize * 2.5})`)
+        .text('To size class');
+
+      labels.forEach((l, i) => {
+        svg.append('text')
+          .attr('x', 45)
+          .attr('y', startY + i * cellSize + cellSize / 2 + 3)
+          .attr('text-anchor', 'end')
+          .attr('font-size', 9)
+          .attr('fill', '#888')
+          .text(l);
+      });
+
+      // Draw cells
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+          const val = matrix[row][col];
+          const x = startX + col * cellSize;
+          const y = startY + row * cellSize;
+
+          svg.append('rect')
+            .attr('x', x)
+            .attr('y', y)
+            .attr('width', cellSize - 1)
+            .attr('height', cellSize - 1)
+            .attr('fill', val > 0 ? colorScale(val) : '#1a1a1a')
+            .attr('stroke', row === col ? '#fff' : 'none')
+            .attr('stroke-width', row === col ? 1 : 0);
+
+          if (val > 0) {
+            svg.append('text')
+              .attr('x', x + cellSize / 2)
+              .attr('y', y + cellSize / 2 + 3)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', 8)
+              .attr('fill', val > 0.4 ? '#000' : '#fff')
+              .text(val.toFixed(1));
+          }
+        }
+      }
+
+      // Legend
+      svg.append('text')
+        .attr('x', startX + cellSize * 5 + 15)
+        .attr('y', startY + 10)
+        .attr('font-size', 8)
+        .attr('fill', '#666')
+        .text('Diagonal');
+      svg.append('text')
+        .attr('x', startX + cellSize * 5 + 15)
+        .attr('y', startY + 20)
+        .attr('font-size', 8)
+        .attr('fill', '#888')
+        .text('= stasis');
+
+      svg.append('text')
+        .attr('x', startX + cellSize * 5 + 15)
+        .attr('y', startY + 40)
+        .attr('font-size', 8)
+        .attr('fill', '#22c55e')
+        .text('Above');
+      svg.append('text')
+        .attr('x', startX + cellSize * 5 + 15)
+        .attr('y', startY + 50)
+        .attr('font-size', 8)
+        .attr('fill', '#888')
+        .text('= growth');
+
+      svg.append('text')
+        .attr('x', startX + cellSize * 5 + 15)
+        .attr('y', startY + 70)
+        .attr('font-size', 8)
+        .attr('fill', '#f59e0b')
+        .text('Below');
+      svg.append('text')
+        .attr('x', startX + cellSize * 5 + 15)
+        .attr('y', startY + 80)
+        .attr('font-size', 8)
+        .attr('fill', '#888')
+        .text('= shrinkage');
+    }
+
+    // ============================================
+    // ANNUAL CYCLE
+    // ============================================
+    function drawCycle() {
+      const container = document.getElementById('cycle-steps');
+      container.innerHTML = '';
+
+      cycleSteps.forEach((step, i) => {
+        const div = document.createElement('div');
+        div.className = 'cycle-step' + (i === state.currentStep ? ' active' : '');
+        div.innerHTML = `
+          <div class="step-num">${step.num}</div>
+          <div class="step-text">${step.text}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // ============================================
+    // SIMULATION
+    // ============================================
+    function updateStats() {
+      document.getElementById('stat-reef').textContent = state.reef;
+      document.getElementById('stat-orchard').textContent = state.orchard;
+      document.getElementById('stat-lab').textContent = state.lab;
+      document.getElementById('stat-year').textContent = state.year;
+    }
+
+    function simulate() {
+      if (!state.playing) return;
+
+      // Advance cycle step
+      state.currentStep = (state.currentStep + 1) % 6;
+
+      if (state.currentStep === 0) {
+        state.year++;
+      }
+
+      // Simple population dynamics
+      const survival = 0.85;
+      const growth = 1.02;
+      const outplantRate = 0.1;
+
+      state.reef = Math.round(state.reef * survival * growth + state.lab * outplantRate);
+      state.orchard = Math.round(state.orchard * survival * growth + state.lab * outplantRate * 0.3);
+      state.lab = Math.round(state.lab * 0.7 + (state.reef + state.orchard) * 0.05 * 10000 / (state.reef + state.orchard + 1));
+
+      updateStats();
+      drawCycle();
+    }
+
+    // ============================================
+    // CONTROLS
+    // ============================================
+    document.getElementById('btn-play').addEventListener('click', function() {
+      state.playing = true;
+      this.classList.add('active');
+      document.getElementById('btn-pause').classList.remove('active');
+    });
+
+    document.getElementById('btn-pause').addEventListener('click', function() {
+      state.playing = false;
+      this.classList.add('active');
+      document.getElementById('btn-play').classList.remove('active');
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', function() {
+      state.year = 1;
+      state.currentStep = 0;
+      state.reef = 100;
+      state.orchard = 50;
+      state.lab = 200;
+      updateStats();
+      drawCycle();
+    });
+
+    // ============================================
+    // INIT
+    // ============================================
+    function init() {
+      drawSystemDiagram();
+      drawLifecycle();
+      drawMatrix();
+      drawCycle();
+      updateStats();
+
+      // Simulation loop
+      setInterval(simulate, 1500);
+    }
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      drawSystemDiagram();
+    });
+
+    init();
+  </script>
+</body>
+</html>

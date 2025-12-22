@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coral RSE Model</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #fafafa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 20px 32px;
+      border-bottom: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    h1 em {
+      color: #22c55e;
+      font-style: italic;
+    }
+
+    .equation {
+      font-family: 'Times New Roman', Georgia, serif;
+      font-size: 14px;
+      color: #666;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+    }
+
+    #canvas {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+    }
+
+    svg {
+      max-width: 900px;
+      max-height: 600px;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: #0f0f0f;
+      border-left: 1px solid #1a1a1a;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #444;
+      margin-bottom: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .stat {
+      background: #141414;
+      border-radius: 6px;
+      padding: 12px 8px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .stat:hover {
+      background: #1a1a1a;
+      transform: scale(1.02);
+    }
+
+    .stat.highlighted {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      transition: all 0.3s ease;
+    }
+
+    .stat-value.reef { color: #22c55e; }
+    .stat-value.lab { color: #3b82f6; }
+    .stat-value.orchard { color: #a855f7; }
+
+    .stat-label {
+      font-size: 9px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    button {
+      flex: 1;
+      padding: 8px;
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 5px;
+      color: #888;
+      font: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button:hover { background: #1a1a1a; color: #ccc; }
+    button.active { background: #22c55e; border-color: #22c55e; color: #000; }
+
+    .param {
+      margin-bottom: 16px;
+    }
+
+    .param-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 11px;
+    }
+
+    .param-name {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      color: #666;
+    }
+
+    .param-value {
+      color: #22c55e;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 3px;
+      -webkit-appearance: none;
+      background: #222;
+      border-radius: 2px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #22c55e;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* SVG */
+    .node {
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .node:hover {
+      transform: scale(1.03);
+    }
+
+    .node.selected rect {
+      stroke: #fff;
+      stroke-width: 3;
+    }
+
+    .node text {
+      font-family: 'Inter', sans-serif;
+      pointer-events: none;
+    }
+
+    .node-label {
+      font-size: 13px;
+      font-weight: 600;
+      fill: white;
+      text-anchor: middle;
+    }
+
+    .node-sub {
+      font-size: 9px;
+      fill: rgba(255,255,255,0.5);
+      text-anchor: middle;
+    }
+
+    .flow {
+      fill: none;
+      stroke-linecap: round;
+      transition: stroke-width 0.2s, opacity 0.2s;
+    }
+
+    .flow.highlighted {
+      stroke-width: 5 !important;
+    }
+
+    .flow.dimmed {
+      opacity: 0.2;
+    }
+
+    .flow-label {
+      font-family: 'SF Mono', monospace;
+      font-size: 10px;
+      fill: #888;
+      text-anchor: middle;
+      font-weight: 500;
+      transition: fill 0.2s;
+      cursor: pointer;
+    }
+
+    .flow-label:hover {
+      fill: #fff;
+    }
+
+    .flow-label.primary {
+      fill: #4ade80;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .sc-label {
+      font-family: 'SF Mono', monospace;
+      font-size: 8px;
+      fill: rgba(255,255,255,0.7);
+      text-anchor: middle;
+    }
+
+    .size-class {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .size-class:hover {
+      transform: scale(1.15);
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 16px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      max-width: 280px;
+      z-index: 100;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .tooltip.visible {
+      opacity: 1;
+    }
+
+    .tooltip-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tooltip-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .tooltip-desc {
+      font-size: 12px;
+      color: #aaa;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .tooltip-params {
+      font-size: 11px;
+      color: #666;
+      border-top: 1px solid #333;
+      padding-top: 10px;
+    }
+
+    .tooltip-param {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .tooltip-param-name {
+      font-family: 'SF Mono', monospace;
+      color: #888;
+    }
+
+    .tooltip-param-value {
+      color: #22c55e;
+    }
+
+    /* Detail panel */
+    .detail-panel {
+      margin-top: 16px;
+      background: #141414;
+      border-radius: 8px;
+      padding: 16px;
+      display: none;
+    }
+
+    .detail-panel.visible {
+      display: block;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .detail-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      color: #fff;
+    }
+
+    .detail-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .detail-subtitle {
+      font-size: 11px;
+      color: #666;
+    }
+
+    .detail-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .detail-stat {
+      background: #1a1a1a;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .detail-stat-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #22c55e;
+    }
+
+    .detail-stat-label {
+      font-size: 9px;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    .detail-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: #222;
+      border: none;
+      border-radius: 4px;
+      color: #888;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .detail-close:hover {
+      background: #333;
+      color: #fff;
+    }
+
+    /* Size class bar chart */
+    .size-bars {
+      display: flex;
+      gap: 4px;
+      height: 60px;
+      align-items: flex-end;
+      margin-top: 12px;
+      padding: 0 4px;
+    }
+
+    .size-bar {
+      flex: 1;
+      background: linear-gradient(to top, #22c55e, #16a34a);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.5s ease;
+      position: relative;
+    }
+
+    .size-bar-label {
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Coral RSE Model — <em>Acropora palmata</em></h1>
+    <div class="equation">N(t+1) = S · (T + F) · N(t) + R</div>
+  </header>
+
+  <main>
+    <div id="canvas">
+      <svg id="diagram" viewBox="0 0 800 500"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+
+    <aside class="sidebar">
+      <h2>Population</h2>
+      <div class="stats">
+        <div class="stat" data-target="reef">
+          <div class="stat-value reef" id="stat-reef">300</div>
+          <div class="stat-label">Reef</div>
+        </div>
+        <div class="stat" data-target="orchard">
+          <div class="stat-value orchard" id="stat-orchard">150</div>
+          <div class="stat-label">Orchard</div>
+        </div>
+        <div class="stat" data-target="lab">
+          <div class="stat-value lab" id="stat-lab">500</div>
+          <div class="stat-label">Lab</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="stat-year">1</div>
+          <div class="stat-label">Year</div>
+        </div>
+      </div>
+
+      <h2>Simulation</h2>
+      <div class="controls">
+        <button id="btn-play" class="active">Play</button>
+        <button id="btn-pause">Pause</button>
+        <button id="btn-reset">Reset</button>
+      </div>
+
+      <h2>Parameters</h2>
+      <div class="param">
+        <div class="param-row">
+          <span class="param-name">lambda</span>
+          <span class="param-value" id="v-lambda">10,000</span>
+        </div>
+        <input type="range" id="p-lambda" min="0" max="50000" value="10000" step="1000">
+      </div>
+      <div class="param">
+        <div class="param-row">
+          <span class="param-name">survival</span>
+          <span class="param-value" id="v-surv">0.70</span>
+        </div>
+        <input type="range" id="p-surv" min="0.1" max="0.99" value="0.7" step="0.01">
+      </div>
+      <div class="param">
+        <div class="param-row">
+          <span class="param-name">reef_prop</span>
+          <span class="param-value" id="v-rprop">0.60</span>
+        </div>
+        <input type="range" id="p-rprop" min="0" max="1" value="0.6" step="0.05">
+      </div>
+      <div class="param">
+        <div class="param-row">
+          <span class="param-name">transplant</span>
+          <span class="param-value" id="v-trans">0.10</span>
+        </div>
+        <input type="range" id="p-trans" min="0" max="0.5" value="0.1" step="0.01">
+      </div>
+
+      <!-- Detail Panel -->
+      <div class="detail-panel" id="detail-panel">
+        <div class="detail-header">
+          <div class="detail-icon" id="detail-icon">R</div>
+          <div>
+            <div class="detail-title" id="detail-title">Reef</div>
+            <div class="detail-subtitle" id="detail-subtitle">Restoration Target</div>
+          </div>
+        </div>
+        <div class="detail-stats">
+          <div class="detail-stat">
+            <div class="detail-stat-value" id="detail-pop">0</div>
+            <div class="detail-stat-label">Population</div>
+          </div>
+          <div class="detail-stat">
+            <div class="detail-stat-value" id="detail-growth">+0%</div>
+            <div class="detail-stat-label">Growth Rate</div>
+          </div>
+        </div>
+        <div class="size-bars" id="size-bars"></div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    // =====================================
+    // STATE
+    // =====================================
+    const state = {
+      playing: true,
+      year: 1,
+      selectedNode: null,
+      highlightedFlow: null,
+      params: { lambda: 10000, surv: 0.7, rprop: 0.6, trans: 0.1 },
+      pop: {
+        reef: [100, 80, 60, 40, 20],
+        orchard: [50, 40, 30, 20, 10],
+        lab: 500
+      },
+      prevPop: {
+        reef: [100, 80, 60, 40, 20],
+        orchard: [50, 40, 30, 20, 10],
+        lab: 500
+      }
+    };
+
+    // Node metadata for tooltips
+    const nodeData = {
+      reef: {
+        label: 'REEF',
+        sub: 'Restoration Target',
+        color: '#16a34a',
+        desc: 'The ultimate restoration target where coral populations are established. Receives inputs from external recruitment, lab outplants, and orchard transplants.',
+        params: [
+          { name: 'reef_areas', value: '10,000 cm²' },
+          { name: 'surv_pars', value: '0.4 - 0.9' },
+          { name: 'reef_yield', value: '0.5 - 0.75' }
+        ]
+      },
+      lab: {
+        label: 'LAB',
+        sub: 'Settlement',
+        color: '#2563eb',
+        desc: 'Processes larvae onto settlement tiles (cement T1, ceramic T2). Options for immediate outplanting or 1-year retention.',
+        params: [
+          { name: 'sett_props', value: 'T1, T2' },
+          { name: 's0, s1', value: '0.7 - 0.9' },
+          { name: 'lab_max', value: '~10,000' }
+        ]
+      },
+      orchard: {
+        label: 'ORCHARD',
+        sub: 'Nursery',
+        color: '#7c3aed',
+        desc: 'Maintains broodstock colonies that produce larvae. Large colonies can be transplanted directly to reef.',
+        params: [
+          { name: 'orchard_size', value: 'varies' },
+          { name: 'orchard_yield', value: '0.001' },
+          { name: 'trans_mats', value: 'matrix' }
+        ]
+      },
+      external: {
+        label: 'EXTERNAL',
+        sub: 'Wild Reefs',
+        color: '#475569',
+        desc: 'Reference reef populations providing baseline larval recruitment and larvae for lab settlement.',
+        params: [
+          { name: 'lambda', value: '~10,000' },
+          { name: 'lambda_R', value: '~10,000' },
+          { name: 'ext_rand', value: 'FALSE' }
+        ]
+      }
+    };
+
+    // Flow metadata
+    const flowData = {
+      lambda: { label: 'External Recruitment', desc: 'Wild larvae settling on restoration reef' },
+      outplant: { label: 'Lab Outplanting', desc: 'Lab-reared settlers moved to reef' },
+      transplant: { label: 'Colony Transplant', desc: 'Mature orchard colonies moved to reef' },
+      'lambda_R': { label: 'Reference Larvae', desc: 'Larvae collected from wild populations' },
+      collection: { label: 'Larvae Collection', desc: 'Larvae collected from reef corals' },
+      larvae: { label: 'Orchard Larvae', desc: 'Larvae collected from broodstock' }
+    };
+
+    const svg = d3.select('#diagram');
+    const tooltip = document.getElementById('tooltip');
+
+    // =====================================
+    // DEFS
+    // =====================================
+    const defs = svg.append('defs');
+
+    // Glow filter
+    const glow = defs.append('filter').attr('id', 'glow').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+    glow.append('feGaussianBlur').attr('stdDeviation', '8').attr('result', 'blur');
+    glow.append('feMerge').html('<feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/>');
+
+    // Pulse animation
+    const pulse = defs.append('filter').attr('id', 'pulse').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+    pulse.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'blur');
+    pulse.append('feMerge').html('<feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/>');
+
+    // Arrows
+    defs.append('marker').attr('id', 'arr').attr('viewBox', '0 -4 8 8').attr('refX', 7).attr('refY', 0)
+      .attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto')
+      .append('path').attr('d', 'M0,-3L8,0L0,3Z').attr('fill', '#22c55e');
+
+    defs.append('marker').attr('id', 'arr-dim').attr('viewBox', '0 -4 8 8').attr('refX', 7).attr('refY', 0)
+      .attr('markerWidth', 4).attr('markerHeight', 4).attr('orient', 'auto')
+      .append('path').attr('d', 'M0,-3L8,0L0,3Z').attr('fill', '#333');
+
+    // =====================================
+    // LAYOUT
+    // =====================================
+    const layout = {
+      lab:      { x: 400, y: 90,  w: 110, h: 55, color: '#2563eb', label: 'LAB', sub: 'Settlement' },
+      external: { x: 140, y: 240, w: 110, h: 55, color: '#475569', label: 'EXTERNAL', sub: 'Wild Reefs' },
+      orchard:  { x: 660, y: 240, w: 110, h: 55, color: '#7c3aed', label: 'ORCHARD', sub: 'Nursery' },
+      reef:     { x: 400, y: 390, w: 180, h: 90, color: '#16a34a', label: 'REEF', sub: 'Restoration Target', primary: true }
+    };
+
+    // Flows
+    const flows = [
+      { id: 'lambda', path: 'M195,268 Q290,380 320,400', label: 'lambda', lx: 230, ly: 365, primary: true },
+      { id: 'outplant', path: 'M400,145 L400,345', label: 'outplant', lx: 455, ly: 250, primary: true },
+      { id: 'transplant', path: 'M605,268 Q510,380 480,400', label: 'transplant', lx: 575, ly: 365, primary: true },
+      { id: 'lambda_R', path: 'M195,212 Q285,130 345,115', label: 'lambda_R', lx: 265, ly: 150, primary: false },
+      { id: 'lab_orchard', path: 'M455,115 Q515,130 605,212', label: '', lx: 0, ly: 0, primary: false },
+      { id: 'collection', path: 'M320,355 C280,300 280,200 350,120', label: 'collection', lx: 255, ly: 240, primary: false },
+      { id: 'larvae', path: 'M625,212 Q535,130 455,115', label: 'larvae', lx: 545, ly: 145, primary: false }
+    ];
+
+    // =====================================
+    // DRAW FLOWS
+    // =====================================
+    const flowG = svg.append('g');
+    const particleG = svg.append('g');
+
+    flows.forEach((f, i) => {
+      const p = flowG.append('path')
+        .attr('class', 'flow')
+        .attr('id', 'flow-' + f.id)
+        .attr('d', f.path)
+        .attr('stroke', f.primary ? '#22c55e' : '#333')
+        .attr('stroke-width', f.primary ? 2.5 : 1.5)
+        .attr('stroke-dasharray', f.primary ? 'none' : '5,4')
+        .attr('marker-end', f.primary ? 'url(#arr)' : 'url(#arr-dim)')
+        .on('mouseenter', function(e) {
+          highlightFlow(f.id);
+        })
+        .on('mouseleave', function() {
+          clearFlowHighlight();
+        });
+
+      f.el = p.node();
+      f.len = p.node().getTotalLength();
+
+      if (f.label) {
+        flowG.append('text')
+          .attr('class', 'flow-label' + (f.primary ? ' primary' : ''))
+          .attr('x', f.lx)
+          .attr('y', f.ly)
+          .attr('data-flow', f.id)
+          .text(f.label)
+          .on('mouseenter', function(e) {
+            const data = flowData[f.label] || { label: f.label, desc: '' };
+            showTooltip(e, `
+              <div class="tooltip-title">${data.label}</div>
+              <div class="tooltip-desc">${data.desc}</div>
+            `);
+            highlightFlow(f.id);
+          })
+          .on('mouseleave', function() {
+            hideTooltip();
+            clearFlowHighlight();
+          });
+      }
+    });
+
+    // =====================================
+    // DRAW NODES
+    // =====================================
+    const nodeG = svg.append('g');
+
+    Object.entries(layout).forEach(([id, n]) => {
+      const g = nodeG.append('g')
+        .attr('class', 'node')
+        .attr('id', 'node-' + id)
+        .on('mouseenter', function(e) {
+          const data = nodeData[id];
+          const paramsHtml = data.params.map(p => `
+            <div class="tooltip-param">
+              <span class="tooltip-param-name">${p.name}</span>
+              <span class="tooltip-param-value">${p.value}</span>
+            </div>
+          `).join('');
+
+          showTooltip(e, `
+            <div class="tooltip-title">
+              <div class="tooltip-dot" style="background: ${data.color}"></div>
+              ${data.label}
+            </div>
+            <div class="tooltip-desc">${data.desc}</div>
+            <div class="tooltip-params">${paramsHtml}</div>
+          `);
+        })
+        .on('mouseleave', function() {
+          hideTooltip();
+        })
+        .on('click', function() {
+          selectNode(id);
+        });
+
+      g.append('rect')
+        .attr('x', n.x - n.w/2)
+        .attr('y', n.y - n.h/2)
+        .attr('width', n.w)
+        .attr('height', n.h)
+        .attr('rx', 6)
+        .attr('fill', n.color)
+        .attr('filter', n.primary ? 'url(#glow)' : null);
+
+      g.append('text')
+        .attr('class', 'node-label')
+        .attr('x', n.x)
+        .attr('y', n.y - 4)
+        .text(n.label);
+
+      g.append('text')
+        .attr('class', 'node-sub')
+        .attr('x', n.x)
+        .attr('y', n.y + 12)
+        .text(n.sub);
+
+      // Size classes in reef
+      if (id === 'reef') {
+        const startX = n.x - 64;
+        const scY = n.y + 30;
+        for (let i = 0; i < 5; i++) {
+          const cx = startX + i * 32;
+          const r = 9 + i * 1.5;
+
+          const scGroup = g.append('g')
+            .attr('class', 'size-class')
+            .attr('transform', `translate(${cx}, ${scY})`)
+            .on('mouseenter', function(e) {
+              showTooltip(e, `
+                <div class="tooltip-title">Size Class ${i + 1}</div>
+                <div class="tooltip-desc">
+                  Population: ${state.pop.reef[i].toLocaleString()}<br>
+                  Range: ${getSizeRange(i)}
+                </div>
+              `);
+            })
+            .on('mouseleave', hideTooltip);
+
+          scGroup.append('circle')
+            .attr('r', r)
+            .attr('fill', 'rgba(255,255,255,0.08)')
+            .attr('stroke', 'rgba(255,255,255,0.5)')
+            .attr('stroke-width', 1.5);
+
+          scGroup.append('text')
+            .attr('class', 'sc-label')
+            .attr('y', 4)
+            .text(i + 1);
+        }
+      }
+
+      // Tile types in lab
+      if (id === 'lab') {
+        const tiles = ['T1', 'T2'];
+        tiles.forEach((t, i) => {
+          const tileG = g.append('g')
+            .attr('class', 'size-class')
+            .attr('transform', `translate(${n.x - 20 + i * 40}, ${n.y + 20})`)
+            .on('mouseenter', function(e) {
+              showTooltip(e, `
+                <div class="tooltip-title">Tile Type ${t}</div>
+                <div class="tooltip-desc">${t === 'T1' ? 'Cement tiles' : 'Ceramic tiles'}</div>
+              `);
+            })
+            .on('mouseleave', hideTooltip);
+
+          tileG.append('rect')
+            .attr('x', -15).attr('y', -8)
+            .attr('width', 30).attr('height', 16)
+            .attr('rx', 3)
+            .attr('fill', 'rgba(255,255,255,0.1)')
+            .attr('stroke', 'rgba(255,255,255,0.3)');
+
+          tileG.append('text')
+            .attr('y', 4)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 9)
+            .attr('fill', 'rgba(255,255,255,0.7)')
+            .text(t);
+        });
+      }
+    });
+
+    // =====================================
+    // LEGEND
+    // =====================================
+    const legend = svg.append('g').attr('transform', 'translate(30, 460)');
+
+    legend.append('line').attr('x1', 0).attr('y1', 0).attr('x2', 30).attr('y2', 0)
+      .attr('stroke', '#22c55e').attr('stroke-width', 2.5);
+    legend.append('text').attr('x', 38).attr('y', 4)
+      .attr('fill', '#666').attr('font-size', 10).text('Primary flow');
+
+    legend.append('line').attr('x1', 130).attr('y1', 0).attr('x2', 160).attr('y2', 0)
+      .attr('stroke', '#444').attr('stroke-width', 1.5).attr('stroke-dasharray', '5,4');
+    legend.append('text').attr('x', 168).attr('y', 4)
+      .attr('fill', '#666').attr('font-size', 10).text('Feedback');
+
+    legend.append('text').attr('x', 270).attr('y', 4)
+      .attr('fill', '#555').attr('font-size', 10)
+      .text('Click nodes for details · Hover for info');
+
+    // =====================================
+    // HELPER FUNCTIONS
+    // =====================================
+    function getSizeRange(i) {
+      const ranges = ['0-10 cm²', '10-100 cm²', '100-900 cm²', '900-4000 cm²', '>4000 cm²'];
+      return ranges[i];
+    }
+
+    function showTooltip(event, html) {
+      tooltip.innerHTML = html;
+      tooltip.classList.add('visible');
+
+      const rect = tooltip.getBoundingClientRect();
+      const x = event.clientX + 15;
+      const y = event.clientY - rect.height / 2;
+
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = Math.max(10, y) + 'px';
+    }
+
+    function hideTooltip() {
+      tooltip.classList.remove('visible');
+    }
+
+    function highlightFlow(flowId) {
+      state.highlightedFlow = flowId;
+      d3.selectAll('.flow').classed('dimmed', true);
+      d3.select('#flow-' + flowId).classed('dimmed', false).classed('highlighted', true);
+    }
+
+    function clearFlowHighlight() {
+      state.highlightedFlow = null;
+      d3.selectAll('.flow').classed('dimmed', false).classed('highlighted', false);
+    }
+
+    function selectNode(nodeId) {
+      // Clear previous selection
+      d3.selectAll('.node').classed('selected', false);
+      d3.selectAll('.stat').classed('highlighted', false);
+
+      if (state.selectedNode === nodeId) {
+        state.selectedNode = null;
+        document.getElementById('detail-panel').classList.remove('visible');
+        return;
+      }
+
+      state.selectedNode = nodeId;
+      d3.select('#node-' + nodeId).classed('selected', true);
+
+      // Highlight corresponding stat
+      document.querySelector(`.stat[data-target="${nodeId}"]`)?.classList.add('highlighted');
+
+      // Show detail panel
+      const data = nodeData[nodeId];
+      const panel = document.getElementById('detail-panel');
+
+      document.getElementById('detail-icon').style.background = data.color;
+      document.getElementById('detail-icon').textContent = data.label[0];
+      document.getElementById('detail-title').textContent = data.label;
+      document.getElementById('detail-subtitle').textContent = data.sub;
+
+      // Update population
+      const pop = nodeId === 'lab' ? state.pop.lab :
+                  nodeId === 'reef' ? state.pop.reef.reduce((a, b) => a + b, 0) :
+                  nodeId === 'orchard' ? state.pop.orchard.reduce((a, b) => a + b, 0) : 0;
+      document.getElementById('detail-pop').textContent = pop.toLocaleString();
+
+      // Calculate growth
+      const prevPop = nodeId === 'lab' ? state.prevPop.lab :
+                      nodeId === 'reef' ? state.prevPop.reef.reduce((a, b) => a + b, 0) :
+                      nodeId === 'orchard' ? state.prevPop.orchard.reduce((a, b) => a + b, 0) : 0;
+      const growth = prevPop > 0 ? ((pop - prevPop) / prevPop * 100).toFixed(1) : 0;
+      document.getElementById('detail-growth').textContent = (growth >= 0 ? '+' : '') + growth + '%';
+
+      // Update size bars
+      if (nodeId === 'reef' || nodeId === 'orchard') {
+        const bars = document.getElementById('size-bars');
+        bars.innerHTML = '';
+        const pops = state.pop[nodeId];
+        const maxPop = Math.max(...pops, 1);
+
+        pops.forEach((p, i) => {
+          const bar = document.createElement('div');
+          bar.className = 'size-bar';
+          bar.style.height = (p / maxPop * 100) + '%';
+          bar.style.background = nodeId === 'orchard' ?
+            'linear-gradient(to top, #a855f7, #7c3aed)' :
+            'linear-gradient(to top, #22c55e, #16a34a)';
+
+          const label = document.createElement('div');
+          label.className = 'size-bar-label';
+          label.textContent = 'SC' + (i + 1);
+          bar.appendChild(label);
+
+          bars.appendChild(bar);
+        });
+
+        bars.style.display = 'flex';
+      } else {
+        document.getElementById('size-bars').style.display = 'none';
+      }
+
+      panel.classList.add('visible');
+    }
+
+    // =====================================
+    // PARTICLES
+    // =====================================
+    function emitParticle(flow) {
+      if (!state.playing || !flow.el) return;
+      const p = particleG.append('circle')
+        .attr('r', flow.primary ? 3.5 : 2)
+        .attr('fill', flow.primary ? '#4ade80' : '#555')
+        .attr('filter', flow.primary ? 'url(#pulse)' : null);
+
+      p.transition()
+        .duration(1200)
+        .ease(d3.easeLinear)
+        .attrTween('transform', () => t => {
+          const pt = flow.el.getPointAtLength(t * flow.len);
+          return `translate(${pt.x},${pt.y})`;
+        })
+        .remove();
+    }
+
+    setInterval(() => {
+      if (!state.playing) return;
+      flows.forEach(f => {
+        if (Math.random() < (f.primary ? 0.35 : 0.12)) emitParticle(f);
+      });
+    }, 180);
+
+    // =====================================
+    // MODEL UPDATE
+    // =====================================
+    setInterval(() => {
+      if (!state.playing) return;
+
+      // Store previous populations
+      state.prevPop.reef = [...state.pop.reef];
+      state.prevPop.orchard = [...state.pop.orchard];
+      state.prevPop.lab = state.pop.lab;
+
+      const { surv: s, rprop: rp, trans: tr, lambda: lam } = state.params;
+
+      for (let i = 4; i > 0; i--) {
+        state.pop.reef[i] = Math.round(state.pop.reef[i] * s * 0.7 + state.pop.reef[i-1] * s * 0.2);
+        state.pop.orchard[i] = Math.round(state.pop.orchard[i] * s * 0.8 + state.pop.orchard[i-1] * s * 0.15);
+      }
+      state.pop.reef[0] = Math.round(state.pop.reef[0] * s * 0.4 + lam * 0.01 + state.pop.lab * rp * 0.1);
+      state.pop.orchard[0] = Math.round(state.pop.orchard[0] * s * 0.5 + state.pop.lab * (1-rp) * 0.1);
+
+      const fec = state.pop.reef.reduce((a,b,i) => a + b*(i+1)*50, 0) + state.pop.orchard.reduce((a,b,i) => a + b*(i+1)*30, 0);
+      state.pop.lab = Math.min(10000, Math.round(fec * 0.001 + lam * 0.05));
+
+      state.year++;
+      updateStats();
+
+      // Update detail panel if visible
+      if (state.selectedNode) {
+        selectNode(state.selectedNode);
+        selectNode(state.selectedNode); // Toggle twice to refresh
+      }
+    }, 2000);
+
+    function updateStats() {
+      const reefTotal = state.pop.reef.reduce((a,b) => a+b, 0);
+      const orchardTotal = state.pop.orchard.reduce((a,b) => a+b, 0);
+
+      // Animate value changes
+      animateValue('stat-reef', reefTotal);
+      animateValue('stat-orchard', orchardTotal);
+      animateValue('stat-lab', state.pop.lab);
+      document.getElementById('stat-year').textContent = state.year;
+    }
+
+    function animateValue(id, newValue) {
+      const el = document.getElementById(id);
+      const current = parseInt(el.textContent.replace(/,/g, '')) || 0;
+
+      if (current !== newValue) {
+        el.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          el.textContent = newValue.toLocaleString();
+          el.style.transform = 'scale(1)';
+        }, 150);
+      }
+    }
+
+    // =====================================
+    // CONTROLS
+    // =====================================
+    document.getElementById('btn-play').onclick = function() {
+      state.playing = true;
+      this.classList.add('active');
+      document.getElementById('btn-pause').classList.remove('active');
+    };
+
+    document.getElementById('btn-pause').onclick = function() {
+      state.playing = false;
+      this.classList.add('active');
+      document.getElementById('btn-play').classList.remove('active');
+    };
+
+    document.getElementById('btn-reset').onclick = () => {
+      state.year = 1;
+      state.pop = { reef: [100,80,60,40,20], orchard: [50,40,30,20,10], lab: 500 };
+      state.prevPop = { reef: [100,80,60,40,20], orchard: [50,40,30,20,10], lab: 500 };
+      updateStats();
+      if (state.selectedNode) {
+        const node = state.selectedNode;
+        state.selectedNode = null;
+        selectNode(node);
+      }
+    };
+
+    // Stat clicks
+    document.querySelectorAll('.stat[data-target]').forEach(stat => {
+      stat.addEventListener('click', () => {
+        const target = stat.getAttribute('data-target');
+        if (target) selectNode(target);
+      });
+    });
+
+    // Parameter bindings
+    const bind = (sl, disp, key, fmt) => {
+      document.getElementById(sl).oninput = function() {
+        state.params[key] = +this.value;
+        document.getElementById(disp).textContent = fmt(state.params[key]);
+      };
+    };
+    bind('p-lambda', 'v-lambda', 'lambda', v => v.toLocaleString());
+    bind('p-surv', 'v-surv', 'surv', v => v.toFixed(2));
+    bind('p-rprop', 'v-rprop', 'rprop', v => v.toFixed(2));
+    bind('p-trans', 'v-trans', 'trans', v => v.toFixed(2));
+
+    updateStats();
+  </script>
+</body>
+</html>

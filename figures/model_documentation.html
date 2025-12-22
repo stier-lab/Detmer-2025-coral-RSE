@@ -1,0 +1,3668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="description" content="Interactive documentation for the Coral RSE Model - Stage-structured population dynamics for Acropora palmata coral restoration">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coral RSE Model — Interactive Documentation</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Color Palette - Clean Light Mode */
+      --bg-darkest: #f8f9fa;
+      --bg-dark: #ffffff;
+      --bg-card: #ffffff;
+      --bg-elevated: #ffffff;
+      --bg-hover: #f1f3f4;
+
+      --border-subtle: #e8eaed;
+      --border-medium: #dadce0;
+      --border-strong: #c4c7cc;
+
+      --text-primary: #202124;
+      --text-secondary: #5f6368;
+      --text-tertiary: #80868b;
+      --text-muted: #9aa0a6;
+
+      /* Accent Colors - Natural Scientific Palette */
+      --coral: #d93025;
+      --coral-light: #fce8e6;
+      --reef: #1e8e3e;
+      --reef-light: #e6f4ea;
+      --ocean: #1a73e8;
+      --ocean-light: #e8f0fe;
+      --purple: #7c4dff;
+      --purple-light: #f3e8fd;
+      --gold: #f9ab00;
+      --gold-light: #fef7e0;
+      --slate: #5f6368;
+
+      /* Gradients - Subtle */
+      --gradient-reef: linear-gradient(135deg, #1e8e3e 0%, #137333 100%);
+      --gradient-ocean: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+      --gradient-coral: linear-gradient(135deg, #d93025 0%, #b31412 100%);
+      --gradient-purple: linear-gradient(135deg, #7c4dff 0%, #651fff 100%);
+
+      /* Shadows - Soft & Natural */
+      --shadow-sm: 0 1px 2px rgba(60,64,67,0.1), 0 1px 3px rgba(60,64,67,0.08);
+      --shadow-md: 0 1px 3px rgba(60,64,67,0.12), 0 4px 8px rgba(60,64,67,0.08);
+      --shadow-lg: 0 2px 6px rgba(60,64,67,0.12), 0 8px 24px rgba(60,64,67,0.12);
+
+      /* Typography */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+      --font-display: 'Playfair Display', Georgia, serif;
+    }
+
+    /* Dark Mode */
+    [data-theme="dark"] {
+      --bg-darkest: #0f1115;
+      --bg-dark: #1a1d23;
+      --bg-card: #1e2228;
+      --bg-elevated: #252a32;
+      --bg-hover: #2d333b;
+
+      --border-subtle: #30363d;
+      --border-medium: #3d444d;
+      --border-strong: #4d545e;
+
+      --text-primary: #e6edf3;
+      --text-secondary: #a8b3c2;
+      --text-tertiary: #7d8590;
+      --text-muted: #636d77;
+
+      --coral-light: #3d1f1f;
+      --reef-light: #1a3326;
+      --ocean-light: #1a2c4d;
+      --purple-light: #2a1f4d;
+      --gold-light: #3d3319;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
+      --shadow-md: 0 1px 3px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.3);
+      --shadow-lg: 0 2px 6px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg-darkest: #0f1115;
+        --bg-dark: #1a1d23;
+        --bg-card: #1e2228;
+        --bg-elevated: #252a32;
+        --bg-hover: #2d333b;
+        --border-subtle: #30363d;
+        --border-medium: #3d444d;
+        --border-strong: #4d545e;
+        --text-primary: #e6edf3;
+        --text-secondary: #a8b3c2;
+        --text-tertiary: #7d8590;
+        --text-muted: #636d77;
+        --coral-light: #3d1f1f;
+        --reef-light: #1a3326;
+        --ocean-light: #1a2c4d;
+        --purple-light: #2a1f4d;
+        --gold-light: #3d3319;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
+        --shadow-md: 0 1px 3px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.3);
+        --shadow-lg: 0 2px 6px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.4);
+      }
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-darkest);
+      color: var(--text-primary);
+      line-height: 1.75;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.01em;
+    }
+
+    /* Better text rendering */
+    h1, h2, h3, h4, h5, h6 {
+      text-wrap: balance;
+    }
+
+    p, li {
+      text-wrap: pretty;
+      max-width: 75ch;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100vh;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-subtle);
+      padding: 24px 20px;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    nav::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    nav::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    nav::-webkit-scrollbar-thumb {
+      background: var(--border-medium);
+      border-radius: 2px;
+    }
+
+    .nav-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-logo {
+      width: 44px;
+      height: 44px;
+      background: var(--gradient-reef);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .nav-subtitle {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-style: italic;
+      font-family: var(--font-display);
+      margin-top: 2px;
+    }
+
+    .nav-section {
+      margin-bottom: 28px;
+    }
+
+    .nav-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+      padding-left: 12px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 450;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background: var(--gradient-reef);
+      border-radius: 0 2px 2px 0;
+      transition: height 0.2s ease;
+    }
+
+    .nav-link:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      padding-left: 18px;
+    }
+
+    .nav-link:hover::before {
+      height: 20px;
+    }
+
+    .nav-link.active {
+      background: var(--reef-light);
+      color: var(--reef);
+      font-weight: 500;
+    }
+
+    .nav-link.active::before {
+      height: 24px;
+    }
+
+    /* Main content */
+    main {
+      margin-left: 260px;
+      padding: 40px 60px 80px;
+      max-width: 1500px;
+    }
+
+    /* Header */
+    header {
+      margin-bottom: 48px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 32px;
+      position: relative;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 120px;
+      height: 2px;
+      background: var(--gradient-reef);
+      border-radius: 1px;
+    }
+
+    .header-left {
+      flex: 1;
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    h1 em {
+      color: var(--reef);
+      font-style: italic;
+      font-weight: 500;
+      font-family: var(--font-display);
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: var(--text-tertiary);
+      font-weight: 400;
+    }
+
+    .header-right {
+      background: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 24px 32px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .header-equation {
+      font-family: var(--font-display);
+      font-size: 20px;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .header-equation-desc {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .interactive-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--reef-light);
+      border: 1px solid var(--border-medium);
+      border-radius: 24px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--reef);
+      margin-top: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .interactive-hint:hover {
+      background: var(--bg-hover);
+    }
+
+    .interactive-hint svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Dashboard Panels */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel:hover {
+      border-color: var(--border-medium);
+      box-shadow: var(--shadow-md);
+    }
+
+    .panel-header {
+      background: var(--bg-hover);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    .panel-subtitle {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-left: auto;
+      font-family: var(--font-mono);
+    }
+
+    .panel-content {
+      padding: 20px;
+    }
+
+    /* Stats Dashboard */
+    .stats-dashboard {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient-reef);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .stat-box:hover,
+    .stat-box:focus-visible {
+      border-color: var(--border-medium);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-box:hover::before,
+    .stat-box:focus-visible::before {
+      opacity: 1;
+    }
+
+    .stat-box:active {
+      transform: translateY(-2px);
+    }
+
+    .stat-box.active {
+      border-color: var(--reef);
+      background: var(--reef-light);
+    }
+
+    .stat-box.active::before {
+      opacity: 1;
+    }
+
+    /* Loading pulse animation for stat values */
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--reef);
+      transition: transform 0.2s ease;
+    }
+
+    .stat-value.updating {
+      animation: value-pulse 0.3s ease;
+    }
+
+    @keyframes value-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .stat-value {
+      font-family: var(--font-mono);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      margin-top: 8px;
+      letter-spacing: 1px;
+      font-weight: 500;
+    }
+
+    /* Main Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .main-panel {
+      min-height: 480px;
+    }
+
+    .main-panel .panel-content {
+      height: calc(100% - 60px);
+      padding: 0;
+    }
+
+    /* Three-panel grid */
+    .three-panel-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      .three-panel-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats-dashboard {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* Sidebar panel */
+    .sidebar-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-section:hover {
+      border-color: var(--border-medium);
+    }
+
+    .sidebar-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+    }
+
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .sim-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--border-medium);
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sim-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .sim-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .sim-btn.active {
+      background: var(--reef);
+      border-color: var(--reef);
+      color: #fff;
+      box-shadow: 0 0 0 3px var(--reef-light);
+    }
+
+    /* Progress indicator */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--border-subtle);
+      border-radius: 2px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--gradient-reef);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* Parameter groups */
+    .param-group {
+      background: var(--bg-hover);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.2s ease;
+    }
+
+    .param-group:hover {
+      border-color: var(--border-medium);
+    }
+
+    .param-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .param-group-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .param-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .param-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .param-row:last-child {
+      border-bottom: none;
+    }
+
+    .param-name {
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .param-value {
+      color: var(--reef);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 96px;
+      scroll-margin-top: 80px;
+      position: relative;
+      padding-top: 8px;
+    }
+
+    section::before {
+      content: '';
+      position: absolute;
+      left: -30px;
+      top: 8px;
+      width: 4px;
+      height: 40px;
+      background: var(--gradient-reef);
+      border-radius: 2px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    section:hover::before {
+      opacity: 0.5;
+    }
+
+    h2 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+    }
+
+    h2 .badge {
+      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    h3 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-top: 48px;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+      position: relative;
+      padding-left: 16px;
+      line-height: 1.3;
+    }
+
+    h3::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 3px;
+      background: var(--gradient-reef);
+      border-radius: 2px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-top: 28px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    p + p {
+      margin-top: -4px;
+    }
+
+    /* Lead paragraph */
+    section > p:first-of-type {
+      font-size: 17px;
+      color: var(--text-primary);
+      line-height: 1.7;
+    }
+
+    /* Equation boxes */
+    .equation-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      border-left: 4px solid var(--reef);
+      border-radius: 12px;
+      padding: 32px 40px;
+      margin: 32px 0;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .equation-main {
+      font-size: 24px;
+      color: var(--text-primary);
+      margin-bottom: 18px;
+    }
+
+    .equation-description {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: left;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .eq-item {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .eq-item:hover {
+      background: var(--reef-light);
+    }
+
+    .eq-item.highlighted {
+      background: var(--reef-light);
+      border-color: var(--reef);
+    }
+
+    .eq-var {
+      font-weight: 700;
+      color: var(--reef);
+      font-family: var(--font-display);
+      font-size: 16px;
+    }
+
+    .eq-text {
+      color: var(--text-tertiary);
+      font-size: 13px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 24px 0;
+      font-size: 14px;
+      background: var(--bg-card);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-sm);
+    }
+
+    thead {
+      background: var(--bg-hover);
+    }
+
+    th {
+      background: transparent;
+      color: var(--text-primary);
+      font-weight: 600;
+      text-align: left;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-medium);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td:first-child {
+      font-family: var(--font-mono);
+      color: var(--reef);
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    tbody tr {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    tbody tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    tbody tr.highlighted td {
+      background: var(--reef-light);
+    }
+
+    /* Info boxes */
+    .info-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-box::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+    }
+
+    .info-box:hover {
+      border-color: var(--border-medium);
+      transform: translateX(4px);
+    }
+
+    .info-box.reef::before { background: var(--gradient-reef); }
+    .info-box.lab::before { background: var(--gradient-ocean); }
+    .info-box.orchard::before { background: var(--gradient-purple); }
+    .info-box.external::before { background: linear-gradient(180deg, #64748b 0%, #475569 100%); }
+    .info-box.warning::before { background: linear-gradient(180deg, #f9ab00 0%, #e69500 100%); }
+    .info-box.warning { background: var(--gold-light); }
+
+    .info-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .info-title .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    /* Diagram containers */
+    .diagram-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 28px 0;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .diagram-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .diagram-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .diagram-btn {
+      padding: 8px 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .diagram-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .diagram-btn.active {
+      background: var(--reef);
+      border-color: var(--reef);
+      color: #fff;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      background: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      border-radius: 10px;
+      padding: 16px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      max-width: 300px;
+      z-index: 1000;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .tooltip.visible {
+      opacity: 1;
+    }
+
+    .tooltip-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tooltip-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .tooltip-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .tooltip-code {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: var(--bg-dark);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--reef);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding: 14px 16px;
+      background: var(--bg-hover);
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .legend-item:hover {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .legend-item.active {
+      background: var(--reef-light);
+      color: var(--reef);
+    }
+
+    .legend-line {
+      width: 24px;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    .legend-box {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+    }
+
+    /* Flow and node styles */
+    .flow-path {
+      fill: none;
+      stroke-linecap: round;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .flow-path:hover {
+      stroke-width: 5 !important;
+    }
+
+    .flow-path.highlighted {
+      stroke-width: 5 !important;
+      filter: url(#glow);
+    }
+
+    .flow-path.dimmed {
+      opacity: 0.15;
+    }
+
+    .compartment-node {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .compartment-node:hover {
+      transform: scale(1.02);
+    }
+
+    .compartment-node.selected rect {
+      stroke: var(--text-primary);
+      stroke-width: 3;
+    }
+
+    .lifecycle-node {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .lifecycle-node:hover {
+      transform: scale(1.1);
+    }
+
+    .lifecycle-node.highlighted circle {
+      stroke-width: 4;
+      filter: url(#glow-lc);
+    }
+
+    .matrix-cell {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .matrix-cell:hover {
+      transform: scale(1.08);
+    }
+
+    .matrix-cell.highlighted rect {
+      stroke: var(--text-primary);
+      stroke-width: 2;
+    }
+
+    .cycle-step {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .cycle-step:hover {
+      transform: scale(1.1);
+    }
+
+    .cycle-step.active circle {
+      fill: var(--reef);
+      filter: url(#glow-cy);
+    }
+
+    .cycle-step.active text.step-num {
+      fill: #000;
+    }
+
+    /* Particle effects */
+    .particle {
+      pointer-events: none;
+    }
+
+    /* Code block */
+    .code-block {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 20px 0;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      overflow-x: auto;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      position: relative;
+    }
+
+    .code-block::before {
+      content: 'R';
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .code-block .comment { color: var(--text-muted); font-style: italic; }
+    .code-block .keyword { color: var(--purple); }
+    .code-block .function { color: var(--ocean); }
+    .code-block .number { color: var(--gold); }
+    .code-block .string { color: var(--reef); }
+
+    /* Lists */
+    ul, ol {
+      margin: 20px 0 20px 0;
+      padding-left: 0;
+      color: var(--text-secondary);
+      list-style: none;
+    }
+
+    li {
+      margin-bottom: 12px;
+      font-size: 15px;
+      line-height: 1.7;
+      padding-left: 28px;
+      position: relative;
+    }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 10px;
+      width: 6px;
+      height: 6px;
+      background: var(--reef);
+      border-radius: 50%;
+    }
+
+    ol {
+      counter-reset: list-counter;
+    }
+
+    ol li {
+      counter-increment: list-counter;
+    }
+
+    ol li::before {
+      content: counter(list-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 22px;
+      height: 22px;
+      background: var(--reef-glow);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--reef);
+      font-family: var(--font-mono);
+    }
+
+    li code {
+      background: var(--bg-elevated);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--reef);
+      border: 1px solid var(--border-subtle);
+    }
+
+    li strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Search Overlay */
+    .search-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 15vh;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+    }
+    .search-overlay.open { opacity: 1; visibility: visible; }
+
+    .search-container {
+      width: 100%;
+      max-width: 560px;
+      background: var(--bg-card);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      transform: translateY(-20px) scale(0.95);
+      transition: transform 0.2s ease;
+    }
+    .search-overlay.open .search-container {
+      transform: translateY(0) scale(1);
+    }
+
+    .search-input-wrap {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 12px;
+    }
+    .search-input-wrap svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+    .search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      color: var(--text-primary);
+      outline: none;
+      font-family: var(--font-sans);
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .search-results {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .search-result {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      gap: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.15s ease;
+    }
+    .search-result:hover, .search-result.active {
+      background: var(--bg-hover);
+    }
+    .search-result-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .search-result-text { flex: 1; }
+    .search-result-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .search-result-desc {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+    .search-hint {
+      padding: 12px 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .search-kbd {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-medium);
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      margin: 0 2px;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 200;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: var(--shadow-lg);
+    }
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--text-secondary);
+      transition: transform 0.3s ease;
+    }
+    .theme-toggle:hover svg { transform: rotate(15deg); }
+    .theme-toggle .sun { display: none; }
+    .theme-toggle .moon { display: block; }
+    [data-theme="dark"] .theme-toggle .sun { display: block; }
+    [data-theme="dark"] .theme-toggle .moon { display: none; }
+
+    /* Mobile Menu Button */
+    .mobile-menu-btn {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 200;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .mobile-menu-btn span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--text-primary);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .mobile-menu-btn.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    .mobile-menu-btn.active span:nth-child(2) { opacity: 0; }
+    .mobile-menu-btn.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+    .nav-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .nav-overlay.visible { opacity: 1; pointer-events: auto; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .mobile-menu-btn { display: flex; }
+      .nav-overlay { display: block; }
+      nav {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        box-shadow: var(--shadow-lg);
+      }
+      nav.open { transform: translateX(0); }
+      main { margin-left: 0; padding: 80px 20px 40px; }
+      .stats-dashboard { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .stat-value { font-size: 24px; }
+      h1 { font-size: 26px; }
+      header { flex-direction: column; gap: 20px; }
+      .header-right { width: 100%; }
+      .dashboard-grid, .three-panel-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+      .diagram-controls { flex-wrap: wrap; gap: 6px; }
+      .diagram-btn { padding: 6px 10px; font-size: 10px; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-dashboard { grid-template-columns: 1fr 1fr; }
+      .stat-box:last-child { grid-column: span 2; }
+      h1 { font-size: 22px; }
+      .nav-link { padding: 14px 16px; font-size: 14px; }
+    }
+
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-darkest);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-medium);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-strong);
+    }
+
+    /* Selection */
+    ::selection {
+      background: var(--reef-light);
+      color: var(--text-primary);
+    }
+
+    /* Accessibility - Skip Link */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--reef);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 0 0 8px 8px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      z-index: 10000;
+      transition: top 0.3s ease;
+    }
+
+    .skip-link:focus {
+      top: 0;
+      outline: 3px solid var(--ocean);
+      outline-offset: 2px;
+    }
+
+    /* Accessibility - Focus States */
+    *:focus {
+      outline: none;
+    }
+
+    *:focus-visible {
+      outline: 3px solid var(--ocean);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .nav-link:focus-visible {
+      outline-offset: -2px;
+      background: var(--bg-hover);
+    }
+
+    .sim-btn:focus-visible,
+    .diagram-btn:focus-visible {
+      outline-offset: 0;
+      box-shadow: 0 0 0 3px var(--ocean-light);
+    }
+
+    /* Accessibility - Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      .particle {
+        display: none;
+      }
+    }
+
+    /* Accessibility - Screen Reader Only */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Accessibility - Live Region */
+    .live-region {
+      position: absolute;
+      left: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    /* Animations - Subtle */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .pulsing {
+      animation: pulse 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <!-- Skip Link for Keyboard Users -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Live Region for Screen Reader Announcements -->
+  <div id="live-region" class="live-region" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="search-overlay" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-container">
+      <div class="search-input-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2"/></svg>
+        <input type="text" class="search-input" id="search-input" placeholder="Search sections, parameters..." autocomplete="off">
+      </div>
+      <div class="search-results" id="search-results"></div>
+      <div class="search-hint">Press <span class="search-kbd">↑↓</span> to navigate, <span class="search-kbd">Enter</span> to select, <span class="search-kbd">Esc</span> to close</div>
+    </div>
+  </div>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+    <svg class="moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+  </button>
+
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- Mobile Overlay -->
+  <div class="nav-overlay" id="nav-overlay"></div>
+
+  <nav role="navigation" aria-label="Main navigation" id="main-nav">
+    <div class="nav-header">
+      <div class="nav-logo">RSE</div>
+      <div>
+        <div class="nav-title">Coral RSE Model</div>
+        <div class="nav-subtitle">A. palmata restoration</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Overview</div>
+      <a href="#overview" class="nav-link active">Dashboard</a>
+      <a href="#core-equation" class="nav-link">Core Equation</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Compartments</div>
+      <a href="#reef" class="nav-link">Reef (Target)</a>
+      <a href="#lab" class="nav-link">Lab (Settlement)</a>
+      <a href="#orchard" class="nav-link">Orchard (Nursery)</a>
+      <a href="#external" class="nav-link">External (Wild)</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Demographics</div>
+      <a href="#size-classes" class="nav-link">Size Classes</a>
+      <a href="#transitions" class="nav-link">Growth & Shrinkage</a>
+      <a href="#annual-cycle" class="nav-link">Annual Cycle</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Reference</div>
+      <a href="#parameters" class="nav-link">All Parameters</a>
+      <a href="#space-constraints" class="nav-link">Space Constraints</a>
+      <a href="#disturbance" class="nav-link">Disturbance Effects</a>
+      <a href="#outputs" class="nav-link">Model Outputs</a>
+      <a href="#variants" class="nav-link">Model Variants</a>
+      <a href="#initialization" class="nav-link">Initialization</a>
+      <a href="#functions" class="nav-link">Demographic Functions</a>
+      <a href="#lab-parameters" class="nav-link">Lab Parameters</a>
+    </div>
+  </nav>
+
+  <main id="main-content" role="main" aria-label="Model documentation content">
+    <header role="banner">
+      <div class="header-left">
+        <h1>Coral RSE Model — <em>Acropora palmata</em></h1>
+        <p class="subtitle">Stage-structured population dynamics for coral restoration</p>
+        <div class="interactive-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+          </svg>
+          Interactive — Click and hover on diagrams
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="header-equation">N(t+1) = S · (T + F) · N(t) + R</div>
+        <div class="header-equation-desc">Core population dynamics equation</div>
+      </div>
+    </header>
+
+    <!-- STATS DASHBOARD -->
+    <section id="overview" aria-labelledby="overview-heading">
+      <h2 id="overview-heading" class="sr-only">Model Overview Dashboard</h2>
+      <div class="stats-dashboard" role="region" aria-label="Current simulation statistics">
+        <div class="stat-box" data-compartment="reef" role="button" tabindex="0" aria-label="Reef colonies: click to view reef details">
+          <div class="stat-value" id="stat-reef" aria-live="polite">0</div>
+          <div class="stat-label">Reef Colonies</div>
+        </div>
+        <div class="stat-box" data-compartment="orchard" role="button" tabindex="0" aria-label="Orchard population: click to view orchard details">
+          <div class="stat-value" id="stat-orchard" aria-live="polite">0</div>
+          <div class="stat-label">Orchard</div>
+        </div>
+        <div class="stat-box" data-compartment="lab" role="button" tabindex="0" aria-label="Lab settlers: click to view lab details">
+          <div class="stat-value" id="stat-lab" aria-live="polite">0</div>
+          <div class="stat-label">Lab Settlers</div>
+        </div>
+        <div class="stat-box" aria-label="Larvae produced per year">
+          <div class="stat-value" id="stat-larvae" aria-live="polite">0</div>
+          <div class="stat-label">Larvae/yr</div>
+        </div>
+        <div class="stat-box" aria-label="Current simulation year">
+          <div class="stat-value" id="stat-year" aria-live="polite">1</div>
+          <div class="stat-label">Year</div>
+        </div>
+      </div>
+
+      <!-- MAIN DASHBOARD GRID -->
+      <div class="dashboard-grid">
+        <!-- Main System Diagram Panel -->
+        <div class="panel main-panel">
+          <div class="panel-header">
+            <div class="panel-icon" style="background: #22c55e;">SYS</div>
+            <div class="panel-title">System Overview</div>
+            <div class="panel-subtitle">4 compartments · 7 flows</div>
+          </div>
+          <div class="panel-content">
+            <svg id="system-svg" width="100%" height="100%"></svg>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar-panel">
+          <!-- Simulation Controls -->
+          <div class="sidebar-section" role="group" aria-labelledby="sim-controls-label">
+            <div class="sidebar-title" id="sim-controls-label">Simulation</div>
+            <div class="sim-controls" role="toolbar" aria-label="Simulation playback controls">
+              <button class="sim-btn active" id="btn-play" aria-pressed="true" aria-label="Play simulation">Play</button>
+              <button class="sim-btn" id="btn-pause" aria-pressed="false" aria-label="Pause simulation">Pause</button>
+              <button class="sim-btn" id="btn-reset" aria-label="Reset simulation to initial state">Reset</button>
+            </div>
+            <div class="progress-bar" role="progressbar" aria-label="Annual cycle progress" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0">
+              <div class="progress-bar-fill" id="cycle-progress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Parameters -->
+          <div class="sidebar-section">
+            <div class="sidebar-title">Key Parameters</div>
+
+            <div class="param-group">
+              <div class="param-group-title">
+                <div class="param-dot" style="background: #16a34a;"></div>
+                Reef
+              </div>
+              <div class="param-row">
+                <span class="param-name">surv_pars</span>
+                <span class="param-value">0.4-0.9</span>
+              </div>
+              <div class="param-row">
+                <span class="param-name">reef_areas</span>
+                <span class="param-value">10,000 cm²</span>
+              </div>
+            </div>
+
+            <div class="param-group">
+              <div class="param-group-title">
+                <div class="param-dot" style="background: #2563eb;"></div>
+                Lab
+              </div>
+              <div class="param-row">
+                <span class="param-name">sett_props</span>
+                <span class="param-value">T1, T2</span>
+              </div>
+              <div class="param-row">
+                <span class="param-name">lab_max</span>
+                <span class="param-value">~10,000</span>
+              </div>
+            </div>
+
+            <div class="param-group">
+              <div class="param-group-title">
+                <div class="param-dot" style="background: #7c3aed;"></div>
+                Orchard
+              </div>
+              <div class="param-row">
+                <span class="param-name">orchard_yield</span>
+                <span class="param-value">0.001</span>
+              </div>
+              <div class="param-row">
+                <span class="param-name">orchard_size</span>
+                <span class="param-value">varies</span>
+              </div>
+            </div>
+
+            <div class="param-group">
+              <div class="param-group-title">
+                <div class="param-dot" style="background: #475569;"></div>
+                External
+              </div>
+              <div class="param-row">
+                <span class="param-name">lambda</span>
+                <span class="param-value">~10,000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="sidebar-section">
+            <div class="sidebar-title">Legend</div>
+            <div class="legend-item" data-filter="primary">
+              <div class="legend-line" style="background: #22c55e;"></div>
+              <span>Primary flow</span>
+            </div>
+            <div class="legend-item" data-filter="feedback">
+              <div class="legend-line" style="background: #444; background-image: repeating-linear-gradient(90deg, #444 0, #444 4px, transparent 4px, transparent 8px);"></div>
+              <span>Feedback</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- THREE PANEL GRID: Size Structure, Matrix, Cycle -->
+      <div class="three-panel-grid">
+        <!-- Size Structure Panel -->
+        <div class="panel" id="size-structure-panel">
+          <div class="panel-header">
+            <div class="panel-icon" style="background: #16a34a;">SC</div>
+            <div class="panel-title">Reef Size Structure</div>
+          </div>
+          <div class="panel-content">
+            <svg id="mini-lifecycle-svg" width="100%" height="160"></svg>
+          </div>
+        </div>
+
+        <!-- Transition Matrix Panel -->
+        <div class="panel" id="matrix-panel">
+          <div class="panel-header">
+            <div class="panel-icon" style="background: #7c3aed;">T</div>
+            <div class="panel-title">Transition Matrix</div>
+          </div>
+          <div class="panel-content">
+            <svg id="mini-matrix-svg" width="100%" height="160"></svg>
+          </div>
+        </div>
+
+        <!-- Annual Cycle Panel -->
+        <div class="panel" id="cycle-panel">
+          <div class="panel-header">
+            <div class="panel-icon" style="background: #2563eb;">CY</div>
+            <div class="panel-title">Annual Cycle</div>
+          </div>
+          <div class="panel-content">
+            <div id="cycle-steps"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CORE EQUATION -->
+    <section id="core-equation">
+      <h2>Core Equation</h2>
+
+      <div class="equation-box">
+        <div class="equation-main" id="eq-main"></div>
+        <div class="equation-description">
+          <div class="eq-item" data-var="N"><span class="eq-var">N(t)</span> <span class="eq-text">Population vector at time t</span></div>
+          <div class="eq-item" data-var="S"><span class="eq-var">S</span> <span class="eq-text">Survival matrix (diagonal)</span></div>
+          <div class="eq-item" data-var="T"><span class="eq-var">T</span> <span class="eq-text">Transition matrix (growth + shrinkage)</span></div>
+          <div class="eq-item" data-var="F"><span class="eq-var">F</span> <span class="eq-text">Fragmentation matrix</span></div>
+          <div class="eq-item" data-var="R"><span class="eq-var">R</span> <span class="eq-text">Recruitment vector</span></div>
+        </div>
+      </div>
+
+      <h3>Matrix Form</h3>
+      <p>The population dynamics can be written in full matrix form as:</p>
+
+      <div class="equation-box">
+        <div id="eq-matrix"></div>
+      </div>
+
+      <h4>Step-by-Step Calculation</h4>
+      <ol>
+        <li><strong>Apply survival:</strong> N* = S · N(t)</li>
+        <li><strong>Apply transitions:</strong> N** = T · N*</li>
+        <li><strong>Add fragmentation:</strong> N*** = N** + F · N*</li>
+        <li><strong>Add recruitment:</strong> N(t+1) = N*** + R</li>
+      </ol>
+    </section>
+
+    <!-- REEF -->
+    <section id="reef">
+      <h2><span class="badge" style="background: #16a34a;">REEF</span> Restoration Target</h2>
+
+      <div class="info-box reef">
+        <div class="info-title">
+          <div class="dot" style="background: #16a34a;"></div>
+          Primary Function
+        </div>
+        <p>The reef is the ultimate restoration target where coral populations are established and monitored.
+           It receives inputs from three sources: external wild recruitment, lab-reared outplants, and
+           transplanted colonies from the orchard.</p>
+      </div>
+
+      <h3>Population Tracking</h3>
+      <p>Reef populations are tracked with multiple indices:</p>
+      <ul>
+        <li><code>reef_pops[[ss]][[rr]][sc, t]</code> — Individuals in size class <code>sc</code> at time <code>t</code></li>
+        <li><code>ss</code> — Reef treatment index (can have multiple reef sites)</li>
+        <li><code>rr</code> — Source index: 1 = external recruits, 2+ = lab treatments</li>
+      </ul>
+
+      <h3>Reef Parameters</h3>
+      <table>
+        <thead>
+          <tr><th>Parameter</th><th>Description</th><th>Typical Values</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>surv_pars.r</td><td>Survival probability by size class</td><td>0.4 – 0.9</td></tr>
+          <tr><td>growth_pars.r</td><td>Growth transition probabilities</td><td>varies</td></tr>
+          <tr><td>shrink_pars.r</td><td>Shrinkage probabilities (partial mortality)</td><td>varies</td></tr>
+          <tr><td>frag_pars.r</td><td>Fragmentation rates (SC4, SC5 only)</td><td>varies</td></tr>
+          <tr><td>fec_pars.r</td><td>Fecundity (larvae per individual)</td><td>0 – 10,000+</td></tr>
+          <tr><td>reef_areas</td><td>Total available area (cm²)</td><td>~10,000</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- LAB -->
+    <section id="lab">
+      <h2><span class="badge" style="background: #2563eb;">LAB</span> Settlement & Rearing</h2>
+
+      <div class="info-box lab">
+        <div class="info-title">
+          <div class="dot" style="background: #2563eb;"></div>
+          Primary Function
+        </div>
+        <p>The lab processes larvae onto settlement tiles, with options for immediate outplanting or
+           1-year retention. Different tile types (cement vs ceramic) have different settlement success rates.</p>
+      </div>
+
+      <h3>Lab Treatment Nomenclature</h3>
+      <table>
+        <thead>
+          <tr><th>Treatment</th><th>Timing</th><th>Tile Type</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0_T1</td><td>Immediate</td><td>Cement (T1)</td><td>Settle on cement, outplant same year</td></tr>
+          <tr><td>0_T2</td><td>Immediate</td><td>Ceramic (T2)</td><td>Settle on ceramic, outplant same year</td></tr>
+          <tr><td>1_T1</td><td>1-year hold</td><td>Cement (T1)</td><td>Settle on cement, retain 1 year</td></tr>
+          <tr><td>1_T2</td><td>1-year hold</td><td>Ceramic (T2)</td><td>Settle on ceramic, retain 1 year</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-title">Density-Dependent Mortality</div>
+        <p>Lab survival includes density-dependent mortality using the Ricker-type function:</p>
+        <div class="equation-box" style="margin: 12px 0; padding: 12px;">
+          <span id="eq-lab-surv"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORCHARD -->
+    <section id="orchard">
+      <h2><span class="badge" style="background: #7c3aed;">ORCHARD</span> Nursery</h2>
+
+      <div class="info-box orchard">
+        <div class="info-title">
+          <div class="dot" style="background: #7c3aed;"></div>
+          Primary Function
+        </div>
+        <p>The orchard maintains broodstock colonies that produce larvae for the lab and can be
+           transplanted directly to the reef. Colonies typically have higher survival and faster
+           growth than field populations due to the controlled nursery environment.</p>
+      </div>
+
+      <h3>Orchard Dynamics</h3>
+      <ul>
+        <li><strong>Inputs:</strong> Lab-reared settlers (via outplanting)</li>
+        <li><strong>Internal dynamics:</strong> Growth, survival, reproduction (no fragmentation assumed)</li>
+        <li><strong>Outputs:</strong> Larvae collection → Lab, Colony transplants → Reef</li>
+      </ul>
+    </section>
+
+    <!-- EXTERNAL -->
+    <section id="external">
+      <h2><span class="badge" style="background: #475569;">EXTERNAL</span> Wild Populations</h2>
+
+      <div class="info-box external">
+        <div class="info-title">
+          <div class="dot" style="background: #475569;"></div>
+          Primary Function
+        </div>
+        <p>External/reference reef populations provide baseline larval recruitment to the restoration
+           reef and can serve as a source of larvae for lab settlement.</p>
+      </div>
+
+      <h3>External Parameters</h3>
+      <table>
+        <thead>
+          <tr><th>Parameter</th><th>Description</th><th>Typical Values</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>lambda</td><td>Mean recruits settling on reef per year</td><td>~10,000</td></tr>
+          <tr><td>lambda_R</td><td>Mean larvae from reference reefs for lab</td><td>~10,000</td></tr>
+          <tr><td>ext_rand</td><td>Stochastic recruitment? (TRUE/FALSE)</td><td>FALSE</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SIZE CLASSES -->
+    <section id="size-classes">
+      <h2>Size Classes</h2>
+      <p>The model uses 5 size classes based on planar colony area (cm²). Click on each size class to see details.</p>
+
+      <div class="diagram-container" role="figure" aria-labelledby="lifecycle-diagram-title">
+        <div class="diagram-title">
+          <span id="lifecycle-diagram-title">Size Class Lifecycle</span>
+          <div class="diagram-controls" role="toolbar" aria-label="Lifecycle diagram filters">
+            <button class="diagram-btn" id="btn-show-growth" aria-pressed="false">Growth</button>
+            <button class="diagram-btn" id="btn-show-shrink" aria-pressed="false">Shrinkage</button>
+            <button class="diagram-btn" id="btn-show-frag" aria-pressed="false">Fragmentation</button>
+            <button class="diagram-btn active" id="btn-show-all" aria-pressed="true">All</button>
+          </div>
+        </div>
+        <svg id="lifecycle-svg" width="100%" height="260" role="img" aria-label="Interactive diagram showing coral size class transitions"></svg>
+      </div>
+
+      <table id="size-table" aria-label="Size class definitions">
+        <caption class="sr-only">Coral size classes with their ranges, descriptions, and key characteristics</caption>
+        <thead>
+          <tr>
+            <th scope="col">Class</th>
+            <th scope="col">Range (cm²)</th>
+            <th scope="col">Midpoint</th>
+            <th scope="col">Description</th>
+            <th scope="col">Key Features</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-sc="0">
+            <td>SC1</td>
+            <td>0 – 10</td>
+            <td>0.1</td>
+            <td>Recruits / Settlers</td>
+            <td>Highest mortality, no reproduction</td>
+          </tr>
+          <tr data-sc="1">
+            <td>SC2</td>
+            <td>10 – 100</td>
+            <td>43</td>
+            <td>Small juveniles</td>
+            <td>High growth potential, low survival</td>
+          </tr>
+          <tr data-sc="2">
+            <td>SC3</td>
+            <td>100 – 900</td>
+            <td>369</td>
+            <td>Large juveniles</td>
+            <td>Begin reproduction, moderate survival</td>
+          </tr>
+          <tr data-sc="3">
+            <td>SC4</td>
+            <td>900 – 4,000</td>
+            <td>2,158</td>
+            <td>Subadults</td>
+            <td>Can fragment, high reproduction</td>
+          </tr>
+          <tr data-sc="4">
+            <td>SC5</td>
+            <td>> 4,000</td>
+            <td>11,171</td>
+            <td>Reproductive adults</td>
+            <td>Highest reproduction and survival</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- TRANSITIONS -->
+    <section id="transitions">
+      <h2>Growth & Shrinkage Transitions</h2>
+      <p>The transition matrix T describes how surviving individuals move between size classes. Hover on cells to see probabilities.</p>
+
+      <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+        <div class="diagram-container" style="min-width: 340px; flex: 0 0 auto;">
+          <div class="diagram-title">Transition Matrix Structure</div>
+          <svg id="matrix-svg" width="320" height="300"></svg>
+        </div>
+        <div style="flex: 1; min-width: 280px;">
+          <h4>Matrix Interpretation</h4>
+          <ul>
+            <li><strong>Columns:</strong> "From" size class (origin)</li>
+            <li><strong>Rows:</strong> "To" size class (destination)</li>
+            <li><strong>Diagonal (green outline):</strong> Probability of staying (stasis)</li>
+            <li><strong>Below diagonal:</strong> Probability of growing to larger class</li>
+            <li><strong>Above diagonal:</strong> Probability of shrinking to smaller class</li>
+          </ul>
+
+          <h4>Key Constraint</h4>
+          <p>Each column must sum to 1:</p>
+          <div class="equation-box" style="padding: 12px; margin: 12px 0;">
+            <span id="eq-transition-constraint"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANNUAL CYCLE -->
+    <section id="annual-cycle">
+      <h2>Annual Cycle</h2>
+      <p>Each simulation year proceeds through six sequential steps. Click on each step to learn more.</p>
+
+      <div class="diagram-container" role="figure" aria-labelledby="cycle-diagram-title">
+        <div class="diagram-title">
+          <span id="cycle-diagram-title">Annual Cycle Steps</span>
+          <div class="diagram-controls" role="toolbar" aria-label="Cycle animation controls">
+            <button class="diagram-btn active" id="btn-cycle-auto" aria-pressed="true">Auto-play</button>
+            <button class="diagram-btn" id="btn-cycle-pause" aria-pressed="false">Pause</button>
+          </div>
+        </div>
+        <svg id="cycle-svg" width="100%" height="160" role="img" aria-label="Diagram showing the 6 steps of the annual simulation cycle"></svg>
+      </div>
+
+      <div id="cycle-details" class="info-box" style="display: none;">
+        <div class="info-title" id="cycle-detail-title">Step 1: Survival & Growth</div>
+        <p id="cycle-detail-desc">Apply survival probabilities and transition matrix to existing populations.</p>
+        <div class="code-block" id="cycle-detail-code"></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Step</th><th>Name</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr data-step="0">
+            <td>1</td>
+            <td>Survival & Growth</td>
+            <td>Apply S·(T+F) to existing populations</td>
+          </tr>
+          <tr data-step="1">
+            <td>2</td>
+            <td>Reproduction</td>
+            <td>Calculate larvae produced by reef and orchard</td>
+          </tr>
+          <tr data-step="2">
+            <td>3</td>
+            <td>Larvae Collection</td>
+            <td>Collect fraction of larvae for lab settlement</td>
+          </tr>
+          <tr data-step="3">
+            <td>4</td>
+            <td>Lab Processing</td>
+            <td>Settle larvae on tiles, apply lab survival</td>
+          </tr>
+          <tr data-step="4">
+            <td>5</td>
+            <td>Outplanting</td>
+            <td>Move settlers to reef and orchard</td>
+          </tr>
+          <tr data-step="5">
+            <td>6</td>
+            <td>Transplanting</td>
+            <td>Move orchard colonies to reef if scheduled</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- PARAMETERS -->
+    <section id="parameters">
+      <h2>Complete Parameter Reference</h2>
+
+      <h3>Demographic Parameters</h3>
+      <table>
+        <thead>
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>surv_pars.r / .o</td><td>vector[5]</td><td>Survival probabilities by size class</td></tr>
+          <tr><td>growth_pars.r / .o</td><td>list[5]</td><td>Growth transition probabilities</td></tr>
+          <tr><td>shrink_pars.r / .o</td><td>list[5]</td><td>Shrinkage transition probabilities</td></tr>
+          <tr><td>frag_pars.r / .o</td><td>list[5]</td><td>Fragmentation probabilities</td></tr>
+          <tr><td>fec_pars.r / .o</td><td>vector[5]</td><td>Fecundity by size class</td></tr>
+          <tr><td>sigma_s</td><td>scalar</td><td>SD of survival variability</td></tr>
+          <tr><td>sigma_f</td><td>scalar</td><td>SD of fecundity variability</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Restoration Parameters (rest_pars)</h3>
+      <table>
+        <thead>
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>reef_areas</td><td>vector</td><td>Reef area capacities (cm²)</td></tr>
+          <tr><td>orchard_size</td><td>vector</td><td>Orchard capacities (# individuals)</td></tr>
+          <tr><td>orchard_yield</td><td>scalar</td><td>Fraction of orchard larvae collected</td></tr>
+          <tr><td>reef_yield</td><td>scalar</td><td>Fraction of reef larvae collected</td></tr>
+          <tr><td>reef_prop</td><td>vector</td><td>Fraction of outplants going to reef</td></tr>
+          <tr><td>transplant</td><td>vector[years]</td><td>Binary: transplant in year i?</td></tr>
+          <tr><td>trans_mats</td><td>nested list</td><td># colonies to transplant by size class</td></tr>
+          <tr><td>lab_max</td><td>scalar</td><td>Maximum lab capacity</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SPACE CONSTRAINTS -->
+    <section id="space-constraints">
+      <h2>Space Constraints</h2>
+      <p>The model enforces <strong>carrying capacity</strong> at multiple levels to prevent unrealistic population growth.</p>
+
+      <div class="info-box reef">
+        <div class="info-title">
+          <div class="dot" style="background: #16a34a;"></div>
+          Reef Constraints
+        </div>
+        <ul>
+          <li>If <code>occupied_area >= reef_areas[ss]</code>, no new recruitment/outplants accepted</li>
+          <li>Fragmentation suppressed when reef is full</li>
+          <li>Occupied area = sum of all colony areas across size classes</li>
+        </ul>
+      </div>
+
+      <div class="info-box orchard">
+        <div class="info-title">
+          <div class="dot" style="background: #7c3aed;"></div>
+          Orchard Constraints
+        </div>
+        <ul>
+          <li>If <code>ind_tots >= orchard_size[ss]</code>, outplants diverted to reef</li>
+          <li>Partial acceptance calculated when near capacity</li>
+          <li>Prevents overcrowding in nursery environment</li>
+        </ul>
+      </div>
+
+      <div class="info-box lab">
+        <div class="info-title">
+          <div class="dot" style="background: #2563eb;"></div>
+          Lab Constraints
+        </div>
+        <ul>
+          <li>Total larvae capped at <code>lab_max</code></li>
+          <li>Retained larvae capped at <code>lab_retain_max</code></li>
+          <li>Excess larvae assigned to immediate outplanting</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- DISTURBANCE EFFECTS -->
+    <section id="disturbance">
+      <h2>Disturbance Effects</h2>
+      <p>The model supports <strong>disturbance events</strong> (hurricanes, bleaching, disease) that modify demographic parameters in specific years.</p>
+
+      <h3>Disturbance Parameters</h3>
+      <table>
+        <thead>
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>dist_yrs</td><td>vector</td><td>Years when disturbances occur</td></tr>
+          <tr><td>dist_effects</td><td>character</td><td>Which parameters affected: "survival", "Tmat", "Fmat", "fecundity"</td></tr>
+          <tr><td>dist_pars</td><td>list</td><td>Replacement parameter values during disturbance years</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-title">Example: Hurricane Impact</div>
+        <p>A hurricane in year 5 might reduce survival by 50% and eliminate reproduction:</p>
+        <div class="code-block">
+dist_yrs <- c(5)
+dist_effects <- c("survival", "fecundity")
+dist_pars$survival <- surv_pars * 0.5
+dist_pars$fecundity <- rep(0, 5)
+        </div>
+      </div>
+    </section>
+
+    <!-- MODEL OUTPUTS -->
+    <section id="outputs">
+      <h2>Model Outputs</h2>
+      <p>The main function <code>rse_mod()</code> returns a comprehensive list of population dynamics over time.</p>
+
+      <h3>Primary Outputs</h3>
+      <table>
+        <thead>
+          <tr><th>Output</th><th>Structure</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>reef_pops</td><td>list[reef][source][sc, year]</td><td>Population by size class, reef, source, year</td></tr>
+          <tr><td>orchard_pops</td><td>list[orchard][source][sc, year]</td><td>Population by size class, orchard, source, year</td></tr>
+          <tr><td>lab_pops</td><td>matrix[treatment, year]</td><td>Retained settlers by treatment and year</td></tr>
+          <tr><td>reef_rep</td><td>list[reef][source][year]</td><td>Reproductive output (larvae) by reef/source/year</td></tr>
+          <tr><td>orchard_rep</td><td>list[orchard][source][year]</td><td>Reproductive output by orchard/source/year</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Tracking Outputs</h3>
+      <table>
+        <thead>
+          <tr><th>Output</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>reef_out</td><td>Number outplanted to each reef per year</td></tr>
+          <tr><td>orchard_out</td><td>Number outplanted to each orchard per year</td></tr>
+          <tr><td>reef_pops_pre</td><td>Reef population before outplanting (for tracking additions)</td></tr>
+          <tr><td>orchard_pops_pre</td><td>Orchard population before outplanting</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Summary Metrics (model_summ)</h3>
+      <p>Post-processing function that extracts key summary statistics:</p>
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ind</td><td>Total individuals by location and year</td></tr>
+          <tr><td>area_m2</td><td>Total coral cover in m²</td></tr>
+          <tr><td>production</td><td>Total larval production per year</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- MODEL VARIANTS -->
+    <section id="variants">
+      <h2>Model Variants</h2>
+      <p>The codebase includes multiple model versions for different use cases.</p>
+
+      <div class="info-box">
+        <div class="info-title">rse_mod (Full Model)</div>
+        <p><strong>Location:</strong> <code>rse_funs.R:1438</code></p>
+        <p>Complete model with reef dynamics, reference reefs, and all compartment flows. Use this for full restoration scenario simulations.</p>
+      </div>
+
+      <div class="info-box">
+        <div class="info-title">rse_mod1 (Simplified Model)</div>
+        <p><strong>Location:</strong> <code>rse_funs.R:553</code></p>
+        <p>Simpler model with constant reference reef population. Useful for sensitivity analyses or when reference reef dynamics are not the focus.</p>
+      </div>
+    </section>
+
+    <!-- PARAMETER INITIALIZATION -->
+    <section id="initialization">
+      <h2>Parameter Initialization Functions</h2>
+      <p>These functions help set up model parameters from data or for sensitivity analyses.</p>
+
+      <table>
+        <thead>
+          <tr><th>Function</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>default_pars_fun</td><td>Sets up reef and orchard demographic parameters using summarized data (mean values)</td></tr>
+          <tr><td>rand_pars_fun</td><td>Sets up parameters by randomly sampling from empirical distributions for uncertainty analysis</td></tr>
+          <tr><td>par_list_fun</td><td>Converts data frames of parameter estimates into list format required by the model</td></tr>
+          <tr><td>mat_pars_fun</td><td>Generates complete transition matrix parameters for all years, incorporating disturbance effects</td></tr>
+          <tr><td>dist_pars_fun</td><td>Organizes disturbance parameters by year and effect type</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- DEMOGRAPHIC FUNCTIONS -->
+    <section id="functions">
+      <h2>Demographic Functions</h2>
+      <p>Core functions that generate demographic rates for each simulation year.</p>
+
+      <h3>Surv_fun (Survival)</h3>
+      <p><strong>Location:</strong> <code>coral_demographic_funs.R:13</code></p>
+      <div class="equation-box" style="padding: 14px;">
+        <span id="eq-surv-fun"></span>
+      </div>
+      <p>Generates survival probabilities with optional stochastic variation. Survival is capped at 1.0.</p>
+
+      <h3>G_fun (Growth/Shrinkage/Stasis)</h3>
+      <p><strong>Location:</strong> <code>coral_demographic_funs.R:54</code></p>
+      <p>Builds the <strong>transition matrix T</strong> and <strong>fragmentation matrix F</strong>:</p>
+      <ul>
+        <li><strong>T matrix:</strong> Above diagonal = shrinkage, below diagonal = growth, diagonal = stasis</li>
+        <li><strong>F matrix:</strong> Column sums can exceed 1 (new individuals created). Only SC4, SC5 produce fragments.</li>
+      </ul>
+
+      <h3>Rep_fun (Reproduction)</h3>
+      <p><strong>Location:</strong> <code>coral_demographic_funs.R:144</code></p>
+      <div class="equation-box" style="padding: 14px;">
+        <span id="eq-rep-fun"></span>
+      </div>
+      <p>Generates fecundity values with stochastic variation. Typically only SC3+ produce significant larvae.</p>
+
+      <h3>Ext_fun (External Recruitment)</h3>
+      <p><strong>Location:</strong> <code>coral_demographic_funs.R:178</code></p>
+      <p>Either constant (<code>lambda</code>) or Poisson-distributed recruitment:</p>
+      <div class="code-block">
+if (rand == TRUE) {
+  recruits <- rpois(years, lambda)
+} else {
+  recruits <- rep(lambda, years)
+}
+      </div>
+    </section>
+
+    <!-- LAB PARAMETERS -->
+    <section id="lab-parameters">
+      <h2>Lab Parameters (Complete)</h2>
+      <p>Detailed parameters controlling laboratory settlement and rearing.</p>
+
+      <table>
+        <thead>
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>sett_props</td><td>list</td><td>Settlement proportion by tile type (T1: cement, T2: ceramic)</td></tr>
+          <tr><td>s0</td><td>scalar</td><td>Survival rate for immediate outplanting</td></tr>
+          <tr><td>s1</td><td>scalar</td><td>Survival rate for 1-year retention</td></tr>
+          <tr><td>m0</td><td>scalar</td><td>Density-dependent mortality coefficient (immediate)</td></tr>
+          <tr><td>m1</td><td>scalar</td><td>Density-dependent mortality coefficient (1-year)</td></tr>
+          <tr><td>lab_max</td><td>scalar</td><td>Maximum lab capacity (total larvae processed)</td></tr>
+          <tr><td>lab_retain_max</td><td>scalar</td><td>Maximum number retained for 1 year</td></tr>
+          <tr><td>tile_props</td><td>vector</td><td>Proportion of lab space for each tile type</td></tr>
+          <tr><td>size_props</td><td>vector[5]</td><td>Size class distribution when outplants leave lab</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <!-- Tooltip -->
+  <div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true"></div>
+
+  <script>
+    // =====================================
+    // STATE
+    // =====================================
+    const state = {
+      playing: true,
+      particlesEnabled: true,
+      highlightedFlow: null,
+      selectedNode: null,
+      selectedSizeClass: null,
+      cycleStep: 0,
+      cycleAutoPlay: true,
+      showGrowth: true,
+      showShrink: true,
+      showFrag: true,
+      year: 1,
+      reef: 100,
+      orchard: 50,
+      lab: 200,
+      larvae: 5000
+    };
+
+    const tooltip = document.getElementById('tooltip');
+
+    // =====================================
+    // TOOLTIP HELPERS
+    // =====================================
+    function showTooltip(event, html) {
+      tooltip.innerHTML = html;
+      tooltip.classList.add('visible');
+      tooltip.setAttribute('aria-hidden', 'false');
+
+      const rect = tooltip.getBoundingClientRect();
+      let x = event.clientX + 15;
+      let y = event.clientY - rect.height / 2;
+
+      if (x + rect.width > window.innerWidth) x = event.clientX - rect.width - 15;
+      if (y < 10) y = 10;
+      if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 10;
+
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+    }
+
+    function hideTooltip() {
+      tooltip.classList.remove('visible');
+      tooltip.setAttribute('aria-hidden', 'true');
+    }
+
+    // =====================================
+    // RENDER KATEX EQUATIONS
+    // =====================================
+    document.addEventListener('DOMContentLoaded', function() {
+      katex.render("\\mathbf{N}(t+1) = \\mathbf{S} \\cdot (\\mathbf{T} + \\mathbf{F}) \\cdot \\mathbf{N}(t) + \\mathbf{R}",
+        document.getElementById('eq-main'), {displayMode: true});
+
+      katex.render(`\\begin{bmatrix} N_1 \\\\ N_2 \\\\ N_3 \\\\ N_4 \\\\ N_5 \\end{bmatrix}_{t+1} =
+        \\begin{bmatrix} S_1 & & & & \\\\ & S_2 & & & \\\\ & & S_3 & & \\\\ & & & S_4 & \\\\ & & & & S_5 \\end{bmatrix}
+        \\cdot \\left( \\mathbf{T} + \\mathbf{F} \\right) \\cdot
+        \\begin{bmatrix} N_1 \\\\ N_2 \\\\ N_3 \\\\ N_4 \\\\ N_5 \\end{bmatrix}_t +
+        \\begin{bmatrix} R_1 \\\\ 0 \\\\ 0 \\\\ 0 \\\\ 0 \\end{bmatrix}`,
+        document.getElementById('eq-matrix'), {displayMode: true});
+
+      katex.render("\\text{Survivors} = N \\cdot s \\cdot e^{-m \\cdot N}",
+        document.getElementById('eq-lab-surv'), {displayMode: true});
+
+      katex.render("\\sum_{i=1}^{5} T_{ij} = 1 \\quad \\forall j",
+        document.getElementById('eq-transition-constraint'), {displayMode: true});
+
+      // Demographic function equations
+      if (document.getElementById('eq-surv-fun')) {
+        katex.render("S_i = \\text{surv\\_pars} \\times e^{\\varepsilon}, \\quad \\varepsilon \\sim N(0, \\sigma_s)",
+          document.getElementById('eq-surv-fun'), {displayMode: true});
+      }
+      if (document.getElementById('eq-rep-fun')) {
+        katex.render("F_i = \\text{fec\\_pars} \\times e^{\\varepsilon}, \\quad \\varepsilon \\sim N(0, \\sigma_f)",
+          document.getElementById('eq-rep-fun'), {displayMode: true});
+      }
+    });
+
+    // =====================================
+    // DATA
+    // =====================================
+    const nodeData = {
+      external: { x: 120, y: 160, w: 110, h: 55, color: '#475569', label: 'EXTERNAL', sub: 'Wild Reefs',
+        desc: 'Reference reef populations providing baseline larval recruitment.',
+        params: ['lambda: ~10,000', 'lambda_R: ~10,000'] },
+      lab: { x: 350, y: 70, w: 110, h: 55, color: '#2563eb', label: 'LAB', sub: 'Settlement',
+        desc: 'Processes larvae onto settlement tiles (cement T1, ceramic T2).',
+        params: ['sett_props: T1, T2', 'lab_max: ~10,000'] },
+      orchard: { x: 580, y: 160, w: 110, h: 55, color: '#7c3aed', label: 'ORCHARD', sub: 'Nursery',
+        desc: 'Maintains broodstock colonies for larvae production and transplanting.',
+        params: ['orchard_size: varies', 'orchard_yield: 0.001'] },
+      reef: { x: 350, y: 340, w: 160, h: 80, color: '#16a34a', label: 'REEF', sub: 'Restoration Target',
+        desc: 'The ultimate restoration target where coral populations are established.',
+        params: ['reef_areas: 10,000 cm²', 'surv_pars: 0.4-0.9'] }
+    };
+
+    const flowDefs = [
+      { id: 'lambda', from: 'external', to: 'reef', label: 'lambda', primary: true },
+      { id: 'outplant', from: 'lab', to: 'reef', label: 'outplant', primary: true },
+      { id: 'transplant', from: 'orchard', to: 'reef', label: 'transplant', primary: true },
+      { id: 'lambda_R', from: 'external', to: 'lab', label: 'lambda_R', primary: false },
+      { id: 'collection', from: 'reef', to: 'lab', label: 'collection', primary: false },
+      { id: 'lab_orchard', from: 'lab', to: 'orchard', label: '', primary: false },
+      { id: 'larvae', from: 'orchard', to: 'lab', label: 'larvae', primary: false }
+    ];
+
+    const sizeClassData = [
+      { id: 'SC1', range: '0-10 cm²', r: 18, survival: '0.40-0.50', fecundity: 0 },
+      { id: 'SC2', range: '10-100 cm²', r: 22, survival: '0.50-0.60', fecundity: 0 },
+      { id: 'SC3', range: '100-900 cm²', r: 26, survival: '0.60-0.75', fecundity: '100-1k' },
+      { id: 'SC4', range: '900-4k cm²', r: 30, survival: '0.75-0.85', fecundity: '1k-5k' },
+      { id: 'SC5', range: '>4k cm²', r: 34, survival: '0.85-0.95', fecundity: '5k-20k' }
+    ];
+
+    const cycleSteps = [
+      { num: 1, label: 'Survival & Growth', code: 'N <- S * (T + F) %*% N' },
+      { num: 2, label: 'Reproduction', code: 'larvae <- sum(N * fec_pars)' },
+      { num: 3, label: 'Collection', code: 'collected <- larvae * yield' },
+      { num: 4, label: 'Lab Processing', code: 'settlers <- N * s * exp(-m*N)' },
+      { num: 5, label: 'Outplanting', code: 'reef <- reef + outplants' },
+      { num: 6, label: 'Transplanting', code: 'if(transplant[i]) {...}' }
+    ];
+
+    // =====================================
+    // SYSTEM DIAGRAM
+    // =====================================
+    function drawSystemDiagram() {
+      const container = document.getElementById('system-svg').parentElement;
+      const width = container.clientWidth || 700;
+      const height = container.clientHeight || 400;
+
+      const svg = d3.select('#system-svg')
+        .attr('viewBox', `0 0 700 420`);
+
+      svg.selectAll('*').remove();
+
+      // Defs
+      const defs = svg.append('defs');
+      const glow = defs.append('filter').attr('id', 'glow').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+      glow.append('feGaussianBlur').attr('stdDeviation', '5').attr('result', 'blur');
+      glow.append('feMerge').html('<feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/>');
+
+      defs.append('marker').attr('id', 'arrow-g').attr('viewBox', '0 -4 8 8').attr('refX', 7)
+        .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto')
+        .append('path').attr('d', 'M0,-3L8,0L0,3Z').attr('fill', '#22c55e');
+
+      defs.append('marker').attr('id', 'arrow-d').attr('viewBox', '0 -4 8 8').attr('refX', 7)
+        .attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto')
+        .append('path').attr('d', 'M0,-3L8,0L0,3Z').attr('fill', '#555');
+
+      const flowG = svg.append('g').attr('class', 'flows');
+      const particleG = svg.append('g').attr('class', 'particles');
+      const nodeG = svg.append('g').attr('class', 'nodes');
+
+      // Draw flows
+      const flows = [];
+      flowDefs.forEach(f => {
+        const from = nodeData[f.from];
+        const to = nodeData[f.to];
+
+        let path;
+        if (f.id === 'lambda') {
+          path = `M${from.x},${from.y + 25} Q${(from.x + to.x)/2 - 60},${(from.y + to.y)/2 + 30} ${to.x - 55},${to.y - 40}`;
+        } else if (f.id === 'outplant') {
+          path = `M${from.x},${from.y + 28} L${to.x},${to.y - 40}`;
+        } else if (f.id === 'transplant') {
+          path = `M${from.x},${from.y + 25} Q${(from.x + to.x)/2 + 60},${(from.y + to.y)/2 + 30} ${to.x + 55},${to.y - 40}`;
+        } else if (f.id === 'lambda_R') {
+          path = `M${from.x + 35},${from.y - 28} Q${(from.x + to.x)/2},${Math.min(from.y, to.y) - 35} ${to.x - 55},${to.y}`;
+        } else if (f.id === 'collection') {
+          path = `M${to.x - 60},${to.y - 28} C${to.x - 130},${(from.y + to.y)/2} ${from.x - 70},${from.y + 15} ${from.x - 55},${from.y + 8}`;
+        } else if (f.id === 'lab_orchard') {
+          path = `M${from.x + 55},${from.y + 8} Q${(from.x + to.x)/2},${from.y + 35} ${to.x - 35},${to.y - 28}`;
+        } else if (f.id === 'larvae') {
+          path = `M${from.x - 25},${from.y - 28} Q${(from.x + to.x)/2 + 35},${Math.min(from.y, to.y) - 45} ${to.x + 55},${to.y}`;
+        }
+
+        const p = flowG.append('path')
+          .attr('class', 'flow-path')
+          .attr('id', 'flow-' + f.id)
+          .attr('d', path)
+          .attr('stroke', f.primary ? '#22c55e' : '#444')
+          .attr('stroke-width', f.primary ? 3 : 2)
+          .attr('stroke-dasharray', f.primary ? 'none' : '6,4')
+          .attr('marker-end', f.primary ? 'url(#arrow-g)' : 'url(#arrow-d)')
+          .on('mouseenter', function(e) {
+            highlightFlow(f.id);
+            showTooltip(e, `<div class="tooltip-title">${f.label || f.id}</div><div class="tooltip-desc">${f.from} → ${f.to}</div>`);
+          })
+          .on('mouseleave', function() {
+            clearFlowHighlight();
+            hideTooltip();
+          });
+
+        const el = p.node();
+        flows.push({ ...f, el, len: el.getTotalLength(), path });
+
+        if (f.label) {
+          const midPoint = el.getPointAtLength(el.getTotalLength() * 0.5);
+          flowG.append('text')
+            .attr('x', midPoint.x + (f.id === 'collection' ? -18 : 0))
+            .attr('y', midPoint.y + (f.primary ? -10 : -6))
+            .attr('text-anchor', 'middle')
+            .attr('fill', f.primary ? '#4ade80' : '#888')
+            .attr('font-size', f.primary ? 11 : 10)
+            .attr('font-family', 'SF Mono, monospace')
+            .attr('font-weight', f.primary ? 600 : 400)
+            .attr('pointer-events', 'none')
+            .text(f.label);
+        }
+      });
+
+      // Draw nodes
+      Object.entries(nodeData).forEach(([id, n]) => {
+        const g = nodeG.append('g')
+          .attr('class', 'compartment-node')
+          .attr('id', 'node-' + id)
+          .attr('transform', `translate(${n.x}, ${n.y})`)
+          .on('mouseenter', function(e) {
+            showTooltip(e, `
+              <div class="tooltip-title"><div class="tooltip-dot" style="background: ${n.color}"></div>${n.label}</div>
+              <div class="tooltip-desc">${n.desc}</div>
+              <div class="tooltip-code">${n.params.join('<br>')}</div>
+            `);
+          })
+          .on('mouseleave', hideTooltip)
+          .on('click', function() { selectNode(id); });
+
+        g.append('rect')
+          .attr('x', -n.w/2).attr('y', -n.h/2)
+          .attr('width', n.w).attr('height', n.h)
+          .attr('rx', 8).attr('fill', n.color)
+          .attr('stroke', id === 'reef' ? '#4ade80' : 'none')
+          .attr('stroke-width', 3);
+
+        g.append('text')
+          .attr('y', -4)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#fff').attr('font-size', 13).attr('font-weight', 600)
+          .text(n.label);
+
+        g.append('text')
+          .attr('y', 10)
+          .attr('text-anchor', 'middle')
+          .attr('fill', 'rgba(255,255,255,0.6)').attr('font-size', 10)
+          .text(n.sub);
+
+        if (id === 'reef') {
+          for (let i = 0; i < 5; i++) {
+            const cx = -40 + i * 20;
+            g.append('circle')
+              .attr('cx', cx).attr('cy', 28)
+              .attr('r', 6 + i * 1.2)
+              .attr('fill', 'rgba(255,255,255,0.1)')
+              .attr('stroke', 'rgba(255,255,255,0.5)')
+              .attr('stroke-width', 1.5);
+          }
+        }
+
+        if (id === 'lab') {
+          ['T1', 'T2'].forEach((t, i) => {
+            g.append('rect')
+              .attr('x', -25 + i * 30).attr('y', 14)
+              .attr('width', 22).attr('height', 12)
+              .attr('rx', 2)
+              .attr('fill', 'rgba(255,255,255,0.1)')
+              .attr('stroke', 'rgba(255,255,255,0.3)');
+            g.append('text')
+              .attr('x', -14 + i * 30).attr('y', 23)
+              .attr('text-anchor', 'middle')
+              .attr('fill', 'rgba(255,255,255,0.7)')
+              .attr('font-size', 8)
+              .text(t);
+          });
+        }
+      });
+
+      // Particle animation
+      function emitParticle(flow) {
+        if (!state.particlesEnabled || !state.playing || !flow.el) return;
+
+        const p = particleG.append('circle')
+          .attr('class', 'particle')
+          .attr('r', flow.primary ? 3.5 : 2)
+          .attr('fill', flow.primary ? '#4ade80' : '#666');
+
+        p.transition()
+          .duration(flow.primary ? 1800 : 2200)
+          .ease(d3.easeLinear)
+          .attrTween('transform', function() {
+            return function(t) {
+              const point = flow.el.getPointAtLength(t * flow.len);
+              return `translate(${point.x}, ${point.y})`;
+            };
+          })
+          .remove();
+      }
+
+      setInterval(() => {
+        flows.forEach(f => {
+          if (Math.random() < (f.primary ? 0.22 : 0.08)) emitParticle(f);
+        });
+      }, 180);
+
+      window.highlightFlow = function(flowId) {
+        state.highlightedFlow = flowId;
+        d3.selectAll('.flow-path').classed('dimmed', true);
+        d3.select('#flow-' + flowId).classed('dimmed', false).classed('highlighted', true);
+      };
+
+      window.clearFlowHighlight = function() {
+        state.highlightedFlow = null;
+        d3.selectAll('.flow-path').classed('dimmed', false).classed('highlighted', false);
+      };
+
+      window.selectNode = function(nodeId) {
+        d3.selectAll('.compartment-node').classed('selected', false);
+        if (state.selectedNode === nodeId) {
+          state.selectedNode = null;
+        } else {
+          state.selectedNode = nodeId;
+          d3.select('#node-' + nodeId).classed('selected', true);
+          document.getElementById(nodeId)?.scrollIntoView({ behavior: 'smooth' });
+        }
+      };
+    }
+
+    // =====================================
+    // MINI LIFECYCLE (Dashboard)
+    // =====================================
+    function drawMiniLifecycle() {
+      const svg = d3.select('#mini-lifecycle-svg');
+      const width = 320, height = 160;
+      svg.attr('viewBox', `0 0 ${width} ${height}`);
+      svg.selectAll('*').remove();
+
+      const startX = 32;
+      const spacing = 58;
+      const y = 65;
+
+      // Arrows
+      for (let i = 0; i < 4; i++) {
+        const x1 = startX + i * spacing + 16;
+        const x2 = startX + (i + 1) * spacing - 16;
+        svg.append('path')
+          .attr('d', `M${x1},${y - 12} L${x2},${y - 12}`)
+          .attr('stroke', '#22c55e')
+          .attr('stroke-width', 2)
+          .attr('fill', 'none');
+      }
+
+      // Nodes
+      sizeClassData.forEach((sc, i) => {
+        const x = startX + i * spacing;
+        const g = svg.append('g').attr('transform', `translate(${x}, ${y})`);
+
+        g.append('circle')
+          .attr('r', 14 + i * 2)
+          .attr('fill', 'rgba(34, 197, 94, 0.15)')
+          .attr('stroke', '#22c55e')
+          .attr('stroke-width', 2);
+
+        g.append('text')
+          .attr('y', 4)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#fff')
+          .attr('font-size', 10)
+          .attr('font-weight', 600)
+          .text(sc.id);
+
+        g.append('text')
+          .attr('y', 35)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#666')
+          .attr('font-size', 8)
+          .text(sc.range);
+      });
+
+      // Legend
+      svg.append('text')
+        .attr('x', width/2).attr('y', 145)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#555')
+        .attr('font-size', 9)
+        .text('Growth transitions between size classes');
+    }
+
+    // =====================================
+    // MINI MATRIX (Dashboard)
+    // =====================================
+    function drawMiniMatrix() {
+      const svg = d3.select('#mini-matrix-svg');
+      svg.attr('viewBox', '0 0 320 160');
+      svg.selectAll('*').remove();
+
+      const matrix = [
+        [0.30, 0.05, 0.02, 0.01, 0.01],
+        [0.50, 0.40, 0.08, 0.04, 0.02],
+        [0.15, 0.40, 0.50, 0.10, 0.05],
+        [0.05, 0.12, 0.35, 0.60, 0.12],
+        [0.00, 0.03, 0.05, 0.25, 0.80]
+      ];
+
+      const cellSize = 24;
+      const startX = 55;
+      const startY = 30;
+      const labels = ['1', '2', '3', '4', '5'];
+
+      const colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 0.8]);
+
+      // Labels
+      labels.forEach((l, i) => {
+        svg.append('text')
+          .attr('x', startX + i * cellSize + cellSize/2).attr('y', 22)
+          .attr('text-anchor', 'middle').attr('fill', '#888').attr('font-size', 9)
+          .text(l);
+        svg.append('text')
+          .attr('x', 45).attr('y', startY + i * cellSize + cellSize/2 + 3)
+          .attr('text-anchor', 'end').attr('fill', '#888').attr('font-size', 9)
+          .text(l);
+      });
+
+      // Cells
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+          const val = matrix[row][col];
+          svg.append('rect')
+            .attr('x', startX + col * cellSize)
+            .attr('y', startY + row * cellSize)
+            .attr('width', cellSize - 1)
+            .attr('height', cellSize - 1)
+            .attr('fill', val > 0 ? colorScale(val) : '#1a1a1a')
+            .attr('stroke', row === col ? '#fff' : 'none')
+            .attr('stroke-width', row === col ? 1 : 0);
+        }
+      }
+
+      svg.append('text')
+        .attr('x', startX + cellSize * 5 + 10).attr('y', startY + 15)
+        .attr('fill', '#666').attr('font-size', 8)
+        .text('Diagonal');
+      svg.append('text')
+        .attr('x', startX + cellSize * 5 + 10).attr('y', startY + 25)
+        .attr('fill', '#888').attr('font-size', 8)
+        .text('= stasis');
+    }
+
+    // =====================================
+    // CYCLE STEPS (Dashboard)
+    // =====================================
+    function drawCycleSteps() {
+      const container = document.getElementById('cycle-steps');
+      container.innerHTML = '';
+
+      cycleSteps.forEach((step, i) => {
+        const div = document.createElement('div');
+        div.style.cssText = `
+          display: flex; align-items: center; gap: 10px;
+          padding: 6px 10px; margin-bottom: 4px;
+          background: ${i === state.cycleStep ? 'rgba(34,197,94,0.1)' : '#1a1a1a'};
+          border-radius: 4px; border-left: 3px solid ${i === state.cycleStep ? '#22c55e' : 'transparent'};
+          cursor: pointer; transition: all 0.2s;
+        `;
+        div.innerHTML = `
+          <div style="width: 20px; height: 20px; border-radius: 50%; background: ${i === state.cycleStep ? '#22c55e' : '#333'};
+               display: flex; align-items: center; justify-content: center;
+               font-size: 10px; font-weight: 600; color: ${i === state.cycleStep ? '#000' : '#888'};">${step.num}</div>
+          <span style="font-size: 11px; color: ${i === state.cycleStep ? '#fff' : '#888'};">${step.label}</span>
+        `;
+        div.addEventListener('click', () => setCycleStep(i));
+        container.appendChild(div);
+      });
+    }
+
+    // =====================================
+    // FULL LIFECYCLE DIAGRAM
+    // =====================================
+    function drawLifecycle() {
+      const svg = d3.select('#lifecycle-svg');
+      const width = 700, height = 260;
+      svg.attr('viewBox', `0 0 ${width} ${height}`);
+      svg.selectAll('*').remove();
+
+      const defs = svg.append('defs');
+      const glow = defs.append('filter').attr('id', 'glow-lc').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+      glow.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'blur');
+      glow.append('feMerge').html('<feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/>');
+
+      defs.append('marker').attr('id', 'arr-grow').attr('viewBox', '0 -4 8 8').attr('refX', 6)
+        .attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto')
+        .append('path').attr('d', 'M0,-3L8,0L0,3Z').attr('fill', '#22c55e');
+
+      defs.append('marker').attr('id', 'arr-shrk').attr('viewBox', '0 -4 8 8').attr('refX', 6)
+        .attr('markerWidth', 4).attr('markerHeight', 4).attr('orient', 'auto')
+        .append('path').attr('d', 'M0,-3L8,0L0,3Z').attr('fill', '#f59e0b');
+
+      defs.append('marker').attr('id', 'arr-frag').attr('viewBox', '0 -4 8 8').attr('refX', 6)
+        .attr('markerWidth', 4).attr('markerHeight', 4).attr('orient', 'auto')
+        .append('path').attr('d', 'M0,-3L8,0L0,3Z').attr('fill', '#8b5cf6');
+
+      const arrowG = svg.append('g');
+      const nodeG = svg.append('g');
+
+      const startX = 75;
+      const spacing = 130;
+      const y = 100;
+
+      // Growth arrows
+      if (state.showGrowth) {
+        for (let i = 0; i < 4; i++) {
+          const x1 = startX + i * spacing + sizeClassData[i].r + 6;
+          const x2 = startX + (i + 1) * spacing - sizeClassData[i + 1].r - 6;
+          arrowG.append('path')
+            .attr('d', `M${x1},${y - 22} L${x2},${y - 22}`)
+            .attr('stroke', '#22c55e')
+            .attr('stroke-width', 3)
+            .attr('fill', 'none')
+            .attr('marker-end', 'url(#arr-grow)');
+        }
+      }
+
+      // Shrinkage arrows
+      if (state.showShrink) {
+        for (let i = 1; i < 5; i++) {
+          const x1 = startX + i * spacing - sizeClassData[i].r - 6;
+          const x2 = startX + (i - 1) * spacing + sizeClassData[i - 1].r + 6;
+          arrowG.append('path')
+            .attr('d', `M${x1},${y + 22} L${x2},${y + 22}`)
+            .attr('stroke', '#f59e0b')
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '6,4')
+            .attr('fill', 'none')
+            .attr('marker-end', 'url(#arr-shrk)');
+        }
+      }
+
+      // Fragmentation arrows
+      if (state.showFrag) {
+        [3, 4].forEach(i => {
+          const x1 = startX + i * spacing;
+          arrowG.append('path')
+            .attr('d', `M${x1},${y + sizeClassData[i].r + 6} Q${x1 - 50},${y + 70} ${startX},${y + sizeClassData[0].r + 6}`)
+            .attr('stroke', '#8b5cf6')
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '4,4')
+            .attr('fill', 'none')
+            .attr('marker-end', 'url(#arr-frag)');
+        });
+      }
+
+      // Nodes
+      sizeClassData.forEach((sc, i) => {
+        const x = startX + i * spacing;
+
+        const g = nodeG.append('g')
+          .attr('class', 'lifecycle-node')
+          .attr('id', 'sc-node-' + i)
+          .attr('transform', `translate(${x}, ${y})`)
+          .on('mouseenter', function(e) {
+            d3.select(this).classed('highlighted', true);
+            showTooltip(e, `
+              <div class="tooltip-title">${sc.id}</div>
+              <div class="tooltip-desc">
+                <strong>Range:</strong> ${sc.range}<br>
+                <strong>Survival:</strong> ${sc.survival}<br>
+                <strong>Fecundity:</strong> ${sc.fecundity || 'None'}
+              </div>
+            `);
+            highlightTableRow('size-table', i);
+          })
+          .on('mouseleave', function() {
+            d3.select(this).classed('highlighted', false);
+            hideTooltip();
+            clearTableHighlight('size-table');
+          });
+
+        g.append('circle')
+          .attr('r', sc.r)
+          .attr('fill', 'rgba(34, 197, 94, 0.15)')
+          .attr('stroke', '#22c55e')
+          .attr('stroke-width', 2.5);
+
+        g.append('text')
+          .attr('y', 5)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#fff')
+          .attr('font-size', 13)
+          .attr('font-weight', 600)
+          .text(sc.id);
+
+        g.append('text')
+          .attr('y', sc.r + 16)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#888')
+          .attr('font-size', 9)
+          .text(sc.range);
+      });
+
+      // Legend
+      const leg = svg.append('g').attr('transform', 'translate(70, 220)');
+      [
+        { color: '#22c55e', dash: false, label: 'Growth', show: state.showGrowth },
+        { color: '#f59e0b', dash: true, label: 'Shrinkage', show: state.showShrink },
+        { color: '#8b5cf6', dash: true, label: 'Fragmentation', show: state.showFrag }
+      ].forEach((item, i) => {
+        const g = leg.append('g')
+          .attr('transform', `translate(${i * 170}, 0)`)
+          .style('opacity', item.show ? 1 : 0.3);
+
+        g.append('line')
+          .attr('x1', 0).attr('y1', 0).attr('x2', 30).attr('y2', 0)
+          .attr('stroke', item.color)
+          .attr('stroke-width', 3)
+          .attr('stroke-dasharray', item.dash ? '6,4' : 'none');
+
+        g.append('text')
+          .attr('x', 38).attr('y', 4)
+          .attr('fill', '#888')
+          .attr('font-size', 11)
+          .text(item.label);
+      });
+    }
+
+    // =====================================
+    // TRANSITION MATRIX
+    // =====================================
+    function drawMatrix() {
+      const svg = d3.select('#matrix-svg');
+      svg.attr('viewBox', '0 0 320 300');
+      svg.selectAll('*').remove();
+
+      const matrix = [
+        [0.30, 0.05, 0.02, 0.01, 0.01],
+        [0.50, 0.40, 0.08, 0.04, 0.02],
+        [0.15, 0.40, 0.50, 0.10, 0.05],
+        [0.05, 0.12, 0.35, 0.60, 0.12],
+        [0.00, 0.03, 0.05, 0.25, 0.80]
+      ];
+
+      const cellSize = 40;
+      const startX = 60;
+      const startY = 50;
+      const labels = ['SC1', 'SC2', 'SC3', 'SC4', 'SC5'];
+
+      const colorScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 0.8]);
+
+      // Headers
+      svg.append('text')
+        .attr('x', startX + cellSize * 2.5).attr('y', 20)
+        .attr('text-anchor', 'middle').attr('fill', '#888').attr('font-size', 11)
+        .text('From size class');
+
+      svg.append('text')
+        .attr('x', 15).attr('y', startY + cellSize * 2.5)
+        .attr('fill', '#888').attr('font-size', 11)
+        .attr('transform', `rotate(-90, 15, ${startY + cellSize * 2.5})`)
+        .attr('text-anchor', 'middle')
+        .text('To size class');
+
+      labels.forEach((l, i) => {
+        svg.append('text')
+          .attr('x', startX + i * cellSize + cellSize/2).attr('y', 40)
+          .attr('text-anchor', 'middle').attr('fill', '#aaa').attr('font-size', 10)
+          .text(l);
+
+        svg.append('text')
+          .attr('x', 50).attr('y', startY + i * cellSize + cellSize/2 + 4)
+          .attr('text-anchor', 'end').attr('fill', '#aaa').attr('font-size', 10)
+          .text(l);
+      });
+
+      // Cells
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+          const val = matrix[row][col];
+          const x = startX + col * cellSize;
+          const y = startY + row * cellSize;
+
+          const isDiagonal = row === col;
+          const isGrowth = row > col;
+
+          const cell = svg.append('g')
+            .attr('class', 'matrix-cell')
+            .on('mouseenter', function(e) {
+              d3.select(this).classed('highlighted', true);
+              const type = isDiagonal ? 'Stasis' : isGrowth ? 'Growth' : 'Shrinkage';
+              showTooltip(e, `
+                <div class="tooltip-title">${labels[col]} → ${labels[row]}</div>
+                <div class="tooltip-desc"><strong>Type:</strong> ${type}<br><strong>Probability:</strong> ${(val * 100).toFixed(1)}%</div>
+              `);
+            })
+            .on('mouseleave', function() {
+              d3.select(this).classed('highlighted', false);
+              hideTooltip();
+            });
+
+          cell.append('rect')
+            .attr('x', x).attr('y', y)
+            .attr('width', cellSize - 1).attr('height', cellSize - 1)
+            .attr('fill', val > 0 ? colorScale(val) : '#1a1a1a')
+            .attr('stroke', isDiagonal ? '#fff' : (isGrowth ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'))
+            .attr('stroke-width', isDiagonal ? 2 : 1);
+
+          if (val > 0.01) {
+            cell.append('text')
+              .attr('x', x + cellSize/2 - 0.5).attr('y', y + cellSize/2 + 4)
+              .attr('text-anchor', 'middle')
+              .attr('fill', val > 0.35 ? '#000' : '#fff')
+              .attr('font-size', 10)
+              .attr('pointer-events', 'none')
+              .text(val.toFixed(2));
+          }
+        }
+      }
+    }
+
+    // =====================================
+    // ANNUAL CYCLE DIAGRAM
+    // =====================================
+    function drawCycle() {
+      const svg = d3.select('#cycle-svg');
+      const width = 750, height = 160;
+      svg.attr('viewBox', `0 0 ${width} ${height}`);
+      svg.selectAll('*').remove();
+
+      const defs = svg.append('defs');
+      const glow = defs.append('filter').attr('id', 'glow-cy').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+      glow.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'blur');
+      glow.append('feMerge').html('<feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/>');
+
+      defs.append('marker').attr('id', 'arr-cy').attr('viewBox', '0 -4 8 8').attr('refX', 6)
+        .attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto')
+        .append('path').attr('d', 'M0,-3L8,0L0,3Z').attr('fill', '#444');
+
+      const stepWidth = 110;
+      const startX = 65;
+      const y = 65;
+
+      cycleSteps.forEach((s, i) => {
+        const x = startX + i * stepWidth;
+
+        if (i < 5) {
+          svg.append('path')
+            .attr('d', `M${x + 28},${y} L${x + stepWidth - 28},${y}`)
+            .attr('stroke', '#333')
+            .attr('stroke-width', 2)
+            .attr('marker-end', 'url(#arr-cy)');
+        }
+
+        const g = svg.append('g')
+          .attr('class', 'cycle-step' + (i === state.cycleStep ? ' active' : ''))
+          .attr('id', 'cycle-step-' + i)
+          .on('click', function() { setCycleStep(i); })
+          .on('mouseenter', function(e) {
+            showTooltip(e, `<div class="tooltip-title">Step ${s.num}: ${s.label}</div><div class="tooltip-code">${s.code}</div>`);
+          })
+          .on('mouseleave', hideTooltip);
+
+        g.append('circle')
+          .attr('cx', x).attr('cy', y).attr('r', 22)
+          .attr('fill', '#1a1a1a')
+          .attr('stroke', '#22c55e')
+          .attr('stroke-width', 2);
+
+        g.append('text')
+          .attr('class', 'step-num')
+          .attr('x', x).attr('y', y + 5)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#22c55e')
+          .attr('font-size', 14)
+          .attr('font-weight', 700)
+          .text(s.num);
+
+        const lines = s.label.split(' ');
+        lines.forEach((line, j) => {
+          svg.append('text')
+            .attr('x', x).attr('y', y + 40 + j * 12)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#888')
+            .attr('font-size', 10)
+            .text(line);
+        });
+      });
+    }
+
+    function setCycleStep(step) {
+      state.cycleStep = step;
+      d3.selectAll('.cycle-step').classed('active', false);
+      d3.select('#cycle-step-' + step).classed('active', true);
+      drawCycleSteps();
+
+      const s = cycleSteps[step];
+      const details = document.getElementById('cycle-details');
+      document.getElementById('cycle-detail-title').textContent = `Step ${s.num}: ${s.label}`;
+      document.getElementById('cycle-detail-desc').textContent = `Execute: ${s.code}`;
+      document.getElementById('cycle-detail-code').innerHTML = s.code;
+      details.style.display = 'block';
+    }
+
+    // =====================================
+    // SIMULATION
+    // =====================================
+    function updateStats() {
+      // Add pulse animation to changing values
+      ['stat-reef', 'stat-orchard', 'stat-lab', 'stat-larvae', 'stat-year'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add('updating');
+        setTimeout(() => el.classList.remove('updating'), 300);
+      });
+
+      document.getElementById('stat-reef').textContent = state.reef;
+      document.getElementById('stat-orchard').textContent = state.orchard;
+      document.getElementById('stat-lab').textContent = state.lab;
+      document.getElementById('stat-larvae').textContent = (state.larvae / 1000).toFixed(1) + 'k';
+      document.getElementById('stat-year').textContent = state.year;
+
+      // Update progress bar
+      const progress = ((state.cycleStep + 1) / 6) * 100;
+      const progressBar = document.getElementById('cycle-progress');
+      if (progressBar) {
+        progressBar.style.width = progress + '%';
+        progressBar.parentElement.setAttribute('aria-valuenow', state.cycleStep + 1);
+      }
+    }
+
+    function simulate() {
+      if (!state.playing) return;
+
+      state.cycleStep = (state.cycleStep + 1) % 6;
+      if (state.cycleStep === 0) state.year++;
+
+      const survival = 0.85;
+      const growth = 1.02;
+      const outplantRate = 0.1;
+
+      state.reef = Math.round(state.reef * survival * growth + state.lab * outplantRate);
+      state.orchard = Math.round(state.orchard * survival * growth + state.lab * outplantRate * 0.3);
+      state.lab = Math.round(state.lab * 0.7 + (state.reef + state.orchard) * 0.05 * 10000 / (state.reef + state.orchard + 1));
+      state.larvae = Math.round((state.reef + state.orchard) * 50);
+
+      updateStats();
+      setCycleStep(state.cycleStep);
+    }
+
+    // =====================================
+    // TABLE HIGHLIGHTING
+    // =====================================
+    function highlightTableRow(tableId, key) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+      table.querySelectorAll('tr').forEach(row => {
+        const rowKey = row.dataset.sc || row.dataset.step;
+        if (rowKey !== undefined && rowKey == key) {
+          row.classList.add('highlighted');
+        }
+      });
+    }
+
+    function clearTableHighlight(tableId) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+      table.querySelectorAll('tr.highlighted').forEach(row => row.classList.remove('highlighted'));
+    }
+
+    // =====================================
+    // CONTROLS
+    // =====================================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Simulation controls with aria-pressed updates
+      document.getElementById('btn-play').addEventListener('click', function() {
+        state.playing = true;
+        this.classList.add('active');
+        this.setAttribute('aria-pressed', 'true');
+        document.getElementById('btn-pause').classList.remove('active');
+        document.getElementById('btn-pause').setAttribute('aria-pressed', 'false');
+        announce('Simulation playing');
+      });
+
+      document.getElementById('btn-pause').addEventListener('click', function() {
+        state.playing = false;
+        this.classList.add('active');
+        this.setAttribute('aria-pressed', 'true');
+        document.getElementById('btn-play').classList.remove('active');
+        document.getElementById('btn-play').setAttribute('aria-pressed', 'false');
+        announce('Simulation paused');
+      });
+
+      document.getElementById('btn-reset').addEventListener('click', function() {
+        state.year = 1;
+        state.cycleStep = 0;
+        state.reef = 100;
+        state.orchard = 50;
+        state.lab = 200;
+        state.larvae = 5000;
+        updateStats();
+        setCycleStep(0);
+        announce('Simulation reset to year 1');
+      });
+
+      // Lifecycle filters
+      document.getElementById('btn-show-growth').addEventListener('click', function() {
+        state.showGrowth = true; state.showShrink = false; state.showFrag = false;
+        updateLifecycleButtons(this);
+        drawLifecycle();
+      });
+
+      document.getElementById('btn-show-shrink').addEventListener('click', function() {
+        state.showGrowth = false; state.showShrink = true; state.showFrag = false;
+        updateLifecycleButtons(this);
+        drawLifecycle();
+      });
+
+      document.getElementById('btn-show-frag').addEventListener('click', function() {
+        state.showGrowth = false; state.showShrink = false; state.showFrag = true;
+        updateLifecycleButtons(this);
+        drawLifecycle();
+      });
+
+      document.getElementById('btn-show-all').addEventListener('click', function() {
+        state.showGrowth = true; state.showShrink = true; state.showFrag = true;
+        updateLifecycleButtons(this);
+        drawLifecycle();
+      });
+
+      // Cycle controls
+      document.getElementById('btn-cycle-auto').addEventListener('click', function() {
+        state.cycleAutoPlay = true;
+        this.classList.add('active');
+        document.getElementById('btn-cycle-pause').classList.remove('active');
+      });
+
+      document.getElementById('btn-cycle-pause').addEventListener('click', function() {
+        state.cycleAutoPlay = false;
+        this.classList.add('active');
+        document.getElementById('btn-cycle-auto').classList.remove('active');
+      });
+
+      // Stat boxes - add keyboard support
+      document.querySelectorAll('.stat-box').forEach(box => {
+        box.addEventListener('click', function() {
+          const comp = this.dataset.compartment;
+          if (comp) selectNode(comp);
+        });
+        // Keyboard support for stat boxes
+        box.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const comp = this.dataset.compartment;
+            if (comp) selectNode(comp);
+          }
+        });
+      });
+
+      // Table row interactions
+      document.querySelectorAll('#size-table tbody tr').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+          const sc = this.dataset.sc;
+          if (sc !== undefined) {
+            d3.select('#sc-node-' + sc).classed('highlighted', true);
+          }
+        });
+        row.addEventListener('mouseleave', function() {
+          d3.selectAll('.lifecycle-node').classed('highlighted', false);
+        });
+      });
+
+      // Initialize
+      drawSystemDiagram();
+      drawMiniLifecycle();
+      drawMiniMatrix();
+      drawCycleSteps();
+      drawLifecycle();
+      drawMatrix();
+      drawCycle();
+      updateStats();
+
+      // Simulation loop
+      setInterval(simulate, 1500);
+
+      // Navigation highlighting
+      function updateNav() {
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        let current = '';
+        sections.forEach(section => {
+          const rect = section.getBoundingClientRect();
+          if (rect.top <= 100) {
+            current = section.getAttribute('id');
+          }
+        });
+
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + current) {
+            link.classList.add('active');
+          }
+        });
+      }
+
+      window.addEventListener('scroll', updateNav);
+
+      // Mobile menu toggle
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const navOverlay = document.getElementById('nav-overlay');
+      const mainNav = document.getElementById('main-nav');
+
+      function toggleMobileMenu() {
+        const isOpen = mainNav.classList.toggle('open');
+        mobileMenuBtn.classList.toggle('active', isOpen);
+        navOverlay.classList.toggle('visible', isOpen);
+        mobileMenuBtn.setAttribute('aria-expanded', isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      }
+
+      mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+      navOverlay.addEventListener('click', toggleMobileMenu);
+
+      // Close mobile menu when nav link clicked
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          if (mainNav.classList.contains('open')) {
+            toggleMobileMenu();
+          }
+        });
+      });
+
+      // Theme toggle
+      const themeToggle = document.getElementById('theme-toggle');
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+
+      themeToggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        announce(next === 'dark' ? 'Dark mode enabled' : 'Light mode enabled');
+      });
+    });
+
+    function updateLifecycleButtons(activeBtn) {
+      ['btn-show-growth', 'btn-show-shrink', 'btn-show-frag', 'btn-show-all'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      activeBtn.classList.add('active');
+      activeBtn.setAttribute('aria-pressed', 'true');
+      announce('Showing ' + activeBtn.textContent + ' transitions');
+    }
+
+    // =====================================
+    // ACCESSIBILITY HELPERS
+    // =====================================
+    function announce(message) {
+      const liveRegion = document.getElementById('live-region');
+      if (liveRegion) {
+        liveRegion.textContent = message;
+        // Clear after announcement
+        setTimeout(() => { liveRegion.textContent = ''; }, 1000);
+      }
+    }
+
+    // =====================================
+    // SEARCH FUNCTIONALITY
+    // =====================================
+    const searchData = [
+      { id: 'overview', title: 'Dashboard', desc: 'Model overview and stats', icon: 'SYS', color: '#22c55e' },
+      { id: 'core-equation', title: 'Core Equation', desc: 'N(t+1) = S·(T+F)·N(t) + R', icon: 'EQ', color: '#7c3aed' },
+      { id: 'reef', title: 'Reef Compartment', desc: 'Restoration target population', icon: 'R', color: '#16a34a' },
+      { id: 'lab', title: 'Lab Compartment', desc: 'Settlement and rearing', icon: 'L', color: '#2563eb' },
+      { id: 'orchard', title: 'Orchard Compartment', desc: 'Nursery broodstock', icon: 'O', color: '#7c3aed' },
+      { id: 'external', title: 'External Compartment', desc: 'Wild populations', icon: 'E', color: '#475569' },
+      { id: 'size-classes', title: 'Size Classes', desc: '5 size classes (SC1-SC5)', icon: 'SC', color: '#16a34a' },
+      { id: 'transitions', title: 'Growth & Shrinkage', desc: 'Transition matrix T', icon: 'T', color: '#7c3aed' },
+      { id: 'annual-cycle', title: 'Annual Cycle', desc: '6 simulation steps', icon: 'CY', color: '#2563eb' },
+      { id: 'parameters', title: 'Parameters', desc: 'Complete parameter reference', icon: 'P', color: '#f59e0b' },
+      { id: 'space-constraints', title: 'Space Constraints', desc: 'Carrying capacity', icon: 'K', color: '#16a34a' },
+      { id: 'disturbance', title: 'Disturbance Effects', desc: 'Hurricanes, bleaching', icon: 'D', color: '#d93025' },
+      { id: 'outputs', title: 'Model Outputs', desc: 'rse_mod() return values', icon: 'OUT', color: '#2563eb' },
+      { id: 'functions', title: 'Demographic Functions', desc: 'Surv_fun, G_fun, Rep_fun', icon: 'FN', color: '#7c3aed' },
+    ];
+
+    const searchOverlay = document.getElementById('search-overlay');
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    let searchIndex = -1;
+
+    function openSearch() {
+      searchOverlay.classList.add('open');
+      searchInput.value = '';
+      searchInput.focus();
+      renderSearchResults('');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSearch() {
+      searchOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+      searchIndex = -1;
+    }
+
+    function renderSearchResults(query) {
+      const q = query.toLowerCase();
+      const filtered = q ? searchData.filter(item =>
+        item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q)
+      ) : searchData;
+
+      searchResults.innerHTML = filtered.map((item, i) => `
+        <div class="search-result${i === searchIndex ? ' active' : ''}" data-id="${item.id}">
+          <div class="search-result-icon" style="background: ${item.color}">${item.icon}</div>
+          <div class="search-result-text">
+            <div class="search-result-title">${item.title}</div>
+            <div class="search-result-desc">${item.desc}</div>
+          </div>
+        </div>
+      `).join('');
+
+      searchResults.querySelectorAll('.search-result').forEach(el => {
+        el.addEventListener('click', () => navigateTo(el.dataset.id));
+      });
+    }
+
+    function navigateTo(id) {
+      closeSearch();
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      announce('Navigated to ' + id);
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      searchIndex = -1;
+      renderSearchResults(e.target.value);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      const results = searchResults.querySelectorAll('.search-result');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        searchIndex = Math.min(searchIndex + 1, results.length - 1);
+        updateSearchActive(results);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        searchIndex = Math.max(searchIndex - 1, 0);
+        updateSearchActive(results);
+      } else if (e.key === 'Enter' && searchIndex >= 0) {
+        e.preventDefault();
+        results[searchIndex]?.click();
+      }
+    });
+
+    function updateSearchActive(results) {
+      results.forEach((r, i) => r.classList.toggle('active', i === searchIndex));
+      results[searchIndex]?.scrollIntoView({ block: 'nearest' });
+    }
+
+    searchOverlay.addEventListener('click', (e) => {
+      if (e.target === searchOverlay) closeSearch();
+    });
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Cmd/Ctrl+K to open search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        openSearch();
+      }
+      // Escape to close search or tooltip
+      if (e.key === 'Escape') {
+        if (searchOverlay.classList.contains('open')) {
+          closeSearch();
+        } else {
+          hideTooltip();
+        }
+      }
+      // Space to toggle play/pause when not in an input
+      if (e.key === ' ' && !['INPUT', 'TEXTAREA', 'BUTTON'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        if (state.playing) {
+          document.getElementById('btn-pause').click();
+        } else {
+          document.getElementById('btn-play').click();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
