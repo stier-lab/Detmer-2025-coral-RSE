@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Color Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            external: '#10b981',
+            lab: '#3b82f6',
+            orchard: '#06b6d4',
+            reef: '#f43f5e',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="p-8 bg-gray-100">
+  <h1 class="text-2xl font-bold mb-4">Tailwind Color Test</h1>
+
+  <div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="bg-external text-white p-4 rounded-lg text-center">
+      <div class="text-4xl mb-2">🌍</div>
+      <div>External</div>
+    </div>
+    <div class="bg-lab text-white p-4 rounded-lg text-center">
+      <div class="text-4xl mb-2">🔬</div>
+      <div>Lab</div>
+    </div>
+    <div class="bg-orchard text-white p-4 rounded-lg text-center">
+      <div class="text-4xl mb-2">🌿</div>
+      <div>Orchard</div>
+    </div>
+    <div class="bg-reef text-white p-4 rounded-lg text-center">
+      <div class="text-4xl mb-2">🪸</div>
+      <div>Reef</div>
+    </div>
+  </div>
+
+  <div class="bg-white p-4 rounded-lg">
+    <p>If you see colored boxes above, Tailwind is working correctly.</p>
+    <p>If boxes are white/transparent, there's a Tailwind config issue.</p>
+  </div>
+</body>
+</html>

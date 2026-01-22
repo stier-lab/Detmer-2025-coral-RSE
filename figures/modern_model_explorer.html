@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coral Restoration Model Explorer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --error: #f87171;
+            --external: #10b981;
+            --lab: #3b82f6;
+            --orchard: #06b6d4;
+            --reef: #f43f5e;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            background: var(--bg-primary);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .header .description {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            background: var(--bg-primary);
+            border-radius: 1rem;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.875rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0.5rem;
+            height: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--bg-primary);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-xl);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .card h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Flow Diagram Container */
+        .flow-container {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 3rem;
+            min-height: 700px;
+            position: relative;
+            overflow: visible;
+        }
+
+        /* Compartment Cards */
+        .compartment {
+            position: absolute;
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            min-width: 240px;
+        }
+
+        .compartment:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+            z-index: 10;
+        }
+
+        .compartment.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), var(--shadow-xl);
+        }
+
+        .compartment-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .compartment-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .compartment-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .compartment-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .compartment-params {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .param-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .param-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .param-dot {
+            width: 0.375rem;
+            height: 0.375rem;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        /* Specific Compartment Positions and Colors */
+        .compartment.external {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .compartment.external .compartment-icon {
+            background: linear-gradient(135deg, var(--external), #059669);
+        }
+
+        .compartment.lab {
+            top: 220px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .compartment.lab .compartment-icon {
+            background: linear-gradient(135deg, var(--lab), #2563eb);
+        }
+
+        .compartment.orchard {
+            top: 480px;
+            right: 80px;
+        }
+
+        .compartment.orchard .compartment-icon {
+            background: linear-gradient(135deg, var(--orchard), #0891b2);
+        }
+
+        .compartment.reef {
+            top: 480px;
+            left: 80px;
+        }
+
+        .compartment.reef .compartment-icon {
+            background: linear-gradient(135deg, var(--reef), #e11d48);
+        }
+
+        /* Size Class Grid */
+        .size-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .size-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .size-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .size-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .size-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.75rem;
+        }
+
+        .size-icon {
+            font-size: 3rem;
+            margin: 1rem 0;
+            opacity: 0.8;
+        }
+
+        .size-range {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .size-features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .size-feature {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .size-feature::before {
+            content: '•';
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Equation Display */
+        .equation-container {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 1rem;
+            padding: 3rem;
+            color: white;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .equation-main {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.025em;
+        }
+
+        .equation-parts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .equation-part {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .equation-symbol {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .equation-name {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .equation-desc {
+            font-size: 0.8125rem;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        /* Timeline Styles */
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 40px;
+            top: 80px;
+            width: 2px;
+            height: calc(100% + 3rem);
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            opacity: 0.3;
+        }
+
+        .timeline-item:last-child::before {
+            display: none;
+        }
+
+        .timeline-number {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .timeline-content:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateX(4px);
+        }
+
+        .timeline-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .timeline-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-code {
+            background: var(--bg-tertiary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            overflow-x: auto;
+            border-left: 3px solid var(--primary);
+        }
+
+        /* Info Boxes */
+        .info-box {
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+            background: white;
+        }
+
+        .info-box.primary {
+            border-left-color: var(--primary);
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .info-box.success {
+            border-left-color: var(--success);
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .info-box.warning {
+            border-left-color: var(--warning);
+            background: rgba(251, 191, 36, 0.05);
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .info-box-content {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        /* Parameter Grid */
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .param-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid var(--primary);
+        }
+
+        .param-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .param-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .param-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .param-card-badge {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .param-card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.75rem;
+        }
+
+        .param-card-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 1rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legend-color {
+            width: 3rem;
+            height: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .legend-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Details Panel */
+        .details-panel {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: var(--shadow-lg);
+            border-top: 4px solid var(--primary);
+            display: none;
+        }
+
+        .details-panel.active {
+            display: block;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .details-panel h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .details-panel h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .details-panel ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .details-panel li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.75rem;
+            position: relative;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .details-panel li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-primary);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            box-shadow: var(--shadow-lg);
+            margin-top: 2rem;
+        }
+
+        .footer-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .footer-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .flow-container {
+                min-height: 900px;
+            }
+
+            .compartment {
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+                transform: none !important;
+                margin-bottom: 1.5rem;
+            }
+
+            .compartment:hover {
+                transform: translateY(-4px) !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 2rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                width: 100%;
+            }
+
+            .size-grid,
+            .param-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .equation-main {
+                font-size: 1.5rem;
+            }
+
+            .timeline-item {
+                grid-template-columns: 60px 1fr;
+                gap: 1rem;
+            }
+
+            .timeline-number {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            padding: 0.75rem 1rem;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            max-width: 300px;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .tooltip.active {
+            opacity: 1;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🪸 Coral Restoration Model Explorer</h1>
+                <p class="subtitle">Interactive Guide to Population Dynamics & Restoration Strategy</p>
+                <p class="description">
+                    Explore how lab rearing, nursery cultivation, and field outplanting work together
+                    to restore Acropora palmata populations. This model tracks corals through 5 size classes
+                    across 3 integrated compartments, helping you optimize restoration strategies.
+                </p>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs" role="tablist">
+            <button class="tab active" role="tab" aria-selected="true" onclick="showTab('overview')">
+                System Overview
+            </button>
+            <button class="tab" role="tab" aria-selected="false" onclick="showTab('sizeclass')">
+                Size Classes
+            </button>
+            <button class="tab" role="tab" aria-selected="false" onclick="showTab('equation')">
+                Core Equation
+            </button>
+            <button class="tab" role="tab" aria-selected="false" onclick="showTab('annual')">
+                Annual Cycle
+            </button>
+            <button class="tab" role="tab" aria-selected="false" onclick="showTab('parameters')">
+                Key Parameters
+            </button>
+        </nav>
+
+        <!-- Tab 1: System Overview -->
+        <div id="overview" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🌊</div>
+                    <h2>The Restoration System</h2>
+                </div>
+
+                <div class="info-box primary">
+                    <div class="info-box-title">💡 Key Innovation</div>
+                    <div class="info-box-content">
+                        This model tracks <strong>coral provenance</strong> — where each coral came from
+                        (wild larvae, cement tiles, ceramic tiles, immediate vs. 1-year rearing) throughout
+                        the entire system. This lets you compare which restoration pathway works best.
+                    </div>
+                </div>
+
+                <div class="flow-container">
+                    <!-- External Reefs -->
+                    <div class="compartment external" onclick="showCompartmentDetails('external')">
+                        <div class="compartment-header">
+                            <div class="compartment-icon">🌍</div>
+                            <div class="compartment-title">External Reefs</div>
+                        </div>
+                        <div class="compartment-description">
+                            Wild coral populations providing natural recruitment and larvae for lab collection
+                        </div>
+                        <div class="compartment-params">
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                <span class="param-label">λ:</span> Direct recruits/year
+                            </div>
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                <span class="param-label">λ_R:</span> Larvae available
+                            </div>
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                <span class="param-label">reef_yield:</span> Collection efficiency
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lab Facility -->
+                    <div class="compartment lab" onclick="showCompartmentDetails('lab')">
+                        <div class="compartment-header">
+                            <div class="compartment-icon">🔬</div>
+                            <div class="compartment-title">Lab Facility</div>
+                        </div>
+                        <div class="compartment-description">
+                            Settlement on tiles (cement/ceramic) with two timing options
+                        </div>
+                        <div class="compartment-params">
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                <span class="param-label">Tiles:</span> T1 (cement), T2 (ceramic)
+                            </div>
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                <span class="param-label">Timing:</span> 0_TX (immediate), 1_TX (1-year)
+                            </div>
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                <span class="param-label">lab_max:</span> Processing capacity
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orchard -->
+                    <div class="compartment orchard" onclick="showCompartmentDetails('orchard')">
+                        <div class="compartment-header">
+                            <div class="compartment-icon">🌱</div>
+                            <div class="compartment-title">Orchard</div>
+                        </div>
+                        <div class="compartment-description">
+                            Protected nursery creating positive feedback loop
+                        </div>
+                        <div class="compartment-params">
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                Higher survival & growth
+                            </div>
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                <span class="param-label">orchard_yield:</span> Larval collection
+                            </div>
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                No fragmentation
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Restoration Reef -->
+                    <div class="compartment reef" onclick="showCompartmentDetails('reef')">
+                        <div class="compartment-header">
+                            <div class="compartment-icon">🪸</div>
+                            <div class="compartment-title">Restoration Reef</div>
+                        </div>
+                        <div class="compartment-description">
+                            Target site with natural field dynamics and space constraints
+                        </div>
+                        <div class="compartment-params">
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                Fragmentation occurs
+                            </div>
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                <span class="param-label">reef_areas:</span> Carrying capacity
+                            </div>
+                            <div class="param-item">
+                                <span class="param-dot"></span>
+                                Tracks provenance
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SVG for arrows -->
+                    <svg id="flowArrows" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#667eea" />
+                            </marker>
+                            <marker id="arrowhead-feedback" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#764ba2" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #10b981, #059669);"></div>
+                        <span class="legend-label"><strong>External:</strong> Wild source</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #3b82f6, #2563eb);"></div>
+                        <span class="legend-label"><strong>Lab:</strong> Settlement & rearing</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #06b6d4, #0891b2);"></div>
+                        <span class="legend-label"><strong>Orchard:</strong> Protected nursery</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #f43f5e, #e11d48);"></div>
+                        <span class="legend-label"><strong>Reef:</strong> Restoration target</span>
+                    </div>
+                </div>
+
+                <div id="compartmentDetailsPanel" class="details-panel">
+                    <!-- Details will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Size Classes -->
+        <div id="sizeclass" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📏</div>
+                    <h2>Five Size Classes</h2>
+                </div>
+
+                <div class="info-box success">
+                    <div class="info-box-title">🔬 Why Size Classes?</div>
+                    <div class="info-box-content">
+                        Coral demography depends on <strong>size, not age</strong>. A small coral that's 10 years old
+                        behaves like a small coral that's 2 years old — size determines survival, growth, and reproduction rates.
+                    </div>
+                </div>
+
+                <div class="size-grid">
+                    <div class="size-card">
+                        <div class="size-label">SC1</div>
+                        <div class="size-icon">🔬</div>
+                        <div class="size-range">0–10 cm²</div>
+                        <div class="size-features">
+                            <div class="size-feature">Recruits/Settlers</div>
+                            <div class="size-feature">High mortality (40-60%)</div>
+                            <div class="size-feature">No reproduction</div>
+                        </div>
+                    </div>
+
+                    <div class="size-card">
+                        <div class="size-label">SC2</div>
+                        <div class="size-icon">🌿</div>
+                        <div class="size-range">10–100 cm²</div>
+                        <div class="size-features">
+                            <div class="size-feature">Small juveniles</div>
+                            <div class="size-feature">Moderate growth</div>
+                            <div class="size-feature">Minimal reproduction</div>
+                        </div>
+                    </div>
+
+                    <div class="size-card">
+                        <div class="size-label">SC3</div>
+                        <div class="size-icon">🌳</div>
+                        <div class="size-range">100–900 cm²</div>
+                        <div class="size-features">
+                            <div class="size-feature">Large juveniles</div>
+                            <div class="size-feature">Faster growth</div>
+                            <div class="size-feature">Begins reproduction</div>
+                        </div>
+                    </div>
+
+                    <div class="size-card">
+                        <div class="size-label">SC4</div>
+                        <div class="size-icon">🏛️</div>
+                        <div class="size-range">900–4,000 cm²</div>
+                        <div class="size-features">
+                            <div class="size-feature">Subadults</div>
+                            <div class="size-feature">Fragmentation begins</div>
+                            <div class="size-feature">High fecundity</div>
+                        </div>
+                    </div>
+
+                    <div class="size-card">
+                        <div class="size-label">SC5</div>
+                        <div class="size-icon">👑</div>
+                        <div class="size-range">&gt;4,000 cm²</div>
+                        <div class="size-features">
+                            <div class="size-feature">Reproductive adults</div>
+                            <div class="size-feature">Maximum fecundity</div>
+                            <div class="size-feature">Maximum fragmentation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="param-grid">
+                    <div class="param-card" style="border-left-color: var(--success);">
+                        <div class="param-card-header">
+                            <div class="param-card-title">⬆️ Growth</div>
+                        </div>
+                        <p class="param-card-description">
+                            Corals can grow to the next larger size class (e.g., SC2 → SC3).
+                            Can't skip classes — no jumping from SC1 to SC3.
+                        </p>
+                    </div>
+
+                    <div class="param-card" style="border-left-color: var(--warning);">
+                        <div class="param-card-header">
+                            <div class="param-card-title">⬇️ Shrinkage</div>
+                        </div>
+                        <p class="param-card-description">
+                            Partial mortality from disease, predation, or stress. Corals can shrink to
+                            any smaller class (e.g., SC4 → SC1 in severe cases).
+                        </p>
+                    </div>
+
+                    <div class="param-card" style="border-left-color: var(--text-tertiary);">
+                        <div class="param-card-header">
+                            <div class="param-card-title">⏸️ Stasis</div>
+                        </div>
+                        <p class="param-card-description">
+                            Stay in the same size class. Most common outcome — not all corals grow every year.
+                            Probability = 1 - (growth + shrinkage).
+                        </p>
+                    </div>
+
+                    <div class="param-card" style="border-left-color: var(--secondary);">
+                        <div class="param-card-header">
+                            <div class="param-card-title">💔 Fragmentation</div>
+                        </div>
+                        <p class="param-card-description">
+                            Only SC4 and SC5 break apart (e.g., during storms), creating multiple smaller colonies.
+                            This is asexual reproduction — increases total population.
+                        </p>
+                    </div>
+
+                    <div class="param-card" style="border-left-color: var(--lab);">
+                        <div class="param-card-header">
+                            <div class="param-card-title">🐣 Reproduction</div>
+                        </div>
+                        <p class="param-card-description">
+                            SC3+ produce larvae. Larger corals produce exponentially more
+                            (SC5 might produce 100,000+ larvae/year).
+                        </p>
+                    </div>
+
+                    <div class="param-card" style="border-left-color: var(--error);">
+                        <div class="param-card-header">
+                            <div class="param-card-title">☠️ Mortality</div>
+                        </div>
+                        <p class="param-card-description">
+                            Each size class has a survival probability (typically 40–90%).
+                            Smaller corals die more easily.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Core Equation -->
+        <div id="equation" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🧮</div>
+                    <h2>Core Population Equation</h2>
+                </div>
+
+                <div class="equation-container">
+                    <div class="equation-main">N(t+1) = S · (T + F) · N(t) + R</div>
+
+                    <div class="equation-parts">
+                        <div class="equation-part">
+                            <div class="equation-symbol">N(t)</div>
+                            <div class="equation-name">Population Vector</div>
+                            <div class="equation-desc">
+                                Number of corals in each size class at time t
+                            </div>
+                        </div>
+
+                        <div class="equation-part">
+                            <div class="equation-symbol">S</div>
+                            <div class="equation-name">Survival Matrix</div>
+                            <div class="equation-desc">
+                                Diagonal matrix with size-specific survival probabilities
+                            </div>
+                        </div>
+
+                        <div class="equation-part">
+                            <div class="equation-symbol">T</div>
+                            <div class="equation-name">Transition Matrix</div>
+                            <div class="equation-desc">
+                                Growth, shrinkage, and stasis probabilities
+                            </div>
+                        </div>
+
+                        <div class="equation-part">
+                            <div class="equation-symbol">F</div>
+                            <div class="equation-name">Fragmentation Matrix</div>
+                            <div class="equation-desc">
+                                Asexual reproduction via colony breakage
+                            </div>
+                        </div>
+
+                        <div class="equation-part">
+                            <div class="equation-symbol">R</div>
+                            <div class="equation-name">Recruitment Vector</div>
+                            <div class="equation-desc">
+                                New larvae settling from external and lab sources
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box success">
+                    <div class="info-box-title">🔬 Ecological Interpretation</div>
+                    <div class="info-box-content">
+                        <ol style="margin-left: 1.5rem; margin-top: 0.75rem;">
+                            <li>Start with your population in year <em>t</em></li>
+                            <li>Some corals die (multiply by <strong>S</strong>)</li>
+                            <li>Survivors grow, shrink, or stay same size (multiply by <strong>T</strong>)</li>
+                            <li>Large corals fragment, creating new individuals (add <strong>F</strong>)</li>
+                            <li>New larvae settle, adding recruits (add <strong>R</strong>)</li>
+                            <li>Result = population in year <em>t+1</em></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="param-grid">
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">S - Survival</div>
+                            <div class="param-card-badge">Diagonal</div>
+                        </div>
+                        <div class="param-card-value">0.4 – 0.9</div>
+                        <p class="param-card-description">
+                            Each size class has its own survival rate. SC1: 40%, SC5: 90%.
+                            Small changes here dramatically affect population growth (λ).
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">T - Transition</div>
+                            <div class="param-card-badge">5×5 Matrix</div>
+                        </div>
+                        <div class="param-card-value">Σ = 1.0</div>
+                        <p class="param-card-description">
+                            Each column sums to 1. Above diagonal = growth, below = shrinkage,
+                            diagonal = stasis. Encodes all size class movement probabilities.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">F - Fragmentation</div>
+                            <div class="param-card-badge">5×5 Matrix</div>
+                        </div>
+                        <div class="param-card-value">Σ &gt; 1.0</div>
+                        <p class="param-card-description">
+                            Columns can exceed 1 because fragmentation creates new individuals!
+                            Only SC4 and SC5 produce fragments.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">R - Recruitment</div>
+                            <div class="param-card-badge">Vector</div>
+                        </div>
+                        <div class="param-card-value">→ SC1</div>
+                        <p class="param-card-description">
+                            New settlers almost always enter SC1 (smallest class).
+                            Sources: wild larvae + lab outplants from all treatments.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Annual Cycle -->
+        <div id="annual" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📅</div>
+                    <h2>Annual Model Cycle</h2>
+                </div>
+
+                <div class="info-box primary">
+                    <div class="info-box-title">⏱️ Sequence Matters</div>
+                    <div class="info-box-content">
+                        These 9 steps execute in order every model year. Understanding the sequence
+                        helps you see where bottlenecks occur and when constraints apply.
+                    </div>
+                </div>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-number">1</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Survival & Growth (Reef)</div>
+                            <div class="timeline-description">
+                                Existing corals on the reef either die, grow, shrink, or stay the same size.
+                                Large corals (SC4, SC5) can fragment. External recruits (wild larvae) settle into SC1.
+                            </div>
+                            <div class="timeline-code">
+                                N_reef(t+1) = S · (T + F) · N_reef(t) + external_recruits
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-number">2</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Survival & Growth (Orchard)</div>
+                            <div class="timeline-description">
+                                Same process in the nursery orchard, but with higher survival and faster growth
+                                (protected environment). No fragmentation in the orchard.
+                            </div>
+                            <div class="timeline-code">
+                                N_orchard(t+1) = S · T · N_orchard(t)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-number">3</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Reproduction</div>
+                            <div class="timeline-description">
+                                Corals in SC3+ produce larvae. Calculate total larvae from orchard,
+                                reference reefs, and restoration reef.
+                            </div>
+                            <div class="timeline-code">
+                                larvae = Σ(N[i] × fecundity[i]) for i ∈ {SC3, SC4, SC5}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-number">4</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Larvae Collection</div>
+                            <div class="timeline-description">
+                                Collect fraction of larvae from orchard (orchard_yield) and reference reefs (reef_yield).
+                                Total larvae capped at lab capacity (lab_max).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-number">5</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Lab Settlement & Survival</div>
+                            <div class="timeline-description">
+                                Larvae settle on tiles with different success rates. Split into immediate (0_TX)
+                                and 1-year retention (1_TX) treatments. Density dependence applies.
+                            </div>
+                            <div class="timeline-code">
+                                survival = s × exp(-m × density)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-number">6</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Outplanting Allocation</div>
+                            <div class="timeline-description">
+                                Surviving settlers distributed to reef and orchard based on reef_prop parameter.
+                                Further distributed across multiple reefs/orchards if configured.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-number">7</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Space Constraints</div>
+                            <div class="timeline-description">
+                                Check if destinations have space. Reef: if occupied ≥ reef_areas, block outplants.
+                                Orchard: if colonies ≥ orchard_size, calculate partial acceptance.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-number">8</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Add Outplants</div>
+                            <div class="timeline-description">
+                                Successfully outplanted corals added to destinations, distributed across size classes
+                                according to size_props (e.g., 70% SC1, 30% SC2 if they've grown in lab).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-number">9</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Transplanting (Optional)</div>
+                            <div class="timeline-description">
+                                If scheduled, move large orchard colonies directly to reef. Useful for rapid
+                                coral cover increase and boosting reproduction.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box warning">
+                    <div class="info-box-title">🔄 The Feedback Loop</div>
+                    <div class="info-box-content">
+                        <strong>Orchard → Larvae → Lab → Orchard → Repeat</strong><br>
+                        This positive feedback loop means initial investment in an orchard pays off exponentially
+                        as orchard corals mature and produce more larvae for the lab. This is why orchard_yield
+                        is such a critical parameter!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Key Parameters -->
+        <div id="parameters" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🎛️</div>
+                    <h2>Most Important Parameters</h2>
+                </div>
+
+                <div class="info-box warning">
+                    <div class="info-box-title">🎯 Parameter Sensitivity</div>
+                    <div class="info-box-content">
+                        Not all parameters matter equally! <strong>Survival (especially SC1-3)</strong> and
+                        <strong>lab capacity</strong> have the biggest impact on restoration success.
+                        A 10% increase in SC2 survival has more impact than doubling fragmentation rates.
+                    </div>
+                </div>
+
+                <div class="param-grid">
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">🧬 Survival</div>
+                            <div class="param-card-badge">CRITICAL</div>
+                        </div>
+                        <div class="param-card-value">0.4 – 0.9</div>
+                        <p class="param-card-description">
+                            Fraction surviving each year, by size class. <strong>Most influential parameter.</strong>
+                            Small changes (0.7 → 0.75) can shift from population decline to growth.
+                            Focus on keeping young corals alive!
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">🔬 Lab Capacity</div>
+                            <div class="param-card-badge">BOTTLENECK</div>
+                        </div>
+                        <div class="param-card-value">10k – 40k</div>
+                        <p class="param-card-description">
+                            Maximum larvae processed per year. <strong>Common bottleneck.</strong>
+                            If orchard produces 100k larvae but lab_max = 20k, you lose 80k potential settlers.
+                            Expanding lab capacity often has high ROI.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">🌱 Orchard Yield</div>
+                            <div class="param-card-badge">FEEDBACK</div>
+                        </div>
+                        <div class="param-card-value">0.0 – 1.0</div>
+                        <p class="param-card-description">
+                            Fraction of orchard larvae collected. <strong>Determines feedback loop strength.</strong>
+                            Higher yield = more sustainable restoration with less dependence on unpredictable wild spawning.
+                            Investment in collection infrastructure pays off over time.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">🪸 Reef Allocation</div>
+                            <div class="param-card-badge">TRADE-OFF</div>
+                        </div>
+                        <div class="param-card-value">0.0 – 1.0</div>
+                        <p class="param-card-description">
+                            Fraction of outplants to reef vs. orchard. <strong>Key strategic decision:</strong>
+                            Immediate reef restoration vs. building orchard "seed bank" for long-term sustainability.
+                            Optimal balance depends on your timeline and goals.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">⬆️ Growth Rate</div>
+                            <div class="param-card-badge">TIMING</div>
+                        </div>
+                        <div class="param-card-value">0.0 – 0.3</div>
+                        <p class="param-card-description">
+                            Probability of growing to next size class. Faster growth = quicker path to reproduction.
+                            Getting corals to SC3+ (reproductive size) is critical because that's when they
+                            start contributing larvae.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">💔 Fragmentation</div>
+                            <div class="param-card-badge">ASEXUAL</div>
+                        </div>
+                        <div class="param-card-value">0.0 – 0.3</div>
+                        <p class="param-card-description">
+                            Rate of asexual reproduction via colony breakage (SC4-5 only). Can double population
+                            growth in high-energy environments. One SC5 colony might produce 0.6 new corals via
+                            fragmentation in a single storm season.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">🐣 Fecundity</div>
+                            <div class="param-card-badge">SCALING</div>
+                        </div>
+                        <div class="param-card-value">0 – 100k</div>
+                        <p class="param-card-description">
+                            Larvae produced per coral per year. Scales exponentially with size: SC1-2 don't reproduce,
+                            SC5 produces 100,000+ larvae. Large adults are larval "factories" — protecting them
+                            is crucial for population growth.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">📍 Reef Capacity</div>
+                            <div class="param-card-badge">CONSTRAINT</div>
+                        </div>
+                        <div class="param-card-value">10⁵ – 10⁷ cm²</div>
+                        <p class="param-card-description">
+                            Total space available on restoration reef. Hard limit: once full, no more outplants
+                            accepted. Choose restoration sites with adequate space. 80,000 cm² = 8 m² (small patch),
+                            10 million cm² = 1,000 m² (large reef area).
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">🌿 Settlement Rate</div>
+                            <div class="param-card-badge">EFFICIENCY</div>
+                        </div>
+                        <div class="param-card-value">0.8 – 0.95</div>
+                        <p class="param-card-description">
+                            Fraction of larvae successfully settling on tiles. Small differences compound:
+                            95% vs. 90% means 5% more settlers from the same larvae. Tile type (cement vs. ceramic)
+                            affects this rate.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">⏱️ Lab Survival</div>
+                            <div class="param-card-badge">TREATMENT</div>
+                        </div>
+                        <div class="param-card-value">0.6 – 0.95</div>
+                        <p class="param-card-description">
+                            Fraction surviving to outplanting. Immediate (s0 ≈ 0.9) vs. 1-year retention (s1 ≈ 0.7).
+                            Trade-off: immediate has higher survival but smaller size at outplanting.
+                            1-year produces larger outplants but more die in lab.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">📊 Density Dependence</div>
+                            <div class="param-card-badge">CROWDING</div>
+                        </div>
+                        <div class="param-card-value">0.0 – 0.05</div>
+                        <p class="param-card-description">
+                            How crowding reduces survival: survival = s × exp(-m × N). m=0: no effect,
+                            m=0.05: strong crowding. Cramming 10,000 larvae in limited space causes survival to drop.
+                            This creates quality vs. quantity trade-off.
+                        </p>
+                    </div>
+
+                    <div class="param-card">
+                        <div class="param-card-header">
+                            <div class="param-card-title">🏗️ Orchard Size</div>
+                            <div class="param-card-badge">INVESTMENT</div>
+                        </div>
+                        <div class="param-card-value">100 – 10k</div>
+                        <p class="param-card-description">
+                            Maximum colonies orchard can hold (all sizes combined). Larger orchards produce more
+                            larvae but cost more to maintain. 200 = small (30 trees × 7 corals/tree),
+                            2,400 = large (80 trees × 30 corals/tree). ROI improves as orchard matures.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-title">Coral Restoration System Dynamics Model</div>
+            <p style="margin-top: 0.5rem;">
+                Stage-structured population model for <em>Acropora palmata</em> restoration strategy optimization
+            </p>
+            <div class="footer-links">
+                <a href="MODEL_ARCHITECTURE_SPECIFICATION.md" class="footer-link">Technical Specification</a>
+                <a href="model_visual_summary.html" class="footer-link">Visual Summary</a>
+                <a href="../README.md" class="footer-link">GitHub Repository</a>
+            </div>
+            <p style="margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-tertiary);">
+                Developed by Raine Detmer & Adrian Stier • January 2026
+            </p>
+        </footer>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip" role="tooltip"></div>
+
+    <script>
+        // Tab switching with accessibility
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Deactivate all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Activate selected tab
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Compartment details data
+        const compartmentDetails = {
+            external: {
+                title: '🌍 External Reference Reefs',
+                content: `
+                    <h4>Role: Wild Larval Source</h4>
+                    <p>External reefs represent nearby wild coral populations that provide two types of recruitment:</p>
+                    <ul>
+                        <li><strong>Direct recruitment (λ):</strong> Wild larvae that naturally settle on your restoration reef.
+                        Typically very low (0-10 recruits/year) because natural recruitment is rare.</li>
+                        <li><strong>Lab collection (λ_R):</strong> During spawning events, collect gametes from reference reefs,
+                        fertilize them, and rear larvae in lab. Can provide thousands of larvae annually.</li>
+                    </ul>
+                    <h4>Key Parameter</h4>
+                    <p><strong>reef_yield</strong> = fraction of reference reef larvae successfully collected (typically 0.001-0.01, or 0.1-1%).</p>
+                    <div class="info-box success" style="margin-top: 1rem;">
+                        <strong>Ecological Reality:</strong> Wild coral spawning is unpredictable and brief (1-2 nights/year).
+                        Collection requires good timing, calm weather, and proper equipment.
+                    </div>
+                `
+            },
+            lab: {
+                title: '🔬 Lab Facility',
+                content: `
+                    <h4>Role: Settlement & Early Rearing</h4>
+                    <p>The lab processes collected larvae through settlement and early growth.</p>
+
+                    <h4>Tile Types</h4>
+                    <ul>
+                        <li><strong>T1 (Cement):</strong> Traditional substrate. Often 95% settlement success.</li>
+                        <li><strong>T2 (Ceramic):</strong> Alternative substrate. May have different settlement but better long-term survival.</li>
+                    </ul>
+
+                    <h4>Timing Treatments</h4>
+                    <ul>
+                        <li><strong>Immediate (0_TX):</strong> Outplant within weeks. Higher survival (~90%) but smaller size.</li>
+                        <li><strong>1-Year (1_TX):</strong> Keep for a year to grow larger. Lower survival (~70%) but bigger outplants may do better in field.</li>
+                    </ul>
+
+                    <h4>Density Dependence</h4>
+                    <p>Survival = base_rate × exp(-m × settlers)</p>
+                    <p>As more larvae crowd in, survival drops exponentially. Trade-off: more larvae = more potential outplants, but lower survival per larva.</p>
+
+                    <div class="info-box warning" style="margin-top: 1rem;">
+                        <strong>Capacity Constraint:</strong> lab_max limits total larvae processed. Often the bottleneck in scaling restoration.
+                    </div>
+                `
+            },
+            orchard: {
+                title: '🌱 Orchard (Nursery)',
+                content: `
+                    <h4>Dual Function</h4>
+                    <p>The orchard serves two critical roles:</p>
+
+                    <h4>1. Grow Corals to Larger Sizes</h4>
+                    <ul>
+                        <li>Lab settlers arrive small (SC1-2) and grow in protected environment</li>
+                        <li>Higher survival than field (0.7-0.95 vs. 0.4-0.8)</li>
+                        <li>Faster growth rates (optimal conditions, no predators)</li>
+                        <li>No fragmentation (controlled environment)</li>
+                    </ul>
+
+                    <h4>2. Produce Larvae for Lab</h4>
+                    <p>As orchard corals reach SC3+, they reproduce. Large colonies (SC4-5) produce tens of thousands of larvae annually.</p>
+
+                    <div class="info-box success" style="margin-top: 1rem;">
+                        <strong>Positive Feedback Loop:</strong> Orchard corals → produce larvae → collected for lab →
+                        settlers outplanted to orchard → grow to reproductive size → produce more larvae.
+                        After establishment, a productive orchard can supply most lab larvae, reducing dependence on wild spawning.
+                    </div>
+
+                    <h4>Transplanting Option</h4>
+                    <p>Large orchard colonies can be transplanted directly to reef for rapid cover increase and immediate reproduction boost.</p>
+                `
+            },
+            reef: {
+                title: '🪸 Restoration Reef',
+                content: `
+                    <h4>Role: Restoration Target Site</h4>
+                    <p>The reef is your ultimate goal — establishing self-sustaining coral populations.</p>
+
+                    <h4>Natural Field Dynamics</h4>
+                    <ul>
+                        <li><strong>Field conditions:</strong> Survival and growth reflect real-world stresses</li>
+                        <li><strong>Fragmentation:</strong> Storms break large colonies, creating new individuals</li>
+                        <li><strong>Reproduction:</strong> SC3+ produce larvae (can be collected in some scenarios)</li>
+                    </ul>
+
+                    <h4>Carrying Capacity</h4>
+                    <p>reef_areas sets maximum space (in cm²). When occupied area reaches this limit, no more outplants accepted.
+                    Enforces realistic space limitation without explicit competition equations.</p>
+
+                    <h4>Provenance Tracking</h4>
+                    <p>Model separately tracks reef corals by origin:</p>
+                    <ul>
+                        <li>External recruits (wild larvae)</li>
+                        <li>Lab treatment 1 outplants (e.g., cement, immediate)</li>
+                        <li>Lab treatment 2 outplants (e.g., ceramic, immediate)</li>
+                        <li>Lab treatment 3 outplants (e.g., cement, 1-year)</li>
+                    </ul>
+
+                    <div class="info-box primary" style="margin-top: 1rem;">
+                        <strong>Success Metrics:</strong> Coral cover (m²), population size, population growth rate (λ),
+                        larval production, and trajectory toward self-sustainability.
+                    </div>
+                `
+            }
+        };
+
+        // Show compartment details
+        function showCompartmentDetails(compartmentName) {
+            const panel = document.getElementById('compartmentDetailsPanel');
+            const details = compartmentDetails[compartmentName];
+
+            // Remove active class from all compartments
+            document.querySelectorAll('.compartment').forEach(c => {
+                c.classList.remove('active');
+            });
+
+            // Add active class to clicked compartment
+            event.currentTarget.classList.add('active');
+
+            // Update panel content
+            panel.innerHTML = `
+                <h3>${details.title}</h3>
+                ${details.content}
+            `;
+
+            // Show panel
+            panel.classList.add('active');
+
+            // Scroll to panel
+            setTimeout(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        // Draw arrows between compartments (responsive)
+        function drawFlowArrows() {
+            const svg = d3.select('#flowArrows');
+            svg.selectAll('*').remove();
+
+            // Only draw arrows on desktop
+            if (window.innerWidth < 1024) return;
+
+            const arrows = [
+                { from: '.external', to: '.lab', type: 'material' },
+                { from: '.lab', to: '.reef', type: 'material' },
+                { from: '.lab', to: '.orchard', type: 'material' },
+                { from: '.orchard', to: '.lab', type: 'feedback' }
+            ];
+
+            arrows.forEach(arrow => {
+                const fromEl = document.querySelector(arrow.from);
+                const toEl = document.querySelector(arrow.to);
+
+                if (!fromEl || !toEl) return;
+
+                const fromRect = fromEl.getBoundingClientRect();
+                const toRect = toEl.getBoundingClientRect();
+                const container = document.querySelector('.flow-container').getBoundingClientRect();
+
+                const from = {
+                    x: fromRect.left - container.left + fromRect.width / 2,
+                    y: fromRect.top - container.top + fromRect.height / 2
+                };
+
+                const to = {
+                    x: toRect.left - container.left + toRect.width / 2,
+                    y: toRect.top - container.top + toRect.height / 2
+                };
+
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                const controlX = midX + (from.y - to.y) / 4;
+                const controlY = midY + (to.x - from.x) / 4;
+
+                svg.append('path')
+                    .attr('d', `M ${from.x},${from.y} Q ${controlX},${controlY} ${to.x},${to.y}`)
+                    .attr('stroke', arrow.type === 'feedback' ? '#764ba2' : '#667eea')
+                    .attr('stroke-width', arrow.type === 'feedback' ? 2 : 3)
+                    .attr('stroke-dasharray', arrow.type === 'feedback' ? '5,5' : 'none')
+                    .attr('fill', 'none')
+                    .attr('opacity', 0.6)
+                    .attr('marker-end', arrow.type === 'feedback' ? 'url(#arrowhead-feedback)' : 'url(#arrowhead)');
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            drawFlowArrows();
+            window.addEventListener('resize', drawFlowArrows);
+        });
+
+        // Keyboard navigation for tabs
+        document.querySelectorAll('.tab').forEach((tab, index, tabs) => {
+            tab.addEventListener('keydown', (e) => {
+                let newIndex;
+                if (e.key === 'ArrowLeft') {
+                    newIndex = index - 1;
+                    if (newIndex < 0) newIndex = tabs.length - 1;
+                } else if (e.key === 'ArrowRight') {
+                    newIndex = index + 1;
+                    if (newIndex >= tabs.length) newIndex = 0;
+                } else {
+                    return;
+                }
+                tabs[newIndex].focus();
+                tabs[newIndex].click();
+            });
+        });
+    </script>
+</body>
+</html>

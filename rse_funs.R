@@ -1,23 +1,27 @@
-# README: functions for simulating the model
+# README: functions for simulating the RSE (Reef Stocking Enhancement) coral population model
 
 
-#' Function for generating a single list with the transition matrix parameters at each
-#' time point in the simulation
-#' Arguments:
-#' @param years number of years in simulation
-#' @param n number of size classes
-#' @param surv_pars mean survival probabilities in each size class
-#' @param growth_pars transition probabilities for each size class
-#' @param shrink_pars shrinkage probabilities for each size class
-#' @param frag_pars fragmentation probabilities for each size class
-#' @param fec_pars mean fecundities of each size class
-#' @param sigma_s standard deviation of survival probabilities
-#' @param sigma_f standard deviation of fecundity probabilities
-#' @param seeds vector with seeds for the random number generation for survival, fecundity, and recruitment
-#' @param dist_yrs vector of years where disturbance occurs
-#' @param dist_pars list with survival, growth/shrinkage (transition matrix) and fecundity parameters for each disturbance year
-#' @param dist_effects which demographic parameters are affected by each disturbance
-
+#' @title Matrix Parameters Function
+#' @description Generates all demographic parameter matrices (survival, growth/shrinkage,
+#'   fragmentation, fecundity) for each time point in the simulation. Incorporates disturbance
+#'   events that can modify any demographic parameter in specific years.
+#' @param years Number of years in simulation
+#' @param n Number of size classes
+#' @param surv_pars Vector of mean survival probabilities for each size class
+#' @param growth_pars List of transition probabilities for growth between size classes
+#' @param shrink_pars List of shrinkage probabilities between size classes
+#' @param frag_pars List of fragmentation probabilities for each size class
+#' @param fec_pars Vector of mean fecundities for each size class
+#' @param sigma_s Standard deviation for environmental stochasticity in survival (log scale)
+#' @param sigma_f Standard deviation for environmental stochasticity in fecundity (log scale)
+#' @param seeds Vector of random seeds for survival, fecundity, and recruitment
+#' @param dist_yrs Vector of years when disturbance events occur
+#' @param dist_pars List containing modified parameters for each disturbance year
+#' @param dist_effects List specifying which parameters are affected by each disturbance
+#'   (options: "survival", "Tmat", "Fmat", "fecundity")
+#' @return List with four elements: survival, growth, fragmentation, fecundity - each containing
+#'   parameter values/matrices for each year of the simulation
+#' @export
 mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_pars, fec_pars,
                          sigma_s, sigma_f, seeds, dist_yrs, dist_pars, dist_effects){
 
@@ -62,14 +66,24 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
 
 }
 
-#' function for generating lists with disturbance parameters for each subpopulation/source combination
-#' @param dist_yrs vector of years where disturbance occurs
-#' @param dist_effects which demographic parameters are affected by each disturbance
-#' @param dist_surv0 list where ith element contains the survival probabilities for year with ith disturbance
-#' @param dist_Tmat0 list where ith element contains the transition matrix for year with ith disturbance
-#' @param dist_Fmat0 list where ith element contains the fragmentation matrix for year with ith disturbance
-#' @param dist_fec0 list where ith element contains the fecundities for year with ith disturbance
-
+#' @title Disturbance Parameters Function
+#' @description Creates structured lists of disturbance parameters for each subpopulation/source
+#'   combination. Disturbances can affect survival, growth/shrinkage (transition matrix),
+#'   fragmentation, and/or fecundity in specified years.
+#' @param dist_yrs Vector of years when disturbance events occur
+#' @param dist_effects List specifying which demographic parameters are affected by each
+#'   disturbance event (options: "survival", "Tmat", "Fmat", "fecundity")
+#' @param dist_surv0 List where element i contains survival probabilities for the i-th disturbance.
+#'   Default = NULL
+#' @param dist_Tmat0 List where element i contains the transition matrix for the i-th disturbance.
+#'   Default = NULL
+#' @param dist_Fmat0 List where element i contains the fragmentation matrix for the i-th disturbance.
+#'   Default = NULL
+#' @param dist_fec0 List where element i contains fecundities for the i-th disturbance.
+#'   Default = NULL
+#' @return List with four elements: dist_surv, dist_Tmat, dist_Fmat, dist_fec - each containing
+#'   the disturbance parameters (or NULL if not affected) for each disturbance year
+#' @export
 dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL){
 
   dist_surv <- list()
@@ -112,12 +126,16 @@ dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 
 
 }
 
-#' parameterization function
-#' make a function that takes data frames with parameter values as inputs and returns them in list form for the model
-#' @param par_type "survival", "growth", or "fragmentation"
-#' @param sample_dt if T, randomly sample a row from the full dataframe; if F, use the summ_metric from the summ_df
-#' @param summ_df data frame (or list of dataframes) with summarized values (mean and 95% confidence intervals)
-#' @param summ_metric metric indicating which summarized value to use (mean, Q05, Q95)
+#' @title Parameter List Function
+#' @description Converts data frames of parameter values into list format required by the model.
+#'   Can either extract summarized values (mean, quantiles) or randomly sample from full datasets
+#'   for uncertainty analysis.
+#' @param par_type Type of parameter: "survival", "growth", or "fragmentation"
+#' @param sample_dt Logical. If TRUE, randomly sample rows from full_df. If FALSE, use
+#'   summarized values from summ_df
+#' @param summ_df Data frame (or list of data frames for growth) with summarized values
+#'   including mean and 95% confidence intervals
+#' @param summ_metric Column name indicating which summarized value to use ("mean", "Q05", "Q95")
 #' @param full_df data frame (or list of dataframes) with all available estimates of parameter values
 #' @param n_sample number of samples from the full data frame to take (if sample_dt == T)
 #' 
@@ -569,7 +587,13 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   # external recruitment each year
   ext_rec <- Ext_fun(years, lambda, rand = ext_rand[1], seed1 = seeds[3])
   # proportions going to each reef subpop (proportional to areas of each reef):
-  ext_props <- rest_pars$reef_areas/sum(rest_pars$reef_areas)
+  # FIX: Protect against division by zero when reef_areas sum to zero
+  reef_area_sum <- sum(rest_pars$reef_areas)
+  if(reef_area_sum > 0) {
+    ext_props <- rest_pars$reef_areas / reef_area_sum
+  } else {
+    ext_props <- rep(0, length(rest_pars$reef_areas))
+  }
   
   # larvae collected from reference reef each year
   ref_babies <- Ext_fun(years, lambda_R, rand = ext_rand[2], seed1 = seeds[4])
@@ -1249,7 +1273,8 @@ pop_lambda_fun <- function(surv_pars, growth_pars, shrink_pars, frag_pars){
   Fmat.i <- Fr_list[[1]]
   
   # calculate lambda (population growth rate)
-  pop_mat <-  (Tmat.i + Fmat.i) * matrix(surv_pars, nrow = 5, ncol = 5, byrow = T)
+  # FIX: Apply survival column-wise (via diagonal matrix) to match simulation behavior
+  pop_mat <- (Tmat.i + Fmat.i) %*% diag(surv_pars)
   lambda_1 <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
   
   return(lambda_1)
@@ -1499,7 +1524,13 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
   # external recruitment
   ext_rec <- Ext_fun(years, lambda, rand = ext_rand, seed1 = seeds[3])
   # proportions going to each reef subpop:
-  ext_props <- rest_pars$reef_areas/sum(rest_pars$reef_areas)
+  # FIX: Protect against division by zero when reef_areas sum to zero
+  reef_area_sum <- sum(rest_pars$reef_areas)
+  if(reef_area_sum > 0) {
+    ext_props <- rest_pars$reef_areas / reef_area_sum
+  } else {
+    ext_props <- rep(0, length(rest_pars$reef_areas))
+  }
 
   # lab subpopulations
   s_lab <- length(lab_treatments)
