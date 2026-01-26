@@ -126,10 +126,12 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 
     # now add the fragmentation probabilities (with these, columns can sum to >1 because new individuals are created by the fragments)
     # FIX: Fragments should only go to SMALLER size classes (rows 1 to cc-1, not 1 to cc)
+    # UPDATE: Fragments can go to the same size class (e.g., if a large coral produced a large fragment, and both the fragment and original coral were both large enough to be in the original coral's size class)
     for(cc in 2:n){ # for each column of the transition matrix (i.e., each size class) except the smallest
 
        #Ti_mat[1:(cc-1), cc] <- Ti_mat[1:(cc-1), cc] + frag_pars[[cc]] # add probabilities of producing fragments in each smaller size class
-      Fi_mat[1:(cc-1), cc] <- frag_pars[[cc]][1:(cc-1)]  # Only smaller classes receive fragments
+      #Fi_mat[1:(cc-1), cc] <- frag_pars[[cc]][1:(cc-1)]  # Only smaller classes receive fragments
+      Fi_mat[1:cc, cc] <- frag_pars[[cc]]
 
     } # end of third loop over columns
 
