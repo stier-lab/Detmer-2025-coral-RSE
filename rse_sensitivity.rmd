@@ -14,7 +14,7 @@ README: basic sensitivity analyses
 
 library(tidyverse) # command + shift + m for %>%
 
-library(popbio) # for elasticity analyses
+library(popbio) # for elasticity analyses (from https://cran.r-project.org/web/packages/popbio/popbio.pdf)
 
 ```
 
