@@ -14,6 +14,8 @@ README: basic sensitivity analyses
 
 library(tidyverse) # command + shift + m for %>%
 
+library(popbio) # for elasticity analyses
+
 ```
 
 
@@ -50,8 +52,481 @@ apal_lab_short_surv <- read.csv("/Users/rainedetmer/Desktop/coral RSE/Detmer-202
 ```
 
 
+# elasticity analyses
+
+elasticity analyses
+
+```{r}
+
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters: survival
+surv_pars.r <- all_pars$surv_pars.r[[1]][[1]]
+# reef parameters: growth
+growth_pars.r <- all_pars$growth_pars.r[[1]][[1]]
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars$shrink_pars.r[[1]][[1]]
+# reef parameters: fragmentation
+frag_pars.r <- all_pars$frag_pars.r[[1]][[1]]
+
+all_mats <- G_fun(1, n = 5, growth_pars.r, shrink_pars.r, frag_pars.r)
+G_list <- all_mats$G_list
+Fr_list <- all_mats$Fr_list
+  
+  Tmat.i <- G_list[[1]]
+  Fmat.i <- Fr_list[[1]]
+
+  pop_mat <- (Tmat.i + Fmat.i) %*% diag(surv_pars.r)
+
+eMn <- elasticity(pop_mat)
+
+
+pop_lambda_fun(surv_pars.r, all_pars$growth_pars.r[[1]][[1]], all_pars$shrink_pars.r[[1]][[1]], all_pars$frag_pars.r[[1]][[1]])
+
+
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q95", field_growth = "Q95", field_shrink = "Q05", field_frag = "Q95", nurs_surv = "Q95", nurs_growth = "Q95", nurs_shrink = "Q05"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters: survival
+surv_pars.r <- all_pars$surv_pars.r[[1]][[1]]
+# reef parameters: growth
+growth_pars.r <- all_pars$growth_pars.r[[1]][[1]]
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars$shrink_pars.r[[1]][[1]]
+# reef parameters: fragmentation
+frag_pars.r <- all_pars$frag_pars.r[[1]][[1]]
+
+all_mats <- G_fun(1, n = 5, growth_pars.r, shrink_pars.r, frag_pars.r)
+G_list <- all_mats$G_list
+Fr_list <- all_mats$Fr_list
+  
+  Tmat.i <- G_list[[1]]
+  Fmat.i <- Fr_list[[1]]
+
+  pop_mat <- (Tmat.i + Fmat.i) %*% diag(surv_pars.r)
+
+e95 <- elasticity(pop_mat)
+
+
+pop_lambda_fun(surv_pars.r, all_pars$growth_pars.r[[1]][[1]], all_pars$shrink_pars.r[[1]][[1]], all_pars$frag_pars.r[[1]][[1]])
+
+
+# repeat for 5% quantiles
+
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q05", field_growth = "Q05", field_shrink = "Q95", field_frag = "Q05", nurs_surv = "Q05", nurs_growth = "Q05", nurs_shrink = "Q95"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters: survival
+surv_pars.r <- all_pars$surv_pars.r[[1]][[1]]
+# reef parameters: growth
+growth_pars.r <- all_pars$growth_pars.r[[1]][[1]]
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars$shrink_pars.r[[1]][[1]]
+# reef parameters: fragmentation
+frag_pars.r <- all_pars$frag_pars.r[[1]][[1]]
+
+all_mats <- G_fun(1, n = 5, growth_pars.r, shrink_pars.r, frag_pars.r)
+G_list <- all_mats$G_list
+Fr_list <- all_mats$Fr_list
+  
+  Tmat.i <- G_list[[1]]
+  Fmat.i <- Fr_list[[1]]
+
+  pop_mat <- (Tmat.i + Fmat.i) %*% diag(surv_pars.r)
+
+e05 <- elasticity(pop_mat)
+
+
+pop_lambda_fun(surv_pars.r, all_pars$growth_pars.r[[1]][[1]], all_pars$shrink_pars.r[[1]][[1]], all_pars$frag_pars.r[[1]][[1]])
+
+
+```
+
+
+try making heatmaps in base R using adjacent polygons?
+
+```{r}
+
+# par(pty = "s")
+# plot(x = c(1:5), y = c(1:5), col = NA, xlim = c(0, 5), ylim = c(0, 5), asp = 1, las = 1, xaxs = "i", yaxs = "i") # xaxs = "i" removes white space around the plot
+# mtext(side = 1, "")
+# #polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
+# for(i in 1:5){ # x value
+#   for(j in 1:5){ # y value
+#     polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = adjustcolor(col = "gray30", alpha.f = e95[i,j]/max(e95)))
+#     text(x = i - 0.5, y = j - 0.5, as.character(round(e95[i,j], 2)))
+#   }
+# }
+
+
+eMnr <- t(eMn[5:1 ,])
+
+par(pty = "s")
+plot(x = c(1:5), y = c(1:5), col = NA, xlim = c(0, 5), ylim = c(0, 5), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
+axis(side = 1, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(1, 2, 3, 4, 5), tick = F, line = -0.5)
+axis(side = 2, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(5, 4, 3, 2, 1), las = 1, tick = F, line = -0.5)
+mtext(side = 1, "Final size class", line = 1.75)
+mtext(side = 2, "Initial size class", line = 1.5)
+mtext(side = 3, expression(lambda~"="~0.95~"(mean parameters)"))
+#polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
+for(i in 1:5){ # x value
+  for(j in 1:5){ # y value
+    polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = adjustcolor(col = "orange", alpha.f = eMnr[i,j]/max(eMn)))
+    text(x = i - 0.5, y = j - 0.5, as.character(round(eMnr[i,j], 2)))
+  }
+}
+
+
+e95r <- t(e95[5:1 ,])
+
+par(pty = "s")
+plot(x = c(1:5), y = c(1:5), col = NA, xlim = c(0, 5), ylim = c(0, 5), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
+axis(side = 1, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(1, 2, 3, 4, 5), tick = F, line = -0.5)
+axis(side = 2, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(5, 4, 3, 2, 1), las = 1, tick = F, line = -0.5)
+mtext(side = 1, "Final size class", line = 1.75)
+mtext(side = 2, "Initial size class", line = 1.5)
+mtext(side = 3, expression(lambda~"="~1.3~"(95% quantile)"))
+#polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
+for(i in 1:5){ # x value
+  for(j in 1:5){ # y value
+    polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = adjustcolor(col = "orange", alpha.f = e95r[i,j]/max(e95)))
+    text(x = i - 0.5, y = j - 0.5, as.character(round(e95r[i,j], 2)))
+  }
+}
+
+
+e05r <- t(e05[5:1 ,])
+
+par(pty = "s")
+plot(x = c(1:5), y = c(1:5), col = NA, xlim = c(0, 5), ylim = c(0, 5), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
+axis(side = 1, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(1, 2, 3, 4, 5), tick = F, line = -0.5)
+axis(side = 2, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(5, 4, 3, 2, 1), las = 1, tick = F, line = -0.5)
+mtext(side = 1, "Final size class", line = 1.75)
+mtext(side = 2, "Initial size class", line = 1.5)
+mtext(side = 3, expression(lambda~"="~0.6~"(5% quantile)"))
+#polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
+for(i in 1:5){ # x value
+  for(j in 1:5){ # y value
+    polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = adjustcolor(col = "orange", alpha.f = e05r[i,j]/max(e05)))
+    text(x = i - 0.5, y = j - 0.5, as.character(round(e05r[i,j], 2)))
+  }
+}
+
+
+# check that the rearrangement worked
+# pop_matR <- t(pop_mat[5:1,])
+# 
+# par(pty = "s")
+# plot(x = c(1:5), y = c(1:5), col = NA, xlim = c(0, 5), ylim = c(0, 5), asp = 1, las = 1, xaxs = "i", yaxs = "i") # xaxs = "i" removes white space around the plot
+# mtext(side = 1, "")
+# #polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
+# for(i in 1:5){ # x value
+#   for(j in 1:5){ # y value
+#     polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j))
+#     text(x = i - 0.5, y = j - 0.5, as.character(round(pop_matR[i,j], 2)))
+#   }
+# }
+
+
+
+
+```
+
+
 # local sens analyses
 
+## from 95% quantile
+
+start with a growing population and see which parameter changes will cause it to die
+
+```{r}
+
+years <- 20
+n <- 5
+
+# define size classes
+SC1 <- 0
+SC2 <- 10
+SC3 <- 100
+SC4 <- 900
+SC5 <- 4000
+
+A_mids <- c((SC1 + SC2)/2, (SC2 + SC3)/2, (SC3 + SC4)/2, (SC4 + SC5)/2, 9325) # midpoint areas of each size class (cm^2); last value is the 50% quantile of observations greater than SC5 in the standardized data from the literature
+
+A_reef <- mean(c(4492.011, 10076.67, 8943.55)) # area of the reef
+
+orchard_treatments <- c("orchard1") # orchards (could have multiple orchards and/or orchards with different post-outplanting treatments)
+reef_treatments <- c("reef1") # reef treatments/subpopulations (could have "urchin outplanting" or "algal removal" or other postoutplanting treatments)
+lab_treatments <- c("0_T1") # lab (cement = T1, ceramic = T2). "TX" is tile type, "X_" indicates whether recruits are outplanted immediately (0_) or the next year (0_1)
+
+
+# demographic parameters for each orchard and reef treatment/subpopulation
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
+
+# nursery data only available for size classes 1-2, so use the field data for the larger size classes
+nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
+
+nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
+nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
+nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
+
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q95", field_growth = "Q95", field_shrink = "Q05", field_frag = "Q95", nurs_surv = "Q95", nurs_growth = "Q95", nurs_shrink = "Q05"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters: survival
+surv_pars.r <- all_pars$surv_pars.r
+
+# reef parameters: growth
+growth_pars.r <- all_pars$growth_pars.r
+
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars$shrink_pars.r
+
+# reef parameters: fragmentation
+frag_pars.r <- all_pars$frag_pars.r
+
+# density dependent survival (smallest size class only for now)
+dens_pars.r <- list()
+dens_pars.r[[1]] <- list() # first reef treatment/subpop
+dens_pars.r[[1]][[1]] <- 0
+dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]]
+
+# reef parameters: fecundity (for tracking reef reproductive output)
+fec_pars.r <- list()
+fec_pars.r[[1]] <- list()
+fec_pars.r[[1]][[1]] <- c(0, 0, 5000, 50000, 100000)
+fec_pars.r[[1]][[2]] <- fec_pars.r[[1]][[1]]
+
+# orchard parameters: survival
+surv_pars.o <- all_pars$surv_pars.o
+
+# orchard parameters: growth
+growth_pars.o <- all_pars$growth_pars.o
+
+# orchard parameters: shrinkage
+shrink_pars.o <- all_pars$shrink_pars.o
+
+# orchard parameters: fragmentation
+frag_pars.o <- all_pars$frag_pars.o
+
+# density dependent survival (smallest size class only for now)
+dens_pars.o <- list()
+dens_pars.o[[1]] <- list() # first orchard
+dens_pars.o[[1]][[1]] <- 0
+
+# orchard parameters: fecundity
+fec_pars.o <- list()
+fec_pars.o[[1]] <- list() # first treatment
+fec_pars.o[[1]][[1]] <- c(0, 0, 5000, 50000, 100000) # first source
+
+lambda <- 0 # external recruitment to reef
+
+lambda_R <- 10000 # mean number of larvae produced by reference reefs each year
+
+# stochasticity parameters
+sigma_s <- 0
+sigma_f <- 0
+ext_rand <- c(FALSE, FALSE)
+seeds <- c(1000, 5000, 10000, 40000)
+
+# initial conditions in each reef subpopulation
+N0.r <- list()
+N0.r[[1]] <- list() # second reef subpop
+N0.r[[1]][[1]] <- c(15, 25, 15, 10, 6)#rep(0, n) # first source (external recruits)
+N0.r[[1]][[2]] <- rep(0, n) # second source
+
+# initial conditions in each orchard subpopulation
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- rep(0, n) # first source
+
+N0.l <- list()
+N0.l[[1]] <- 0
+N0.l[[2]] <- 0
+
+
+# disturbance parameters
+dist_yrs <- NA#c(years + 10) # years when disturbance occurs, can set to > years for none
+
+# effects of disturbance on each reef subpop
+dist_effects.r <- list()
+dist_effects.r[[1]] <- list() # list where each element is the effects of disturbance on corals from each source in the 1st reef subpop (either "survival" for survival, "Tmat" for growth/survival, "Fmat" for fragmentation, or "fecundity" for reproduction)
+dist_effects.r[[1]][[1]] <- list() # effects of disturbances on corals from first source in first reef subpop
+dist_effects.r[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
+dist_effects.r[[1]][[2]] <- list() # second source
+dist_effects.r[[1]][[2]][[1]] <- c("survival")
+
+
+# disturbance parameters for each reef subpop (what happens to the population parameters at each disturbance eve)
+dist_pars.r <- list()
+
+# first reef population
+dist_pars.r[[1]] <- list() 
+# first source to second reef subpop
+dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) # list of disturbance parameters for the first source to the first reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
+# second source to second reef subpop
+dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+
+# disturbance effects for each orchard subpop
+dist_effects.o <- list()
+
+dist_effects.o[[1]] <- list() 
+dist_effects.o[[1]][[1]] <- list() # effects of disturbances on corals from first source in first orchard treatment
+dist_effects.o[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
+
+
+# disturbance parameters for each orchard subpop
+dist_pars.o <- list()
+
+# first orchard treatment
+dist_pars.o[[1]] <- list() 
+# first source in first orchard treatment
+dist_pars.o[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][[1]], dist_surv0 = list(surv_pars.o[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) 
+
+
+# lab parameters
+s0 <- c(0.9)*0 # fraction of settled larvae in each lab treatment that survive to immediate outplanting
+s1 <- c(0.7)*0 # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
+m0 <- c(0) # density dependent mortality rate of larvae in each lab treatment that get outplanted immediately
+m1 <- c(0) # density dependent mortality rate of larvae in each lab treatment that get outplanted after 1 year
+sett_props <- list(T1 = 1) # proportion of larvae that settle on each tile type
+size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment (0_T1)
+#size_props[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment (0_T2)
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props)
+
+# restoration strategy parameters
+tile_props <- list(T1 = 1) # proportion of tiles that are each type
+orchard_yield <- 0 # percent of new orchard babies successfully collected
+reef_yield <- 0.001 # percent of new reef babies successfully collected and fertilized
+reef_prop <- c(1) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
+reef_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion recruits going from each lab treatment to each reef treatment (row = origin lab treatment, column = destination reef treatment)
+reef_out_props[1,] <- c(1) # from first lab treatment to each reef treatment (here there's just on intervention reef so they all go there)
+#reef_out_props[2,] <- c(1) # from second lab treatment to each reef treatment 
+
+orchard_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(orchard_treatments)) # proportion recruits going from each lab treatment to each orchard treatment
+orchard_out_props[1,] <- c(1) # from first lab treatment to each orchard 
+#orchard_out_props[2,] <- c(1) # from second lab treatment to each orchard 
+
+# sizes allocated to each treatment
+reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
+lab_max <- c(2500) # total number of settlers that the lab can accommodate
+lab_retain_max <- c(1200) # total number of settlers that the lab can keep for a year
+orchard_size <- c(200) # number of individuals each orchard treatment has space for
+
+# coral transplanting
+transplant <- rep(0, years) # years in which corals get transplanted from the orchard
+#transplant[10] <- 1 # in 10th year, move corals from orchard to reef
+
+null_mat <- matrix(0, nrow = years, ncol = n)
+#rest_pars$trans_mats[[1]][[1]][which(transplant!=0)[1],] <- c(0, 0, 0, 2,0)# max number of colonies of each size class to move to reef in first transplant event
+trans_mats <- list()
+trans_mats[[1]] <- list() # first orchard 
+trans_mats[[1]][[1]] <- null_mat # number of corals in each size class that originated from the first source of colonies for this orchard to transplant at each timepoint
+trans_mats[[1]][[2]] <- null_mat # number of corals in each size class that originated from the second source of colonies for this orchard to transplant at each timepoint
+
+# trans_mats[[2]] <- list() # second orchard
+# trans_mats[[2]][[1]] <- null_mat # first source
+# trans_mats[[2]][[2]] <- null_mat # second source
+
+# where on the reef to put the transplants
+#rest_pars$trans_reef[[1]][[1]][which(transplant!=0)[1],] <- c(1, 1)# reef and source subpop to transport the corals to
+trans_reef <- list()
+trans_reef[[1]] <- list() # first orchard
+trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T) # first source corals in this orchard get transplanted to the second source of corals in the first reef
+trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # second source corals in this orchard get transplanted to the third source of corals in the second reef
+
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+
+
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+# calculate lambda
+mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
+
+Tmat.i <- mats$growth[[1]]
+Fmat.i <- mats$fragmentation[[1]]
+
+
+# calculate lambda (population growth rate)
+#pop_mat <-  (Tmat.i + Fmat.i) * matrix(surv_pars.r[[1]][[1]], nrow = n, ncol = n, byrow = T)
+pop_mat <-  (Tmat.i + Fmat.i) %*% diag(surv_pars.r[[1]][[1]])
+lambda_1 <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
+
+lambda_1
+
+N_ind <- model_summ(model_sim = sim1, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+N_area <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+
+```
+
+```{r}
+
+# start with percent decrease in survival: from 0 to 1
+#all_pars$surv_pars.r[[1]][[1]]
+
+# percent decrease in growth: from 0 to 1
+#all_pars$growth_pars.r[[1]][[1]]
+
+# percent increase in shrinkage...except a lot are starting at 0
+#all_pars$shrink_pars.r[[1]][[1]]
+
+# percent decrease in fragmentation
+#all_pars$frag_pars.r[[1]][[1]]
+
+# maybe start with percent decrease in survival, and then add on top of that single changes in the other parameters?
+perc_set <- seq(from = 0, to = 1, length.out = 100)
+lambda_surv_mat95 <- matrix(NA, nrow = length(perc_set), ncol = 5)
+
+for(j in 1:length(perc_set)){
+  
+  for(k in 1:5){
+    
+    #surv_j <- rep(1, 5) 
+    surv_j <- all_pars$surv_pars.r[[1]][[1]]
+    surv_j[k] <- surv_j[k]*perc_set[j]
+    
+    lambda_surv_mat95[j,k] <- pop_lambda_fun(surv_j, all_pars$growth_pars.r[[1]][[1]], all_pars$shrink_pars.r[[1]][[1]], all_pars$frag_pars.r[[1]][[1]])
+    
+  }
+  
+  
+}
+
+
+```
+
+
+
+```{r}
+cols1 <- c("#EE6677", "#CCBB44", "#228833", "#66CCEE", "#4477AA")
+
+ylim1 <- min(lambda_surv_mat95, na.rm = T)
+ylim2 <- max(lambda_surv_mat95, na.rm = T)
+
+plot(x = rev(perc_set), y = lambda_surv_mat95[,1], col=NA, type = "l", las = 1, ylim = c(ylim1, ylim2*1.01), xlab = NA, ylab = NA)
+mtext(side = 1, "Proportional decrease in survival", line = 2.5)
+mtext(side = 2, expression("Population"~lambda), line = 2.5)
+for(k in 1:5){
+  lines(x = rev(perc_set), y = lambda_surv_mat95[,k], col = cols1[k], lwd = 2)
+}
+#abline(h = growth_min, lty = 3)
+abline(h = 1, lty = 3)
+legend("bottomleft", legend = c("1", "2", "3", "4", "5"), col = cols1, lwd = 2, title = "Size class")
+
+```
+
+
+
+
+
+try making heatmaps in base R using adjacent polygons?
+
+
+
+## from mean
 start with just the basic model with the mean parameter values and do elasticity analyses
 
 ```{r}
@@ -751,7 +1226,7 @@ lines(x = ext_set, y = area_vec, col = "blue", lwd = 2, lty = 2)
 should figure out a way to add one from each of the other size classes too?
 
 
-# all pars
+# all random pars
 
 ```{r}
 
