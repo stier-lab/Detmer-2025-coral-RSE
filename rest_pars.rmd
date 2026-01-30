@@ -1,0 +1,7 @@
+---
+title: "rest_pars"
+output: html_document
+date: "2026-01-30"
+---
+
+README: place for estimating restoration parameters from Fundemar's data
