@@ -4,7 +4,20 @@ output: html_document
 date: "2026-01-30"
 ---
 
-README: place for estimating restoration parameters from Fundemar's data
+README: estimating restoration parameters from Fundemar's data
+
+```{r setup, include=FALSE}
+
+# command + option + i for new code chunk
+# command + shift + enter to run entire code chunk
+# command + enter to run single line of code
+
+library(tidyverse) # command + shift + m for %>%
+library(readxl)
+library(janitor)
+
+```
+
 
 from the original "Adicion_Sustratos" matrix (which was just for DLAB in 2025), it looks like they put ~100 tiles in each tank (divided among substrate types) and had 40 tanks
 
@@ -13,4 +26,90 @@ Goal is to know 1) how many embryos they put in each tank, 2) how many tiles per
 
 Adicion_Sustratos_Unificada = spawning event, number of embryos, Tank ID, substrate type, and number of substrates
 
+Matriz_Asentamiento_Unificada = number of settlers on the substrates (Tank ID should match A_S_U)
+
 Matriz_Supervivencia_Reclutas_Unificada = recruit survival, but comparing time at T0 to number of settlers in  M_A_U matrix should give survival in the lab?)
+
+
+```{r}
+# read in the data
+
+add_subs <- read_excel("data/Fundemar/Adicion_Sustratos_Unificada.xlsx", sheet = 1) %>% clean_names()
+
+add_subs_APAL <- add_subs %>% filter(species == "APAL")
+
+#View(add_subs_APAL)
+
+sett_mat <- read_excel("data/Fundemar/Matriz_Asentamiento_Unificada.xlsx", sheet = 1) %>% clean_names()
+
+sett_mat_APAL <- sett_mat %>% filter(species == "APAL")
+
+#View(sett_mat_APAL)
+
+surv_mat <- read_excel("data/Fundemar/Matriz_Supervivencia_Reclutas_Unificada.xlsx", sheet = 1) %>% clean_names()
+
+#unique(surv_mat$coral_species)
+
+surv_mat_APAL <- surv_mat %>% filter(coral_species == "Acropora palmata")
+
+# View(surv_mat_APAL) # doesn't have 2025 yet
+
+```
+
+
+```{r}
+# estimating embryos per tank and number of tiles per tank
+
+#View(add_subs_APAL)
+
+#add_subs_APAL %>% group_by(species, spawning_event, spawning_day, spawning_month, spawning_year, year_of_substrate_addition, month_of_substrate_addition, day_of_substrate_addition, tank_id) %>% summarize(n_substrates = sum(amount_of_substrates)) %>% ungroup() %>% arrange(tank_id) %>% view()
+
+
+#add_subs_APAL %>% group_by(species, spawning_event, spawning_day, tank_id) %>% summarize(n_substrates = sum(amount_of_substrates), embryos_ml_mn = min(embryos_ml), embryos_ml_mx = min(embryos_ml)) %>% ungroup() %>% arrange(spawning_day) %>% mutate(emb_diff = embryos_ml_mx - embryos_ml_mn) %>% view()
+
+
+tank_counts <- add_subs_APAL %>% group_by(species, spawning_event, spawning_day, tank_id) %>% summarize(n_substrates = sum(amount_of_substrates), embryos_ml = min(embryos_ml), n_embryos = min(no_embryos), vol_embryos_ml = min(volume_of_embryos_ml)) %>% ungroup() %>% arrange(spawning_day)# %>% view()
+
+#View(tank_counts)
+
+mean(tank_counts$embryos_ml) # mean volume put in the tanks = 7293
+min(tank_counts$embryos_ml) # 7250
+max(tank_counts$embryos_ml) # 7330
+
+mean(tank_counts$vol_embryos_ml) # mean embryos per mL = 1.9
+min(tank_counts$vol_embryos_ml) # min = 1.5
+max(tank_counts$vol_embryos_ml) # max = 2.07
+
+mean(tank_counts$n_substrates)
+
+#unique(add_subs$embryos_ml[which(add_subs$species %in% c("APAL", "DLAB"))])
+
+#hist(add_subs$embryos_ml)
+
+```
+
+So on average, they are putting about 7,300 mLs in a tank, and on average there are 2 embryos per mL, and they have about 100 substrates per tank
+
+```{r}
+# now estimate settlement rates
+
+#unique(add_subs_APAL$spawning_year) # all 2025
+
+sett_mat_APAL_summ <- sett_mat_APAL %>% filter(year_scored == 2025) %>% group_by(month_scored, day_scored, id_rearing_container) %>%  summarize(n_substrates_sett = n(), n_settlers = sum(as.numeric(number_of_total_settlers))) %>% ungroup() %>% rename(tank_id = id_rearing_container)
+
+View(sett_mat_APAL_summ)
+
+sett_rates_APAL <- tank_counts %>% left_join(sett_mat_APAL_summ, by = "tank_id")
+
+View(sett_rates_APAL)
+
+
+# CHECK what the day scored means
+
+```
+
+
+
+
+
+
