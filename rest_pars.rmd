@@ -5,3 +5,12 @@ date: "2026-01-30"
 ---
 
 README: place for estimating restoration parameters from Fundemar's data
+
+from the original "Adicion_Sustratos" matrix (which was just for DLAB in 2025), it looks like they put ~100 tiles in each tank (divided among substrate types) and had 40 tanks
+
+Goal is to know 1) how many embryos they put in each tank, 2) how many tiles per tank, and 3) settlement rates on the tiles. Want to know 1) and 2) to estimate how many tiles they would use for a given number of embryos, and need to know 3) for model parameters
+
+
+Adicion_Sustratos_Unificada = spawning event, number of embryos, Tank ID, substrate type, and number of substrates
+
+Matriz_Supervivencia_Reclutas_Unificada = recruit survival, but comparing time at T0 to number of settlers in  M_A_U matrix should give survival in the lab?)
