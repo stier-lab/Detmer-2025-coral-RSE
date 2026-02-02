@@ -90,26 +90,88 @@ mean(tank_counts$n_substrates)
 
 So on average, they are putting about 7,300 mLs in a tank, and on average there are 2 embryos per mL, and they have about 100 substrates per tank
 
+-- so to calculate the number of substrates to use, divide the total mLs collected by 7,300*2 ( = 14600) to get the number of tanks, then multiply that by 100 to get the number of substrates needed (point of this is to avoid scenarios where very little spawn was collected but all model still uses max capacity of tiles, which would mean each tile might have unrealistically low numbers of recruits)
+
 ```{r}
 # now estimate settlement rates
 
 #unique(add_subs_APAL$spawning_year) # all 2025
 
-sett_mat_APAL_summ <- sett_mat_APAL %>% filter(year_scored == 2025) %>% group_by(month_scored, day_scored, id_rearing_container) %>%  summarize(n_substrates_sett = n(), n_settlers = sum(as.numeric(number_of_total_settlers))) %>% ungroup() %>% rename(tank_id = id_rearing_container)
+#View(sett_mat_APAL[which(sett_mat_APAL$id_rearing_container == "11A"),])
 
-View(sett_mat_APAL_summ)
+#colnames(sett_mat_APAL)
+
+#sett_mat_APAL_summ <- sett_mat_APAL %>% filter(year_scored == 2025) %>% group_by(month_scored, monitoring_or_random_count, id_rearing_container, substrate_type) %>%  summarize(max_settlers = max(as.numeric(number_of_total_settlers)), n_substrates_sett = n()) #%>% ungroup() %>% group_by(month_scored, id_rearing_container) %>%  summarize(n_substrates_sett = n(), n_settlers = sum(as.numeric(max_settlers))) %>% ungroup() %>% rename(tank_id = id_rearing_container)
+  
+#sett_mat_APAL_summ <- sett_mat_APAL %>% filter(year_scored == 2025) %>% group_by(month_scored, day_scored, id_rearing_container) %>%  summarize(n_substrates_sett = n(), n_settlers = sum(as.numeric(number_of_total_settlers))) %>% ungroup() %>% rename(tank_id = id_rearing_container)
+
+
+sett_mat_APAL_summ <- sett_mat_APAL %>% filter(year_scored == 2025) %>% group_by(month_scored, day_scored, id_rearing_container) %>%  summarize(n_substrates_sett = n(), n_settlers = mean(as.numeric(number_of_total_settlers))) %>% ungroup() %>% rename(tank_id = id_rearing_container)
+
+
+#View(sett_mat_APAL_summ)
+
+#mean(sett_mat_APAL_summ$n_settlers)
 
 sett_rates_APAL <- tank_counts %>% left_join(sett_mat_APAL_summ, by = "tank_id")
 
 View(sett_rates_APAL)
 
 
-# CHECK what the day scored means
+# day scored = day when counting took place; just use the day with the max number observed for that tile since interested in settlement and not post-settlement mortality? 
+# QUESTION: are they removing the substrates after they have been counted, so there is no double counting on different days scored? Or are they recounting substrates that were previously counted to see if there were any new settlers?
+
+# since we don't know, just look at average number of settlers per tile? But also don't know how many substrates there were that had settlers on them...
+
+# for now, assume there is no recounting
+
+# really only care about total number of settlers in the tank? Or number of settlers in the tank and number of substrates with at least one settler?
+
+# maybe they only count a subset of the substrates in a tank?
+
+
+# in the report they say that the goal is ~30 recruits per substrate
+
+mean(as.numeric(sett_mat_APAL$number_of_total_settlers[which(sett_mat_APAL$year_scored==2025 & sett_mat_APAL$substrate_type=="Cookie cement")]))
+mean(as.numeric(sett_mat_APAL$number_of_total_settlers[which(sett_mat_APAL$year_scored==2025 & sett_mat_APAL$substrate_type=="Gear")]))
+
+mean(sett_rates_APAL$n_settlers/sett_rates_APAL$n_substrates_sett)
+
+# have about 20 on average
+
+# multiply average number of settlers per tile (mean = ~20) by the number of tiles per tank (~100) to get total number of settlers in the tank, and divide the total number of embryos in the tank by the number of settlers in the tank to get an estimate of settlement rate
+
+sett_rates_APAL <- sett_rates_APAL %>% mutate(sett_rate = n_settlers*n_substrates/n_embryos)
+
+mean(sett_rates_APAL$sett_rate) # 0.1467558
+
 
 ```
 
+so the average settlement rate is about 15% (might be higher; this is using number of embryos as the initial number when in reality not all of those embryos become larvae)
 
 
+```{r}
+
+
+
+# try replicating the box plot in fundemar's report
+
+# %>% group_by(id_rearing_container, substrate_type, day_scored, month_scored) %>% mutate(number_of_total_settlers = mean(as.numeric(number_of_total_settlers))) %>% ungroup()
+
+sett_mat_APAL %>% filter(year_scored == 2025) %>% 
+ggplot(aes(x=as.factor(substrate_type), y=as.numeric(number_of_total_settlers))) + 
+    geom_boxplot() +
+   #facet_wrap(~substrate_type, scales = "free")+
+  labs(title = "Larval settlement",
+       y = "Average settlement", x = "Substrate") +
+  theme(legend.position = "none")
+
+# pretty close but not an exact match with Fig. 2
+
+
+
+```
 
 
 
