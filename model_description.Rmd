@@ -311,7 +311,8 @@ fec_pars.o[[1]][[2]] <- fec_pars.o[[1]][[1]] # second source
 
 lambda <- 0 # external recruitment to reef
 
-lambda_R <- 10000 # mean number of larvae produced by reference reefs each year
+#lambda_R <- 10000 # mean number of larvae produced by reference reefs each year
+lambda_R <- 1255111 # from Table 1 of Fundemar's report (total embryos collected in 2025)
 
 # stochasticity parameters
 sigma_s <- 0
@@ -389,7 +390,7 @@ s0 <- c(0.9, 0.9) # fraction of settled larvae in each lab treatment that surviv
 s1 <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
 m0 <- c(0.02, 0.02) # density dependent mortality rate of larvae in each lab treatment that get outplanted immediately
 m1 <- c(0.02, 0.02) # density dependent mortality rate of larvae in each lab treatment that get outplanted after 1 year
-sett_props <- list(T1 = 0.95, T2 = 0.95) # proportion of larvae that settle on each tile type
+sett_props <- list(T1 = 0.15, T2 = 0.15) # proportion of larvae that settle on each tile type
 size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
 size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment (0_T1)
 size_props[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment (0_T2)

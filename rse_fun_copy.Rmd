@@ -9,7 +9,9 @@ README: place to copy paste the model function for debugging and to think throug
 
 more simplified function without a dynamic reference reef
 
+
 ```{r}
+
 
   
   # reef subpops = length(lab_treatments)*length(reef_treatments)
@@ -24,7 +26,13 @@ more simplified function without a dynamic reference reef
   # external recruitment each year
   ext_rec <- Ext_fun(years, lambda, rand = ext_rand[1], seed1 = seeds[3])
   # proportions going to each reef subpop (proportional to areas of each reef):
-  ext_props <- rest_pars$reef_areas/sum(rest_pars$reef_areas)
+  # FIX: Protect against division by zero when reef_areas sum to zero
+  reef_area_sum <- sum(rest_pars$reef_areas)
+  if(reef_area_sum > 0) {
+    ext_props <- rest_pars$reef_areas / reef_area_sum
+  } else {
+    ext_props <- rep(0, length(rest_pars$reef_areas))
+  }
   
   # larvae collected from reference reef each year
   ref_babies <- Ext_fun(years, lambda_R, rand = ext_rand[2], seed1 = seeds[4])
@@ -282,11 +290,12 @@ more simplified function without a dynamic reference reef
             # reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
             # 
             
+            # record the population size before new recruitment
+            reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
+            
             # add external recruits
             reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]
             
-            # record this as the pre-outplant population size
-            reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
           }
           
         } # end of iterations over each source
@@ -300,14 +309,14 @@ more simplified function without a dynamic reference reef
     for(ss in 1:s_orchard){ # for each orchard treatment
       
       # calculate total number of colonies in this orchard across all sources
-      ind_tots_ss <- rep(NA, source_orchard)
-      
-      for(rr in 1:source_orchard){
-        
-        ind_tots_ss[rr] <- sum(orchard_pops[[ss]][[rr]][ ,i-1]) # total colonies from rr^th source
-      }
-      
-      ind_tots_s <- sum(ind_tots_ss) # total across all sources
+      # ind_tots_ss <- rep(NA, source_orchard)
+      # 
+      # for(rr in 1:source_orchard){
+      #   
+      #   ind_tots_ss[rr] <- sum(orchard_pops[[ss]][[rr]][ ,i-1]) # total colonies from rr^th source
+      # }
+      # 
+      # ind_tots_s <- sum(ind_tots_ss) # total across all sources
       
       for(rr in 1:source_orchard){ # for each source of orchard recruits
         
@@ -402,6 +411,11 @@ more simplified function without a dynamic reference reef
     # holding vector for settlers in each lab treatment that will be immediately outplanted
     out_settlers <- rep(0, s_lab)
     lab_tiles <- rep(NA, s_lab) # number of tiles
+    
+    # calculate proportion of max capacity to use this year (depends on total number of babies)
+    prop_use <- min(1, tot_babies/14600*100) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
+    
+    
     # put the new babies into each lab treatment and determine how many survive
     # also record number of tiles in each lab treatment
     for(ss in 1:s_lab){ # for each lab treatment
@@ -411,7 +425,7 @@ more simplified function without a dynamic reference reef
         out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # number of tiles
-        lab_tiles[ss] <- ((rest_pars$lab_max - rest_pars$lab_retain_max)*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
+        lab_tiles[ss] <- (prop_use*(rest_pars$lab_max - rest_pars$lab_retain_max)*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
         dens_ss <- out_settlers[ss]/lab_tiles[ss]
@@ -427,7 +441,7 @@ more simplified function without a dynamic reference reef
         retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # number of tiles
-        lab_tiles[ss] <- (rest_pars$lab_retain_max*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
+        lab_tiles[ss] <- (prop_use*rest_pars$lab_retain_max*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
         dens_ss <- retain_settlers/lab_tiles[ss]
@@ -480,7 +494,7 @@ more simplified function without a dynamic reference reef
     
     for(ss in 1:s_orchard){
       
-      orchard_space[ss] <- max(0, orchard_size[ss] - orchard_tiles[[ss]][i-1]) # number of tiles ss^th orchard has space for
+      orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - orchard_tiles[[ss]][i-1]) # number of tiles ss^th orchard has space for
       
     }
     
@@ -684,6 +698,7 @@ more simplified function without a dynamic reference reef
   # return all the population metrics
   
   
+
 ```
 
 
