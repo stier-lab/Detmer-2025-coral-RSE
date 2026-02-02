@@ -972,6 +972,11 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # holding vector for settlers in each lab treatment that will be immediately outplanted
     out_settlers <- rep(0, s_lab)
     lab_tiles <- rep(NA, s_lab) # number of tiles
+    
+    # calculate proportion of max capacity to use this year (depends on total number of babies)
+    prop_use <- min(1, tot_babies/14600*100) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
+    
+    
     # put the new babies into each lab treatment and determine how many survive
     # also record number of tiles in each lab treatment
     for(ss in 1:s_lab){ # for each lab treatment
@@ -981,7 +986,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # number of tiles
-        lab_tiles[ss] <- ((rest_pars$lab_max - rest_pars$lab_retain_max)*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
+        lab_tiles[ss] <- (prop_use*(rest_pars$lab_max - rest_pars$lab_retain_max)*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
         dens_ss <- out_settlers[ss]/lab_tiles[ss]
@@ -997,7 +1002,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # number of tiles
-        lab_tiles[ss] <- (rest_pars$lab_retain_max*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
+        lab_tiles[ss] <- (prop_use*rest_pars$lab_retain_max*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
         dens_ss <- retain_settlers/lab_tiles[ss]
