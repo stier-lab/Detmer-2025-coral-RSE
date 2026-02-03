@@ -615,6 +615,14 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   # make sure there's no duplicates:
   #tile_types = unique(tile_types)
   
+  # holding vectors for recording total babies collected from orchard and reference reefs each year
+  orchard_babies <- rep(NA, years) # babies collected from the orchard
+  reef_babies <- rep(NA, years) # babies collected from reference reef
+  
+  orchard_babies[1] <- 0 # babies collected from the orchard
+  reef_babies[1] <- 0 # babies collected from reference reef
+  
+  
   # sources of new recruits
   source_reef <- 1 + s_lab # number of possible sources of reef recruits (+1 is for external recruits)
   source_orchard <- s_lab # number of possible sources of orchard recruits
@@ -934,10 +942,33 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       }
     }
     
-    # calculate total new babies collected from reference reefs this year
+    # calculate max possible new babies that could be collected from reference reefs this year
     new_babies.r <- ref_babies[i]*rest_pars$reef_yield
     
-    tot_babies <- sum(new_babies.o) + new_babies.r # total new babies collected from orchard and reference reefs
+    #tot_babies <- sum(new_babies.o) + new_babies.r # total new babies collected from orchard and reference reefs
+    
+    # calculate total new babies collected from the orchards this year
+    tot_new_babies.o <- sum(new_babies.o)
+    
+    # tot_babies <- tot_new_babies.o + new_babies.r # total new babies collected from orchard and reference reefs
+    
+    # if total new babies from orchard is less than target, collect from the reference reefs until target is reached 
+    if(tot_new_babies.o < rest_pars$spawn_target){ # if target wasn't reached by orchard alone
+      tot_babies <- tot_new_babies.o + min(new_babies.r, (rest_pars$spawn_target - tot_new_babies.o))
+      
+      # then need to track embryos collected from orchard vs. reference reef (for cost estimates)
+      orchard_babies[i] <- tot_new_babies.o # babies collected from the orchard
+      reef_babies[i] <- min(new_babies.r, (rest_pars$spawn_target - tot_new_babies.o)) # babies collected from reference reef
+      
+    } else{
+      
+      tot_babies <- tot_new_babies.o
+      
+      orchard_babies[i] <- tot_new_babies.o # babies collected from the orchard
+      reef_babies[i] <- 0 # babies collected from reference reef
+      
+    }
+    
     
     # make sure these don't exceed max lab capacity (assumed lab capacity is proportional to number of tiles)
     #tot_babies <- min(tot_babies, rest_pars$lab_max)
@@ -976,6 +1007,10 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # calculate proportion of max capacity to use this year (depends on total number of babies)
     prop_use <- min(1, tot_babies/14600*100) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
     
+    # check to make sure there's no dividing by zero: at a minimum, use one tile
+    if(prop_use == 0){
+      prop_use <- 1 - (rest_pars$lab_max-1)/rest_pars$lab_max
+    }
     
     # put the new babies into each lab treatment and determine how many survive
     # also record number of tiles in each lab treatment
@@ -1261,7 +1296,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   return(list(reef_pops = reef_pops, orchard_pops = orchard_pops, lab_pops = lab_pops,
               reef_rep = reef_rep, orchard_rep = orchard_rep, reef_out = reef_out, 
               orchard_out = orchard_out, reef_pops_pre = reef_pops_pre, 
-              orchard_pops_pre = orchard_pops_pre))
+              orchard_pops_pre = orchard_pops_pre, orchard_babies = orchard_babies, 
+              reef_babies = reef_babies))
   
 }
 
