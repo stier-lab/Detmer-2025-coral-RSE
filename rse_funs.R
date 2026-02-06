@@ -1012,7 +1012,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     lab_tiles <- rep(NA, s_lab) # number of tiles
     
     # calculate proportion of max capacity to use this year (depends on total number of babies)
-    prop_use <- min(1, tot_babies/14600*100) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
+    prop_use <- min(1, (tot_babies/14600*100)/rest_pars$lab_max) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
     
     # check to make sure there's no dividing by zero: at a minimum, use one tile
     if(prop_use == 0){
