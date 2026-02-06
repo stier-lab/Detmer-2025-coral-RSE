@@ -115,7 +115,7 @@ sett_mat_APAL_summ <- sett_mat_APAL %>% filter(year_scored == 2025) %>% group_by
 
 sett_rates_APAL <- tank_counts %>% left_join(sett_mat_APAL_summ, by = "tank_id")
 
-View(sett_rates_APAL)
+#View(sett_rates_APAL)
 
 
 # day scored = day when counting took place; just use the day with the max number observed for that tile since interested in settlement and not post-settlement mortality? 
@@ -135,7 +135,13 @@ View(sett_rates_APAL)
 mean(as.numeric(sett_mat_APAL$number_of_total_settlers[which(sett_mat_APAL$year_scored==2025 & sett_mat_APAL$substrate_type=="Cookie cement")]))
 mean(as.numeric(sett_mat_APAL$number_of_total_settlers[which(sett_mat_APAL$year_scored==2025 & sett_mat_APAL$substrate_type=="Gear")]))
 
-mean(sett_rates_APAL$n_settlers/sett_rates_APAL$n_substrates_sett)
+mean(as.numeric(sett_mat_APAL$number_of_total_settlers[which(sett_mat_APAL$year_scored==2025)]))
+
+median(as.numeric(sett_mat_APAL$number_of_total_settlers[which(sett_mat_APAL$year_scored==2025)]))
+
+hist(as.numeric(sett_mat_APAL$number_of_total_settlers[which(sett_mat_APAL$year_scored==2025)]))
+
+#mean(sett_rates_APAL$n_settlers/sett_rates_APAL$n_substrates_sett)
 
 # have about 20 on average
 
