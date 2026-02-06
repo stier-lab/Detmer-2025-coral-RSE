@@ -623,6 +623,13 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   reef_babies[1] <- 0 # babies collected from reference reef
   
   
+  # holding vectors for total number of tiles being outplanted each year
+  tiles_out0 <- rep(NA, years) # tiles outplanted immediately
+  tiles_out1 <- rep(NA, years) # tiles outplanted after lab grow-out
+  tiles_out_tot <- rep(NA, years) # total tiles
+  tiles_out0[1] <- 0
+  tiles_out1[1] <- 0
+  
   # sources of new recruits
   source_reef <- 1 + s_lab # number of possible sources of reef recruits (+1 is for external recruits)
   source_orchard <- s_lab # number of possible sources of orchard recruits
@@ -1050,6 +1057,11 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
     }
     
+    # record the total number of tiles being outplanted
+    tiles_out0[i] <- sum(lab_tiles[which(substr(lab_treatments, start = 1, stop = 1)=="0")])
+    tiles_out1[i] <- sum(lab_tiles[which(substr(lab_treatments, start = 1, stop = 1)=="1")])
+    
+    tiles_out_tot[i] <- tiles_out0[i] + tiles_out1[i-1]
     
     # restoration actions: update all the population sizes based on restoration strategy
     # feedbacks on restoration actions (currently none): could mean updating the proportions of babies
@@ -1305,7 +1317,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
               reef_rep = reef_rep, orchard_rep = orchard_rep, reef_out = reef_out, 
               orchard_out = orchard_out, reef_pops_pre = reef_pops_pre, 
               orchard_pops_pre = orchard_pops_pre, orchard_babies = orchard_babies, 
-              reef_babies = reef_babies))
+              reef_babies = reef_babies, tiles_out_tot = tiles_out_tot))
   
 }
 
