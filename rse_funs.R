@@ -1195,10 +1195,10 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     for(ss in 1:s_reef){
       
         for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,ss]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
           
           # add the recruits from the previous year
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,ss]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
           
           # store the numbers being outplanted
           reef_out[[ss]][[rr]][i] <- reef_outplants[rr-1,ss] + reef_outplants1[rr-1,ss]
@@ -1214,6 +1214,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     orchard_outplants <- matrix(0, nrow = s_lab, ncol = s_orchard) # this year's
     orchard_outplants1 <- matrix(0, nrow = s_lab, ncol = s_orchard) # last year's
     
+    dens_out <- rep(NA, s_lab)
     
     for(ss in 1:s_lab){
       
@@ -1222,7 +1223,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
       dens_ss <- out_settlers[ss]/lab_tiles[ss]
       
-      orchard_outplants[ss, ] <- orchard_tiles_all[ss, ]*dens_ss*exp(-dd_pars.o[,ss]*dens_ss)
+      dens_out[ss] <- dens_ss
+      
+      orchard_outplants[ss, ] <- orchard_tiles_all[ss, ]*dens_ss#*exp(-dd_pars.o[,ss]*dens_ss)
       # 1-reef_prop[ss] = proportion lab recruits from ss lab treatment going to orchard
       # orchard_out_props[ss,] = proportion of the orchard outplants from lab treatment ss going to each orchard treatment
       }
@@ -1232,7 +1235,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
         dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
         
-        orchard_outplants1[ss, ] <- orchard_tiles_all[ss, ]*dens_ss*exp(-dd_pars.o[,ss]*dens_ss)
+        dens_out[ss] <- dens_ss
+        
+        orchard_outplants1[ss, ] <- orchard_tiles_all[ss, ]*dens_ss#*exp(-dd_pars.o[,ss]*dens_ss)
         
       }
       
@@ -1243,9 +1248,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     for(ss in 1:s_orchard){
       
       for(rr in 1:source_orchard){ # for each lab source
-        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*lab_pars$size_props[rr,]
+        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*exp(-dd_pars.o[,rr]*dens_out[rr])*lab_pars$size_props[rr,]
         
-        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*lab_pars$size_props[rr,]
+        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*exp(-dd_pars.o[,rr]*dens_out[rr])*lab_pars$size_props[rr,]
         
         # store the numbers being outplanted
         orchard_out[[ss]][[rr]][i] <- orchard_outplants[rr,ss] + orchard_outplants1[rr,ss]
