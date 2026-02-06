@@ -1160,6 +1160,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     reef_outplants <- matrix(0, nrow = s_lab, ncol = s_reef) # from current timestep
     reef_outplants1 <- matrix(0, nrow = s_lab, ncol = s_reef) # from last time step
     
+    # holding vector for outplanting densities (will be used to calculate post-outplanting density dependent survival)
+    dens_out <- rep(NA, s_lab)
     
     for(ss in 1:s_lab){ # for each lab treatment
       
@@ -1168,10 +1170,11 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){
       
       dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      dens_out[ss] <- dens_ss
       
       # outplants going from ss^th lab treatment to each reef treatment
       # number of tiles x settlers per tile x prop. surviving
-      reef_outplants[ss, ] <- reef_tiles_all[ss ,]*dens_ss*exp(-dd_pars.r[,ss]*dens_ss)
+      reef_outplants[ss, ] <- reef_tiles_all[ss ,]*dens_ss#*exp(-dd_pars.r[,ss]*dens_ss)
       # reef_tiles_all[ss ,] = number of tiles going from ss^th lab treatment to each reef treatment
       }
       
@@ -1179,23 +1182,23 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         
         # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
         dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        dens_out[ss] <- dens_ss
         
         # they come from the lab population at the previous timepoint
-        reef_outplants1[ss, ] <- reef_tiles_all[ss ,]*dens_ss*exp(-dd_pars.r[,ss]*dens_ss)
+        reef_outplants1[ss, ] <- reef_tiles_all[ss ,]*dens_ss#*exp(-dd_pars.r[,ss]*dens_ss)
       }
       
     }
-    
     
     
     # add the outplants to the reef subpopulations
     for(ss in 1:s_reef){
       
         for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,ss]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
           
           # add the recruits from the previous year
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,ss]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
           
           # store the numbers being outplanted
           reef_out[[ss]][[rr]][i] <- reef_outplants[rr-1,ss] + reef_outplants1[rr-1,ss]
