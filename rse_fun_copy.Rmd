@@ -60,6 +60,13 @@ more simplified function without a dynamic reference reef
   reef_babies[1] <- 0 # babies collected from reference reef
   
   
+  # holding vectors for total number of tiles being outplanted each year
+  tiles_out0 <- rep(NA, years) # tiles outplanted immediately
+  tiles_out1 <- rep(NA, years) # tiles outplanted after lab grow-out
+  tiles_out_tot <- rep(NA, years) # total tiles
+  tiles_out0[1] <- 0
+  tiles_out1[1] <- 0
+  
   # sources of new recruits
   source_reef <- 1 + s_lab # number of possible sources of reef recruits (+1 is for external recruits)
   source_orchard <- s_lab # number of possible sources of orchard recruits
@@ -449,7 +456,6 @@ more simplified function without a dynamic reference reef
       prop_use <- 1 - (rest_pars$lab_max-1)/rest_pars$lab_max
     }
     
-    
     # put the new babies into each lab treatment and determine how many survive
     # also record number of tiles in each lab treatment
     for(ss in 1:s_lab){ # for each lab treatment
@@ -488,6 +494,11 @@ more simplified function without a dynamic reference reef
       
     }
     
+    # record the total number of tiles being outplanted
+    tiles_out0[i] <- sum(lab_tiles[which(substr(lab_treatments, start = 1, stop = 1)=="0")])
+    tiles_out1[i] <- sum(lab_tiles[which(substr(lab_treatments, start = 1, stop = 1)=="1")])
+    
+    tiles_out_tot[i] <- tiles_out0[i] + tiles_out1[i-1]
     
     # restoration actions: update all the population sizes based on restoration strategy
     # feedbacks on restoration actions (currently none): could mean updating the proportions of babies
@@ -598,6 +609,8 @@ more simplified function without a dynamic reference reef
     reef_outplants <- matrix(0, nrow = s_lab, ncol = s_reef) # from current timestep
     reef_outplants1 <- matrix(0, nrow = s_lab, ncol = s_reef) # from last time step
     
+    # holding vector for outplanting densities (will be used to calculate post-outplanting density dependent survival)
+    dens_out <- rep(NA, s_lab)
     
     for(ss in 1:s_lab){ # for each lab treatment
       
@@ -606,10 +619,11 @@ more simplified function without a dynamic reference reef
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){
       
       dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      dens_out[ss] <- dens_ss
       
       # outplants going from ss^th lab treatment to each reef treatment
       # number of tiles x settlers per tile x prop. surviving
-      reef_outplants[ss, ] <- reef_tiles_all[ss ,]*dens_ss*exp(-dd_pars.r[,ss]*dens_ss)
+      reef_outplants[ss, ] <- reef_tiles_all[ss ,]*dens_ss#*exp(-dd_pars.r[,ss]*dens_ss)
       # reef_tiles_all[ss ,] = number of tiles going from ss^th lab treatment to each reef treatment
       }
       
@@ -617,23 +631,23 @@ more simplified function without a dynamic reference reef
         
         # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
         dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        dens_out[ss] <- dens_ss
         
         # they come from the lab population at the previous timepoint
-        reef_outplants1[ss, ] <- reef_tiles_all[ss ,]*dens_ss*exp(-dd_pars.r[,ss]*dens_ss)
+        reef_outplants1[ss, ] <- reef_tiles_all[ss ,]*dens_ss#*exp(-dd_pars.r[,ss]*dens_ss)
       }
       
     }
-    
     
     
     # add the outplants to the reef subpopulations
     for(ss in 1:s_reef){
       
         for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
           
           # add the recruits from the previous year
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
           
           # store the numbers being outplanted
           reef_out[[ss]][[rr]][i] <- reef_outplants[rr-1,ss] + reef_outplants1[rr-1,ss]
@@ -649,6 +663,7 @@ more simplified function without a dynamic reference reef
     orchard_outplants <- matrix(0, nrow = s_lab, ncol = s_orchard) # this year's
     orchard_outplants1 <- matrix(0, nrow = s_lab, ncol = s_orchard) # last year's
     
+    dens_out <- rep(NA, s_lab)
     
     for(ss in 1:s_lab){
       
@@ -657,7 +672,9 @@ more simplified function without a dynamic reference reef
       # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
       dens_ss <- out_settlers[ss]/lab_tiles[ss]
       
-      orchard_outplants[ss, ] <- orchard_tiles_all[ss, ]*dens_ss*exp(-dd_pars.o[,ss]*dens_ss)
+      dens_out[ss] <- dens_ss
+      
+      orchard_outplants[ss, ] <- orchard_tiles_all[ss, ]*dens_ss#*exp(-dd_pars.o[,ss]*dens_ss)
       # 1-reef_prop[ss] = proportion lab recruits from ss lab treatment going to orchard
       # orchard_out_props[ss,] = proportion of the orchard outplants from lab treatment ss going to each orchard treatment
       }
@@ -667,7 +684,9 @@ more simplified function without a dynamic reference reef
         # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
         dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
         
-        orchard_outplants1[ss, ] <- orchard_tiles_all[ss, ]*dens_ss*exp(-dd_pars.o[,ss]*dens_ss)
+        dens_out[ss] <- dens_ss
+        
+        orchard_outplants1[ss, ] <- orchard_tiles_all[ss, ]*dens_ss#*exp(-dd_pars.o[,ss]*dens_ss)
         
       }
       
@@ -678,9 +697,9 @@ more simplified function without a dynamic reference reef
     for(ss in 1:s_orchard){
       
       for(rr in 1:source_orchard){ # for each lab source
-        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*lab_pars$size_props[rr,]
+        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*exp(-dd_pars.o[,rr]*dens_out[rr])*lab_pars$size_props[rr,]
         
-        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*lab_pars$size_props[rr,]
+        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*exp(-dd_pars.o[,rr]*dens_out[rr])*lab_pars$size_props[rr,]
         
         # store the numbers being outplanted
         orchard_out[[ss]][[rr]][i] <- orchard_outplants[rr,ss] + orchard_outplants1[rr,ss]
@@ -729,6 +748,9 @@ more simplified function without a dynamic reference reef
     
   } # end of iteration over each year
   
+  # return all the population metrics
+  
+ 
   
 ```
 
