@@ -598,6 +598,18 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   # larvae collected from reference reef each year
   ref_babies <- Ext_fun(years, lambda_R, rand = ext_rand[2], seed1 = seeds[4])
   
+  # update with disturbance effects
+  for(i in dist_yrs){
+    
+    if("survival" %in% dist_effects.r[[which(dist_yrs==i)]]){ # if the ith disturbance affected survival
+      # assume that reproduction in the reference reef was decreased proportional to the average proportion survival of reproductive size classes (classes 3-5)
+      ref_babies[i] <- ref_babies[i]*mean(dist_pars.r[[1]][[1]]$dist_surv[[which(dist_yrs==i)]][3:5])
+    }
+
+  }
+  
+  
+  
   # lab subpopulations
   s_lab <- length(lab_treatments)
   # subpopulations that will be outplanted immediately
