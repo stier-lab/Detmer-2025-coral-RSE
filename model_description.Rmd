@@ -387,8 +387,18 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
 
 
 # lab parameters
-s0 <- c(0.95, 0.95) # fraction of settled larvae in each lab treatment that survive to immediate outplanting
-s1 <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
+#s0 <- c(0.95, 0.95) # fraction of settled larvae in each lab treatment that survive to immediate outplanting
+# update: make this a matrix to allow for disturbance events in the lab
+s0 <- matrix(NA, nrow = years, ncol = 2)
+s0[,1] <- rep(0.95, years)
+s0[,2] <- rep(0.95, years)
+
+s0[10,1] <- 0.05
+s0[10,2] <- 0.05
+#s1 <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
+s1 <- matrix(NA, nrow = years, ncol = 2)
+s1[,1] <- rep(0.7, years)
+s1[,2] <- rep(0.7, years)
 m0 <- c(0.02, 0.02) # density dependent mortality rate of larvae in each lab treatment that get outplanted immediately
 m1 <- c(0.02, 0.02) # density dependent mortality rate of larvae in each lab treatment that get outplanted after 1 year
 sett_props <- list(T1 = 0.15, T2 = 0.15) # proportion of larvae that settle on each tile type
@@ -479,6 +489,16 @@ sim1$tiles_out_tot
 reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
 orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+
+plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Pop'n size", lwd = 2)
+lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
+legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
+
+
+reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
 
 plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Pop'n size", lwd = 2)

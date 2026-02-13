@@ -1035,7 +1035,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         
         # update out_settlers[ss] with the fraction of these that survive to outplanting
         #out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss]*exp(-lab_pars$m0[ss]*out_settlers[ss]) # m0 = density dependent mortality rate
-        out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss]*exp(-lab_pars$m0[ss]*dens_ss)
+        out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[i, ss]*exp(-lab_pars$m0[ss]*dens_ss)
         
       }
       
@@ -1050,7 +1050,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         dens_ss <- retain_settlers/lab_tiles[ss]
         
         #lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*retain_settlers) # store survivors in the lab population
-        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*dens_ss) # store survivors in the lab population
+        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[i, ss]*exp(-lab_pars$m1[ss]*dens_ss) # store survivors in the lab population
       }
       
       
