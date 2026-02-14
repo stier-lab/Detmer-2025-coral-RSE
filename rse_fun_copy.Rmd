@@ -35,6 +35,18 @@ more simplified function without a dynamic reference reef
   # larvae collected from reference reef each year
   ref_babies <- Ext_fun(years, lambda_R, rand = ext_rand[2], seed1 = seeds[4])
   
+  # update with disturbance effects
+  for(i in dist_yrs){
+    
+    if("survival" %in% dist_effects.r[[which(dist_yrs==i)]][[1]][[1]]){ # if the ith disturbance affected survival on the reefs
+      # assume that reproduction in the reference reef was decreased proportional to the average proportion survival of reproductive size classes (classes 3-5)
+      ref_babies[i] <- ref_babies[i]*mean(dist_pars.r[[1]][[1]]$dist_surv[[which(dist_yrs==i)]][3:5])
+    }
+
+  }
+  
+  
+  
   # lab subpopulations
   s_lab <- length(lab_treatments)
   # subpopulations that will be outplanted immediately
@@ -472,7 +484,7 @@ more simplified function without a dynamic reference reef
         
         # update out_settlers[ss] with the fraction of these that survive to outplanting
         #out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss]*exp(-lab_pars$m0[ss]*out_settlers[ss]) # m0 = density dependent mortality rate
-        out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss]*exp(-lab_pars$m0[ss]*dens_ss)
+        out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[i, ss]*exp(-lab_pars$m0[ss]*dens_ss)
         
       }
       
@@ -487,7 +499,7 @@ more simplified function without a dynamic reference reef
         dens_ss <- retain_settlers/lab_tiles[ss]
         
         #lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*retain_settlers) # store survivors in the lab population
-        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*dens_ss) # store survivors in the lab population
+        lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[i, ss]*exp(-lab_pars$m1[ss]*dens_ss) # store survivors in the lab population
       }
       
       
@@ -750,7 +762,7 @@ more simplified function without a dynamic reference reef
   
   # return all the population metrics
   
- 
+
   
 ```
 
