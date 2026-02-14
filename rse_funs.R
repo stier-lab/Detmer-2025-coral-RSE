@@ -988,6 +988,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
     }
     
+    # make sure total per tank doesn't exceed max reasonable amount (just to make sure 10 billion don't get put in a tank and cause high dens dep mortality)
+    tot_babies <- min(tot_babies, rest_pars$tank_max*rest_pars$lab_max/100) # max per tank x number of tanks (assuming 100 tiles per tank, from Fundemar's data)
+    
     
     # make sure these don't exceed max lab capacity (assumed lab capacity is proportional to number of tiles)
     #tot_babies <- min(tot_babies, rest_pars$lab_max)
@@ -1024,12 +1027,15 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     lab_tiles <- rep(NA, s_lab) # number of tiles
     
     # calculate proportion of max capacity to use this year (depends on total number of babies)
-    prop_use <- min(1, (tot_babies/14600*100)/rest_pars$lab_max) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
+   # prop_use <- min(1, (tot_babies/14600*100)/rest_pars$lab_max) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
+    prop_use <- min(1, (tot_babies/rest_pars$tank_min*100)/rest_pars$lab_max)
+    
     
     # check to make sure there's no dividing by zero: at a minimum, use one tile
     if(prop_use == 0){
       prop_use <- 1 - (rest_pars$lab_max-1)/rest_pars$lab_max
     }
+    
     
     # put the new babies into each lab treatment and determine how many survive
     # also record number of tiles in each lab treatment
