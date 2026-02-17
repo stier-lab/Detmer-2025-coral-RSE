@@ -104,8 +104,7 @@ Costs to incorporate: cost of orchard maintenance (although this is pretty low f
 
 ALSO need to repeat everything with different levels of disturbance (and updated reproduction on the reference reef so that it is also impacted by disturbance) 
 
-AND need to explore sensitivity to uncertain parameter values (orchard survival rates/relative survival rates in reef and on orchard, how protected the orchard is from disturbance, orchard reproduction since don't how much they will spawn compared to reefs, etc.)
-
+AND need to explore sensitivity to uncertain parameter values (orchard survival rates/relative survival rates in reef and on orchard, how protected the orchard is from disturbance, orchard reproduction since don't how much they will spawn compared to reefs, etc.). ALSO number of tiles that end up getting outplanted to reef vs orchard each year
 
 MAYBE: plots with time on x-axis, proportion outplanted to reef on y-axis, and then shapes around regions of this space where each objective is met (coral cover above some threshold, orchard reproduction above some threshold, etc.). Will need concentric polygons for different confidence thresholds (50% of simulations over threshold, 75%, 95%, etc.)
 
@@ -385,7 +384,7 @@ sim1$reef_out
 
 reef_out and orchard_out are inversely related because tiles that don't go to the orchard go to the reef
 
-
+Old problem (fixed now):
 why does the orchard population decline over time? 1) density dependent mortality (as the orchard grows, there are more larvae produced, so the densities on the settlement tiles get super high) and 2) orchard gets full in terms of tiles so no new tiles are outplanted, but there are still tiles with multiple corals per tile, so the number of corals decreases but no new tiles are outplanted still (the reef stars are still full)
 
 Fixes: 1) put a max number of larvae per tile in the lab (so you don't get crazy high densities that cause them all to die)...OR just make an upstream max total number of embryos that can be handled in the lab and 2) need to figure out density dependence in the orchard and number of corals per tile... because eventually there's only room for one per tile
@@ -706,7 +705,7 @@ sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shri
 
 NOTE: there's a problem in the code if either 100% of the tiles are outplanted immediately or 100% are retained so need to fix that
 
-check numbers (note: getting the numbers to match perfectly for the reported embryos collected and recruits outplanted is a matter of picking the in-lab density dependent and independent mortality rates)
+check output
 
 ```{r}
 
@@ -767,5 +766,22 @@ sim1$orchard_out[[1]][[1]]
 # It looks like the problem is maybe just that some of the orchard corals are dying but there are still at least one per tile so nothing new is being outplanted but the total number in the orchard is decreasing
 
 ```
+
+
+
+maybe start with simplest case: 5 year timeline, no orchard? (because adding the orchard and how well they do in orchard vs. lab is another layer). And then look at 10 years or something to see if bet hedging takes longer to show up
+
+
+```{r}
+prop_retain <- seq(from = 0, to = 1, length.out = 10)
+
+# but also need to iterate over differences in survival/growth in reef vs. lab
+
+```
+
+
+To Do list
+-- fix problem in the code that if either 100% of the tiles are outplanted immediately or 100% are retained 
+-- need to update the model to output number of embryos collected from reef and orchard, and percent of total reef reproduction that was collected each year (for costs)
 
 
