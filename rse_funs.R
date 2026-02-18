@@ -1049,7 +1049,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         lab_tiles[ss] <- (prop_use*(rest_pars$lab_max - rest_pars$lab_retain_max)*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
-        dens_ss <- out_settlers[ss]/lab_tiles[ss]
+       # dens_ss <- out_settlers[ss]/lab_tiles[ss]
+        dens_ss <- ifelse(lab_tiles[ss] > 0, out_settlers[ss]/lab_tiles[ss], 0) 
         
         # update out_settlers[ss] with the fraction of these that survive to outplanting
         #out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss]*exp(-lab_pars$m0[ss]*out_settlers[ss]) # m0 = density dependent mortality rate
@@ -1065,7 +1066,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         lab_tiles[ss] <- (prop_use*rest_pars$lab_retain_max*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
-        dens_ss <- retain_settlers/lab_tiles[ss]
+        # dens_ss <- retain_settlers/lab_tiles[ss]
+        dens_ss <- ifelse(lab_tiles[ss] > 0, retain_settlers/lab_tiles[ss], 0)
         
         #lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*retain_settlers) # store survivors in the lab population
         lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[i, ss]*exp(-lab_pars$m1[ss]*dens_ss) # store survivors in the lab population
@@ -1160,7 +1162,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       if(orchard_space[rr] > 0 & sum(orchard_tiles_all[, rr]) > orchard_space[rr]){ # if there's some space but not enough for all
 
         # proportion of tiles that fit:
-        prop_fits <- orchard_space[rr]/sum(orchard_tiles_all[, rr])
+       # prop_fits <- orchard_space[rr]/sum(orchard_tiles_all[, rr])
+        prop_fits <- ifelse(sum(orchard_tiles_all[, rr]) > 0, orchard_space[rr]/sum(orchard_tiles_all[, rr]), 0)
         
         # move the extra tiles to reef one
         orchard_tiles_all[, rr] <- orchard_tiles_all[, rr]*prop_fits
@@ -1199,7 +1202,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       # same denominator as above, just updating the numerator following any mortality that happened in the lab
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){
       
-      dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      #dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      dens_ss <- ifelse(lab_tiles[ss] > 0, out_settlers[ss]/lab_tiles[ss], 0)
       dens_out[ss] <- dens_ss
       
       # outplants going from ss^th lab treatment to each reef treatment
@@ -1211,7 +1215,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if recruits in ssth treatment were retained a year
         
         # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
-        dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        #dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        dens_ss <- ifelse(lab_tiles[ss] > 0, lab_pops[[ss]][i-1]/lab_tiles[ss], 0)
         dens_out[ss] <- dens_ss
         
         # they come from the lab population at the previous timepoint
@@ -1251,7 +1256,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){
       # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
-      dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      #dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      dens_ss <- ifelse(lab_tiles[ss] > 0, out_settlers[ss]/lab_tiles[ss], 0) 
+      
       
       dens_out[ss] <- dens_ss
       
@@ -1263,7 +1270,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if recruits in ssth treatment were retained a year
         # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
-        dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        #dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        dens_ss <- ifelse(lab_tiles[ss] > 0, lab_pops[[ss]][i-1]/lab_tiles[ss], 0) 
         
         dens_out[ss] <- dens_ss
         
