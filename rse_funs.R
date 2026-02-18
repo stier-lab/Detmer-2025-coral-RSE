@@ -634,6 +634,13 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   orchard_babies[1] <- 0 # babies collected from the orchard
   reef_babies[1] <- 0 # babies collected from reference reef
   
+  # holding vectors for recording total babies from orchard and reference reefs that were used year
+  orchard_babies_used <- rep(NA, years) # babies collected from the orchard
+  reef_babies_used <- rep(NA, years) # babies collected from reference reef
+  
+  orchard_babies_used[1] <- 0 # babies collected from the orchard
+  reef_babies_used[1] <- 0 # babies collected from reference reef
+  
   
   # holding vectors for total number of tiles being outplanted each year
   tiles_out0 <- rep(NA, years) # tiles outplanted immediately
@@ -641,6 +648,11 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   tiles_out_tot <- rep(NA, years) # total tiles
   tiles_out0[1] <- 0
   tiles_out1[1] <- 0
+  reef_tiles_out <- rep(NA, years) # tiles outplanted to reef each year
+  orchard_tiles_out <- rep(NA, years) # tiles outplanted to orchard each year
+  reef_tiles_out[1] <- 0 # tiles outplanted to reef each year
+  orchard_tiles_out[1] <- 0 # tiles outplanted to orchard each year
+  
   
   # sources of new recruits
   source_reef <- 1 + s_lab # number of possible sources of reef recruits (+1 is for external recruits)
@@ -969,6 +981,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # calculate total new babies collected from the orchards this year
     tot_new_babies.o <- sum(new_babies.o)
     
+    orchard_babies[i] <- tot_new_babies.o # babies collected from the orchard
+    reef_babies[i] <- new_babies.r # babies collected from reference reef
+    
     # tot_babies <- tot_new_babies.o + new_babies.r # total new babies collected from orchard and reference reefs
     
     # if total new babies from orchard is less than target, collect from the reference reefs until target is reached 
@@ -976,15 +991,17 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       tot_babies <- tot_new_babies.o + min(new_babies.r, (rest_pars$spawn_target - tot_new_babies.o))
       
       # then need to track embryos collected from orchard vs. reference reef (for cost estimates)
-      orchard_babies[i] <- tot_new_babies.o # babies collected from the orchard
-      reef_babies[i] <- min(new_babies.r, (rest_pars$spawn_target - tot_new_babies.o)) # babies collected from reference reef
+      orchard_babies_used[i] <- tot_new_babies.o # babies used from the orchard
+      reef_babies_used[i] <- min(new_babies.r, (rest_pars$spawn_target - tot_new_babies.o)) # babies used from reference reef
+      
+      
       
     } else{
       
       tot_babies <- tot_new_babies.o
       
-      orchard_babies[i] <- tot_new_babies.o # babies collected from the orchard
-      reef_babies[i] <- 0 # babies collected from reference reef
+      orchard_babies_used[i] <- tot_new_babies.o # babies used from the orchard
+      reef_babies_used[i] <- 0 # babies used from reference reef
       
     }
     
@@ -1035,6 +1052,10 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     if(prop_use == 0){
       prop_use <- 1 - (rest_pars$lab_max-1)/rest_pars$lab_max
     }
+    
+    # update number of babies used
+    orchard_babies_used[i] <- prop_use*orchard_babies_used[i]
+    reef_babies_used[i] <- prop_use*reef_babies_used[i]
     
     
     # put the new babies into each lab treatment and determine how many survive
@@ -1187,6 +1208,10 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     }
     
     # lab_tiles[ss]
+    
+    # store total number of tiles being outplanted to reefs and orchards
+    reef_tiles_out[i] <- sum(as.vector(reef_tiles_all))
+    orchard_tiles_out[i] <- sum(as.vector(orchard_tiles_all))
     
     
     # make a matrix with the number of recruits going from each lab treatment to each reef treatment
@@ -1343,7 +1368,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
               reef_rep = reef_rep, orchard_rep = orchard_rep, reef_out = reef_out, 
               orchard_out = orchard_out, reef_pops_pre = reef_pops_pre, 
               orchard_pops_pre = orchard_pops_pre, orchard_babies = orchard_babies, 
-              reef_babies = reef_babies, tiles_out_tot = tiles_out_tot))
+              reef_babies = reef_babies, orchard_babies_used = orchard_babies_used,
+              reef_babies_used = reef_babies_used, tiles_out_tot = tiles_out_tot, 
+              reef_tiles_out = reef_tiles_out, orchard_tiles_out = orchard_tiles_out))
   
 }
 
