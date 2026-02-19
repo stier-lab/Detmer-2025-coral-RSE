@@ -71,6 +71,13 @@ more simplified function without a dynamic reference reef
   orchard_babies[1] <- 0 # babies collected from the orchard
   reef_babies[1] <- 0 # babies collected from reference reef
   
+  # holding vectors for recording total babies from orchard and reference reefs that were used year
+  orchard_babies_used <- rep(NA, years) # babies collected from the orchard
+  reef_babies_used <- rep(NA, years) # babies collected from reference reef
+  
+  orchard_babies_used[1] <- 0 # babies collected from the orchard
+  reef_babies_used[1] <- 0 # babies collected from reference reef
+  
   
   # holding vectors for total number of tiles being outplanted each year
   tiles_out0 <- rep(NA, years) # tiles outplanted immediately
@@ -78,6 +85,11 @@ more simplified function without a dynamic reference reef
   tiles_out_tot <- rep(NA, years) # total tiles
   tiles_out0[1] <- 0
   tiles_out1[1] <- 0
+  reef_tiles_out <- rep(NA, years) # tiles outplanted to reef each year
+  orchard_tiles_out <- rep(NA, years) # tiles outplanted to orchard each year
+  reef_tiles_out[1] <- 0 # tiles outplanted to reef each year
+  orchard_tiles_out[1] <- 0 # tiles outplanted to orchard each year
+  
   
   # sources of new recruits
   source_reef <- 1 + s_lab # number of possible sources of reef recruits (+1 is for external recruits)
@@ -406,6 +418,9 @@ more simplified function without a dynamic reference reef
     # calculate total new babies collected from the orchards this year
     tot_new_babies.o <- sum(new_babies.o)
     
+    orchard_babies[i] <- tot_new_babies.o # babies collected from the orchard
+    reef_babies[i] <- new_babies.r # babies collected from reference reef
+    
     # tot_babies <- tot_new_babies.o + new_babies.r # total new babies collected from orchard and reference reefs
     
     # if total new babies from orchard is less than target, collect from the reference reefs until target is reached 
@@ -413,18 +428,19 @@ more simplified function without a dynamic reference reef
       tot_babies <- tot_new_babies.o + min(new_babies.r, (rest_pars$spawn_target - tot_new_babies.o))
       
       # then need to track embryos collected from orchard vs. reference reef (for cost estimates)
-      orchard_babies[i] <- tot_new_babies.o # babies collected from the orchard
-      reef_babies[i] <- min(new_babies.r, (rest_pars$spawn_target - tot_new_babies.o)) # babies collected from reference reef
+      orchard_babies_used[i] <- tot_new_babies.o # babies used from the orchard
+      reef_babies_used[i] <- min(new_babies.r, (rest_pars$spawn_target - tot_new_babies.o)) # babies used from reference reef
+      
+      
       
     } else{
       
       tot_babies <- tot_new_babies.o
       
-      orchard_babies[i] <- tot_new_babies.o # babies collected from the orchard
-      reef_babies[i] <- 0 # babies collected from reference reef
+      orchard_babies_used[i] <- tot_new_babies.o # babies used from the orchard
+      reef_babies_used[i] <- 0 # babies used from reference reef
       
     }
-    
     
     # make sure total per tank doesn't exceed max reasonable amount (just to make sure 10 billion don't get put in a tank and cause high dens dep mortality)
     tot_babies <- min(tot_babies, rest_pars$tank_max*rest_pars$lab_max/100) # max per tank x number of tanks (assuming 100 tiles per tank, from Fundemar's data)
@@ -464,7 +480,6 @@ more simplified function without a dynamic reference reef
     out_settlers <- rep(0, s_lab)
     lab_tiles <- rep(NA, s_lab) # number of tiles
     
-    
     # calculate proportion of max capacity to use this year (depends on total number of babies)
    # prop_use <- min(1, (tot_babies/14600*100)/rest_pars$lab_max) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
     prop_use <- min(1, (tot_babies/rest_pars$tank_min*100)/rest_pars$lab_max)
@@ -474,6 +489,10 @@ more simplified function without a dynamic reference reef
     if(prop_use == 0){
       prop_use <- 1 - (rest_pars$lab_max-1)/rest_pars$lab_max
     }
+    
+    # update number of babies used
+    orchard_babies_used[i] <- prop_use*orchard_babies_used[i]
+    reef_babies_used[i] <- prop_use*reef_babies_used[i]
     
     
     # put the new babies into each lab treatment and determine how many survive
@@ -488,7 +507,8 @@ more simplified function without a dynamic reference reef
         lab_tiles[ss] <- (prop_use*(rest_pars$lab_max - rest_pars$lab_retain_max)*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
-        dens_ss <- out_settlers[ss]/lab_tiles[ss]
+       # dens_ss <- out_settlers[ss]/lab_tiles[ss]
+        dens_ss <- ifelse(lab_tiles[ss] > 0, out_settlers[ss]/lab_tiles[ss], 0) 
         
         # update out_settlers[ss] with the fraction of these that survive to outplanting
         #out_settlers[ss] <- out_settlers[ss]*lab_pars$s0[ss]*exp(-lab_pars$m0[ss]*out_settlers[ss]) # m0 = density dependent mortality rate
@@ -504,7 +524,8 @@ more simplified function without a dynamic reference reef
         lab_tiles[ss] <- (prop_use*rest_pars$lab_retain_max*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
-        dens_ss <- retain_settlers/lab_tiles[ss]
+        # dens_ss <- retain_settlers/lab_tiles[ss]
+        dens_ss <- ifelse(lab_tiles[ss] > 0, retain_settlers/lab_tiles[ss], 0)
         
         #lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[ss]*exp(-lab_pars$m1[ss]*retain_settlers) # store survivors in the lab population
         lab_pops[[ss]][i] <- retain_settlers*lab_pars$s1[i, ss]*exp(-lab_pars$m1[ss]*dens_ss) # store survivors in the lab population
@@ -599,11 +620,13 @@ more simplified function without a dynamic reference reef
       if(orchard_space[rr] > 0 & sum(orchard_tiles_all[, rr]) > orchard_space[rr]){ # if there's some space but not enough for all
 
         # proportion of tiles that fit:
-        prop_fits <- orchard_space[rr]/sum(orchard_tiles_all[, rr])
+       # prop_fits <- orchard_space[rr]/sum(orchard_tiles_all[, rr])
+        prop_fits <- ifelse(sum(orchard_tiles_all[, rr]) > 0, orchard_space[rr]/sum(orchard_tiles_all[, rr]), 0)
         
         # move the extra tiles to reef one
+         reef_tiles_all[ ,rr] <- reef_tiles_all[ ,rr] + orchard_tiles_all[, rr]*(1-prop_fits)
         orchard_tiles_all[, rr] <- orchard_tiles_all[, rr]*prop_fits
-        reef_tiles_all[ ,rr] <- reef_tiles_all[ ,rr] + orchard_tiles_all[, rr]*(1-prop_fits)
+       
         
         # # n_extra <- floor(sum(orchard_tiles_all[, rr]) - orchard_space[rr]) # number of extra tiles
         # for(xx in 1:n_extra){ # move extra tiles from each source to reef proportional to the number of tiles per source
@@ -624,6 +647,10 @@ more simplified function without a dynamic reference reef
     
     # lab_tiles[ss]
     
+    # store total number of tiles being outplanted to reefs and orchards
+    reef_tiles_out[i] <- sum(as.vector(reef_tiles_all))
+    orchard_tiles_out[i] <- sum(as.vector(orchard_tiles_all))
+    
     
     # make a matrix with the number of recruits going from each lab treatment to each reef treatment
     reef_outplants <- matrix(0, nrow = s_lab, ncol = s_reef) # from current timestep
@@ -638,7 +665,8 @@ more simplified function without a dynamic reference reef
       # same denominator as above, just updating the numerator following any mortality that happened in the lab
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){
       
-      dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      #dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      dens_ss <- ifelse(lab_tiles[ss] > 0, out_settlers[ss]/lab_tiles[ss], 0)
       dens_out[ss] <- dens_ss
       
       # outplants going from ss^th lab treatment to each reef treatment
@@ -650,7 +678,8 @@ more simplified function without a dynamic reference reef
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if recruits in ssth treatment were retained a year
         
         # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
-        dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        #dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        dens_ss <- ifelse(lab_tiles[ss] > 0, lab_pops[[ss]][i-1]/lab_tiles[ss], 0)
         dens_out[ss] <- dens_ss
         
         # they come from the lab population at the previous timepoint
@@ -690,7 +719,9 @@ more simplified function without a dynamic reference reef
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){
       # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
-      dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      #dens_ss <- out_settlers[ss]/lab_tiles[ss]
+      dens_ss <- ifelse(lab_tiles[ss] > 0, out_settlers[ss]/lab_tiles[ss], 0) 
+      
       
       dens_out[ss] <- dens_ss
       
@@ -702,7 +733,8 @@ more simplified function without a dynamic reference reef
       
       if(substr(lab_treatments[ss], start = 1, stop = 1)=="1"){ # if recruits in ssth treatment were retained a year
         # calculate per tile densities to update survival with density dependence (assuming this is per tile and unaffected by total number of tiles in a location)
-        dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        #dens_ss <- lab_pops[[ss]][i-1]/lab_tiles[ss]
+        dens_ss <- ifelse(lab_tiles[ss] > 0, lab_pops[[ss]][i-1]/lab_tiles[ss], 0) 
         
         dens_out[ss] <- dens_ss
         
