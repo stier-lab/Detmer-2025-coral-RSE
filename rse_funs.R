@@ -1187,8 +1187,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         prop_fits <- ifelse(sum(orchard_tiles_all[, rr]) > 0, orchard_space[rr]/sum(orchard_tiles_all[, rr]), 0)
         
         # move the extra tiles to reef one
-        orchard_tiles_all[, rr] <- orchard_tiles_all[, rr]*prop_fits
         reef_tiles_all[ ,rr] <- reef_tiles_all[ ,rr] + orchard_tiles_all[, rr]*(1-prop_fits)
+        orchard_tiles_all[, rr] <- orchard_tiles_all[, rr]*prop_fits
         
         # # n_extra <- floor(sum(orchard_tiles_all[, rr]) - orchard_space[rr]) # number of extra tiles
         # for(xx in 1:n_extra){ # move extra tiles from each source to reef proportional to the number of tiles per source
