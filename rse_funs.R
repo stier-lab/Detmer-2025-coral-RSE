@@ -1370,7 +1370,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
               orchard_pops_pre = orchard_pops_pre, orchard_babies = orchard_babies, 
               reef_babies = reef_babies, orchard_babies_used = orchard_babies_used,
               reef_babies_used = reef_babies_used, tiles_out_tot = tiles_out_tot, 
-              reef_tiles_out = reef_tiles_out, orchard_tiles_out = orchard_tiles_out))
+              reef_tiles_out = reef_tiles_out, orchard_tiles_out = orchard_tiles_out, 
+              orchard_tiles = orchard_tiles))
   
 }
 
