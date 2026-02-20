@@ -179,5 +179,20 @@ ggplot(aes(x=as.factor(substrate_type), y=as.numeric(number_of_total_settlers)))
 
 ```
 
+check ratio of cement to ceramic (gear) substrates
+
+```{r}
+
+#View(sett_mat_APAL[which(sett_mat_APAL$year_scored == 2025),])
+
+length(which(sett_mat_APAL$year_scored == 2025 & sett_mat_APAL$substrate_type=="Cookie cement"))
+
+length(which(sett_mat_APAL$year_scored == 2025 & sett_mat_APAL$substrate_type=="Gear"))
+
+250/(250 + 244)
+
+244/(250 + 244)
+
+```
 
 
