@@ -493,15 +493,15 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
   
   for(i in 1:n_orchard){ # for each orchard
       
-      # holding list for each source to each reef
-      surv_pars.o[[i]] <- list() # ith reef treatment/subpop
+      # holding list for each source to each orchard
+      surv_pars.o[[i]] <- list() # ith orchard treatment/subpop
       growth_pars.o[[i]] <- list()
       shrink_pars.o[[i]] <- list()
       frag_pars.o[[i]] <- list()
       
-      for(j in 1:(n_lab + 1)){ # for each source to each reef
+      for(j in 1:n_lab){ # for each source to each orchard
         
-        surv_pars.o[[i]][[j]] <- surv_pars2[[i]][nn,] # survival probabilities for jth source of recruits to ith reef subpop (external recruits)
+        surv_pars.o[[i]][[j]] <- surv_pars2[[i]][nn,] # survival probabilities for jth source of recruits to ith orchard
         growth_pars.o[[i]][[j]] <- growth_pars2[[i]][[nn]]
         shrink_pars.o[[i]][[j]] <- shrink_pars2[[i]][[nn]]
         frag_pars.o[[i]][[j]] <- frag_pars2[[i]][[nn]]
