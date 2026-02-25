@@ -60,34 +60,6 @@ apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "standardized_data/apal_sur
 
 
 
-# parameter sets
-
-NOTE: this is where you can decide whether to include only local data from the Demographic Republic or regional data from the Caribbean
-
-```{r}
-# get the random parameter sets
-
-# number of iterations
-n_sample1 <- 100
-
-# full parameter sets
-field_surv1 <- field_surv
-field_growth1 <- field_growth
-nurs_surv1 <- nurs_surv
-nurs_growth1 <- nurs_growth
-
-# nursery data only available for size classes 1-2, so use the field data for larger size classes
-nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
-
-nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
-nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
-nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
-
-
-set.seed(500)
-all_pars_R <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
-
-```
 
 
 
@@ -400,13 +372,43 @@ Fixes: 1) put a max number of larvae per tile in the lab (so you don't get crazy
 
 ```
 
+## parameter sets
+
+NOTE: this is where you can decide whether to include only local data from the Demographic Republic or regional data from the Caribbean
+
+```{r}
+# get the random parameter sets
+
+# number of iterations
+n_sample1 <- 100
+
+# full parameter sets
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
+
+# nursery data only available for size classes 1-2, so use the field data for larger size classes
+nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
+
+nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
+nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
+nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
+
+
+set.seed(500)
+all_pars_R <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
+
+```
+
+
 ## no disturbance
 
 ```{r}
 
 # run for 100 years because interested in both short-term (5 years) and long-term (100 years) but it's more efficient to just run everything once for 100 years
 
-L1 <- 10
+L1 <- 50
 prop_set <- seq(from = 0, to = 1, length.out = L1) # proportion tiles outplanted to reef (can be higher than this if orchard gets full though)
 
 orch_exp_list <- list()
@@ -435,10 +437,12 @@ for(i in 1:n_sample1){ # for each parameter set
   
   for(j in 1:length(prop_set)){ # for each proportion outplanted to reef
     
-    rest_pars$reef_prop <- prop_set[j] # proportion of tiles outplanted to reef
+    rest_pars_ij <- rest_pars
+    
+    rest_pars_ij$reef_prop <- prop_set[j] # proportion of tiles outplanted to reef
     
     # run the model
-    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars_ij, N0.r, N0.o, N0.l)
     
     
     # save the output
@@ -484,6 +488,7 @@ orch_exp_metric_fun <- function(sim_list, n_sample1, L1, max_yr){
   reef_recruits_out_tot = rep(NA, L1), # total recruits outplanted to reef
   reef_ROI_mean = rep(NA, L1), # corals on reef per dollar spent, averaged over max_yr years
  # tot_dollar_costs = rep(NA, L1), # total amount of money spent on restoration over max_yr years 
+ tot_costs <- rep(NA, L1), # total amount spent over length of simulation
   reef_cover_cost = rep(NA, L1), # avg coral cover on reef over max_yr years compared to if all corals were put on the reef
   orch_rep_cost = rep(NA, L1), # avg orchard reproduction over max_yr years compared to if all corals were put in the orchard
   orch_function_mean = rep(NA, L1), # avg number of large (size classes 4-5) corals in orchard
@@ -579,6 +584,8 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "in
      # maint_costs <- sum(maint_costs)
       
      tot_costs <- base_costs + spawn_costs + maint_costs
+     
+     dt_i$tot_costs[j] <- sum(tot_costs)
       
       #dt_i$tot_dollar_costs[j]
       dt_i$reef_ROI_mean[j] <- mean(reef_cover_ij[2:max_yr]/tot_costs)
@@ -605,6 +612,9 @@ View(orch_exp_5_D0)
 # make this a function of the list, n_sample1, L1, and the time point of interest
 
 # data frame for all the performance metrics at year 50 (use data from time points 2 through 51)
+orch_exp_50_D0 <- orch_exp_metric_fun(sim_list = orch_exp_list, n_sample1, L1, max_yr = 51)
+
+
 ```
 
 want to make some sort of plot that illustrates the trade offs between all these different objectives. x-axis is proportion outplanted to reef
@@ -619,29 +629,206 @@ OR: x-axis = proportion outplanted to reef, y-axis = metric scaled relative to i
 
 dt_plot <- orch_exp_5_D0
 
-plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_cover_mean, na.rm = T)), las = 1)
+lab_cx <- 0.85
+
+pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/metrics_5_D0.pdf", height = 7)
+
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
+#layout.show(2)
+par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+
+
+# mean reef cover
+xlab1 <- NA
+ylab1 <- expression("Mean coral cover ("*m^2*")")
+plotlab <- "a) Coral cover on reef"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_cover_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+mtext(side = 3, "5 year simulation, no disturbance", outer = T, line = -1)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
   lines(x = dt_sub$prop_out, y = dt_sub$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
 }
 
-plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_ROI_mean, na.rm = T)), las = 1)
+# recruits outplanted to reef
+xlab1 <- NA
+ylab1 <- "Number of recruits"
+plotlab <- "b) Recruits outplanted to reef"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_recruits_out_tot, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.75, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$reef_recruits_out_tot, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+# reef ROI
+xlab1 <- "Proportion substrates initially outplanted to reef"
+ylab1 <- expression("Reef ROI ("*m^2~"coral/$)")
+plotlab <- "c) Reef return on investment"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_ROI_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
   lines(x = dt_sub$prop_out, y = dt_sub$reef_ROI_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
 }
 
-plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$orch_rep_cost, na.rm = T)), las = 1)
+
+# total costs
+xlab1 <- NA
+ylab1 <- "Total $ spent"
+plotlab <- "d) Total restoration costs"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$tot_costs, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$tot_costs, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+# cost to orchard reproduction (proportion of orchard reproductive potential achieved)
+xlab1 <- NA
+ylab1 <- "Prop. reproductive \npotential achieved"
+plotlab <- "e) Orchard reproduction"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$orch_rep_cost, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
   lines(x = dt_sub$prop_out, y = dt_sub$orch_rep_cost, col = adjustcolor(col = "black", alpha.f = 0.2))
 }
 
-plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$orch_function_mean, na.rm = T)), las = 1)
+# orchard function
+xlab1 <- NA
+ylab1 <- "Mean number of \nlarge orchard corals"
+plotlab <- "f) Orchard ecological function"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$orch_function_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
   lines(x = dt_sub$prop_out, y = dt_sub$orch_function_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
 }
+
+
+dev.off()
+
+```
+
+costs: I think the little bump up at the end is when you have to collect from the reference reef bc there's not enough in the orchard, and then it goes down again when you get to 1 because then you aren't spending anything on orchard maintenance
+
+over 50 years: orchard has time to fill up, so see high coral cover on reef even if nothing is initially outplanted to the reef. But still see highest when you put everything on the reef because you can collect from the reference reefs
+
+also sometimes orchard rep can go over one because of the timeing in when the orchard fills up which depends on proportion being outplanted to the orchard
+
+```{r}
+
+
+# repeat for 50 year time scale
+
+dt_plot <- orch_exp_50_D0
+
+lab_cx <- 0.85
+
+pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/metrics_50_D0.pdf", height = 7)
+
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
+#layout.show(2)
+par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+
+
+# mean reef cover
+xlab1 <- NA
+ylab1 <- expression("Mean coral cover ("*m^2*")")
+plotlab <- "a) Coral cover on reef"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_cover_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+mtext(side = 3, "50 year simulation, no disturbance", outer = T, line = -1)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+# recruits outplanted to reef
+xlab1 <- NA
+ylab1 <- "Number of recruits"
+plotlab <- "b) Recruits outplanted to reef"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_recruits_out_tot, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.75, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$reef_recruits_out_tot, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+# reef ROI
+xlab1 <- "Proportion substrates initially outplanted to reef"
+ylab1 <- expression("Reef ROI ("*m^2~"coral/$)")
+plotlab <- "c) Reef return on investment"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_ROI_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$reef_ROI_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+
+# total costs
+xlab1 <- NA
+ylab1 <- "Total $ spent"
+plotlab <- "d) Total restoration costs"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$tot_costs, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$tot_costs, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+# cost to orchard reproduction (proportion of orchard reproductive potential achieved)
+xlab1 <- NA
+ylab1 <- "Prop. reproductive \npotential achieved"
+plotlab <- "e) Orchard reproduction"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$orch_rep_cost, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_rep_cost, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+# orchard function
+xlab1 <- NA
+ylab1 <- "Mean number of \nlarge orchard corals"
+plotlab <- "f) Orchard ecological function"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$orch_function_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_function_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+
+dev.off()
 
 ```
 
@@ -878,7 +1065,7 @@ orchard_out_props[2,] <- c(1) # from second lab treatment to each orchard
 # sizes allocated to each treatment
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
 lab_max <- 3100 # total number of tiles that the lab can accommodate 
-lab_retain_max <- 3100 # total number of tiles that the lab can keep for a year (must be less than or equal to lab_max; if > 0 then must have at least one "1_" lab treatment, if equal to lab max then must have all treatments be "1_")
+lab_retain_max <- 10 # total number of tiles that the lab can keep for a year (must be less than or equal to lab_max; if > 0 then must have at least one "1_" lab treatment, if equal to lab max then must have all treatments be "1_")
 tank_min <- 14600 # min number of embryos to put in a tank (reduce number of tanks used if less than this to avoid unrealistically small densities on the tiles)
 tank_max <- 33333 # max number of embryos to put in a tank (impose a max because in reality if you had unlimited embryos you wouldn't put all of them in tanks because the density would be too high and presumably lead to high dens dep mortality). Chose max to correspond to number that would result in 50 embryos per tile, assuming 15% settlement and 100 tiles per tank
 
@@ -978,14 +1165,96 @@ maybe start with simplest case: 5 year timeline, no orchard? (because adding the
 maybe some sort of plot with relative survival of grow-out outplants (compared to those outplanted immediately) on the x-axis and relative growth on the y-axis? And then show optimal proportion of tiles to keep in lab?
 
 ```{r}
-prop_retain <- seq(from = 0, to = 1, length.out = 10)
+# update random parameters to have two lab treatments
+
+# number of iterations
+#n_sample1 <- 100
+
+# full parameter sets
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
+
+# nursery data only available for size classes 1-2, so use the field data for larger size classes
+nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
+
+nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
+nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
+nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
+
+set.seed(500)
+all_pars_R2 <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
+```
+
+
+```{r}
 
 # but also need to iterate over differences in survival/growth in reef vs. lab
+
+# just start with differences in survival for now
+
+L1 <- 10
+prop_retain <- seq(from = 0, to = 1, length.out = L1) # proportion tiles to keep in the lab for grow-out
+
+lab_grow_list <- list()
+
+
+# outer loop = demographic parameter values
+# inner loop = proportion to outplant to the reef
+
+tic()
+
+for(i in 1:n_sample1){ # for each parameter set
+  
+  # set up the parameters
+  
+  surv_pars.r <- all_pars_R2$surv_pars_L.r[[i]] 
+  growth_pars.r <- all_pars_R2$growth_pars_L.r[[i]]
+  shrink_pars.r <- all_pars_R2$shrink_pars_L.r[[i]] 
+  frag_pars.r <- all_pars_R2$frag_pars_L.r[[i]]
+  surv_pars.o <- all_pars_R2$surv_pars_L.o[[i]] 
+  growth_pars.o <- all_pars_R2$growth_pars_L.o[[i]]
+  shrink_pars.o <- all_pars_R2$shrink_pars_L.o[[i]]
+  frag_pars.o <- all_pars_R2$frag_pars_L.o[[i]]
+  
+  # update field survival of the grow-out tiles (smallest size class only for now)
+  surv_pars.r[[1]][[3]][1] <- min((surv_pars.r[[1]][[2]][1] + 0.001)*2, 1)
+ # surv_pars.r[[1]][[3]][2] <- min((surv_pars.r[[1]][[2]][2] + 0.001)*1.5, 1)
+  
+  # holding list for model simulations with this parameter set
+  mod_list <- list()
+  
+  for(j in 1:length(prop_retain)){ # for each proportion outplanted to reef
+    
+    
+    rest_pars_ij <- rest_pars
+    
+    rest_pars_ij$lab_retain_max <- lab_max*prop_retain[j] # proportion of tiles outplanted to reef
+    
+    # run the model
+    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars_ij, N0.r, N0.o, N0.l)
+    
+    
+    # save the output
+    mod_list[[j]] <- sim_ij
+    
+  } # end of iterations over outplanting proportions
+  
+  
+  lab_grow_list[[i]] <- mod_list
+  
+} # end of iterations over parameter sets
+
+toc()
+
+
 
 ```
 
 
-To Do list
--- incorporate cost data that Fundemar sent (but these can be outside of the model function)
+```{r}
+ # make function to calculate the performance metrics
+```
 
 
