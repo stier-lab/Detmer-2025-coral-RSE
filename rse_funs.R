@@ -603,7 +603,10 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     
     if("survival" %in% dist_effects.r[[which(dist_yrs==i)]][[1]][[1]]){ # if the ith disturbance affected survival on the reefs
       # assume that reproduction in the reference reef was decreased proportional to the average proportion survival of reproductive size classes (classes 3-5)
-      ref_babies[i] <- ref_babies[i]*mean(dist_pars.r[[1]][[1]]$dist_surv[[which(dist_yrs==i)]][3:5])
+      #ref_babies[i] <- ref_babies[i]*mean(dist_pars.r[[1]][[1]]$dist_surv[[which(dist_yrs==i)]][3:5])
+      # update: assume reproduction is decreased by the same amount as the average proportional reduction in survival of reproductive size classes
+      # (e.g., if disturbance reduced survival to 20% of default value, then reduce reference reef production to 20% of default)
+      ref_babies[i] <- ref_babies[i]*mean(dist_pars.r[[1]][[1]]$dist_surv[[which(dist_yrs==i)]][3:5]/surv_pars.r[[1]][[1]][3:5], na.rm = T)
     }
 
   }
