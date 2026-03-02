@@ -36,6 +36,8 @@ more simplified function without a dynamic reference reef
   ref_babies <- Ext_fun(years, lambda_R, rand = ext_rand[2], seed1 = seeds[4])
   
   # update with disturbance effects
+  if(is.na(dist_yrs[1])==F){
+    
   for(i in dist_yrs){
     
     if("survival" %in% dist_effects.r[[1]][[1]][[which(dist_yrs==i)]]){ # if the ith disturbance affected survival on the reefs
@@ -44,7 +46,7 @@ more simplified function without a dynamic reference reef
     }
 
   }
-  
+  }
   
   
   # lab subpopulations

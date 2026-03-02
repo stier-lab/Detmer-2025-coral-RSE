@@ -599,6 +599,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   ref_babies <- Ext_fun(years, lambda_R, rand = ext_rand[2], seed1 = seeds[4])
   
   # update with disturbance effects
+  if(is.na(dist_yrs[1])==F){
   for(i in dist_yrs){
     
     if("survival" %in% dist_effects.r[[1]][[1]][[which(dist_yrs==i)]]){ # if the ith disturbance affected survival on the reefs
@@ -608,7 +609,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       # (e.g., if disturbance reduced survival to 20% of default value, then reduce reference reef production to 20% of default)
       ref_babies[i] <- ref_babies[i]*mean(dist_pars.r[[1]][[1]]$dist_surv[[which(dist_yrs==i)]][3:5]/surv_pars.r[[1]][[1]][3:5], na.rm = T)
     }
-
+  }
   }
   
   
