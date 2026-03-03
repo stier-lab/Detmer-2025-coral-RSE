@@ -1700,7 +1700,7 @@ plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(
 mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
 mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
 mtext(side = 3, plotlab, adj = 0)
-mtext(side = 3, "5 year simulation, no disturbance", outer = T, line = -1)
+mtext(side = 3, "5 year simulation, with disturbance", outer = T, line = -1)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
   lines(x = dt_sub$prop_out, y = dt_sub$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
@@ -1809,7 +1809,7 @@ plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(
 mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
 mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
 mtext(side = 3, plotlab, adj = 0)
-mtext(side = 3, "50 year simulation, no disturbance", outer = T, line = -1)
+mtext(side = 3, "50 year simulation, with disturbance", outer = T, line = -1)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
   lines(x = dt_sub$prop_out, y = dt_sub$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
