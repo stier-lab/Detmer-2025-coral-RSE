@@ -1574,6 +1574,84 @@ orch_exp_50_D1_pmax <- mean_score$prop_out[which(mean_score$strategy_score == ma
 
 
 ```{r}
+# plot all 4 strategy score plots together
+
+pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/strategy_scores_orch_exp.pdf", height = 7)
+
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 2))
+#layout.show(2)
+par(mar=c(0, 0.75, 2.5, 1), oma = c(4.5, 4.5, 2, 0))
+
+dt_plot <- orch_exp_5_D0
+
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), labels = NA)
+#mtext(side = 1, "Proportion initially outplanted to reef", line = 2.5, cex = lab_cx)
+mtext(side = 2, "Strategy score", line = 2, cex = 1.1, outer = T)
+mtext(side = 3, "a) 5 years, no disturbance", adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$strategy_score, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+# add the mean in blue
+mean_score <- dt_plot %>% group_by(prop_out) %>% summarize(strategy_score = mean(strategy_score, na.rm = T))
+lines(x = mean_score$prop_out, y = mean_score$strategy_score, col = "blue", lwd = 2)
+legend("topleft", legend = c("mean across parameter sets", "individual parameter set"), lty = 1, lwd = 2, col = c("blue", adjustcolor(col = "black", alpha.f = 0.2)))
+
+
+dt_plot <- orch_exp_50_D0
+
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, 1), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, "Proportion initially outplanted to reef", line = 2.5, cex = 1.1, outer = T)
+#mtext(side = 2, "Strategy score", line = 2.5, cex = lab_cx)
+mtext(side = 3, "b) 50 years, no disturbance", adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$strategy_score, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+# add the mean in blue
+mean_score <- dt_plot %>% group_by(prop_out) %>% summarize(strategy_score = mean(strategy_score, na.rm = T))
+lines(x = mean_score$prop_out, y = mean_score$strategy_score, col = "blue", lwd = 2)
+
+dt_plot <- orch_exp_5_D1
+
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
+axis(side = 1, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), labels = NA)
+axis(side = 2, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), labels = NA)
+#mtext(side = 1, "Proportion initially outplanted to reef", line = 2.5, cex = lab_cx)
+#mtext(side = 2, "Strategy score", line = 2.5, cex = lab_cx)
+mtext(side = 3, "c) 5 years, with disturbance", adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$strategy_score, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+# add the mean in blue
+mean_score <- dt_plot %>% group_by(prop_out) %>% summarize(strategy_score = mean(strategy_score, na.rm = T))
+lines(x = mean_score$prop_out, y = mean_score$strategy_score, col = "blue", lwd = 2)
+
+
+dt_plot <- orch_exp_50_D1
+
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = c(0, 0.2, 0.4, 0.6, 0.8, 1), labels = NA)
+#mtext(side = 1, "Proportion initially outplanted to reef", line = 2.5, cex = lab_cx)
+#mtext(side = 2, "Strategy score", line = 2.5, cex = lab_cx)
+mtext(side = 3, "d) 50 years, with disturbance", adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$strategy_score, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+# add the mean in blue
+mean_score <- dt_plot %>% group_by(prop_out) %>% summarize(strategy_score = mean(strategy_score, na.rm = T))
+lines(x = mean_score$prop_out, y = mean_score$strategy_score, col = "blue", lwd = 2)
+
+dev.off()
+
+```
+
+
+```{r}
 # make the OHI plot for 5 years, with disturbance
 pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/OHI_5_D1.pdf", height = 7, width = 7)
 
