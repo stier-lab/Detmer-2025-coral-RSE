@@ -1179,7 +1179,7 @@ abline(v = 1, lty = 2, lwd = 2)
 ```{r}
 # also plot histogram of time to population extinction for the lambda values less than one
 
-hist(log(1/sum(N0.r[[1]][[1]]), base = lambda_set[which(lambda_set < 0.998)]), main = NA, xlab = NA, ylab = NA, las = 1, breaks = 15)
+hist(log(1/sum(N0.r[[1]][[1]]), base = lambda_set[which(lambda_set < 0.998)]), main = NA, xlab = NA, ylab = NA, las = 1, breaks = 20)
 mtext(side = 1, "Years to extinction when N0 = 50", line = 2)
 mtext(side = 2, "Frequency", line = 2)
 
@@ -1188,8 +1188,8 @@ hist(log(1/sum(N0.r[[1]][[1]]), base = lambda_set[which(lambda_set < 1)]), main 
 mtext(side = 1, "Years to extinction when N0 = 50", line = 2)
 mtext(side = 2, "Frequency", line = 2)
 
-
-
+sort(log(1/sum(N0.r[[1]][[1]]), base = lambda_set[which(lambda_set < 1)]))
+sort(lambda_set[which(lambda_set < 1)])
 ```
 
 
