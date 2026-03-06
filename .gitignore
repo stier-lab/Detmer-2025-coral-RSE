@@ -6,3 +6,8 @@
 
 # ignore Mac DS_Store files
 .DS_Store
+
+
+# Folders to ignore 
+# ignore anything in folders labeled TempFigs
+TempFigs/
