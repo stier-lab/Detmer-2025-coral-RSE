@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coral RSE Model Architecture</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1>Coral RSE Model Architecture</h1>
+      <p class="subtitle"><em>Acropora palmata</em> &mdash; Size-structured population dynamics across Lab, Orchard &amp; Reef</p>
+    </header>
+
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">Layers:</span>
+        <label><input type="checkbox" data-layer="disturbance" /> Disturbance</label>
+        <label><input type="checkbox" data-layer="stochasticity" /> Stochasticity</label>
+        <label><input type="checkbox" data-layer="costs" /> Costs</label>
+        <label><input type="checkbox" data-layer="density" /> Density Dep.</label>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Highlight pathway:</span>
+        <select id="pathway-select">
+          <option value="">All pathways</option>
+          <option value="wild">Wild recruits</option>
+          <option value="0tx">0_TX (immediate outplant)</option>
+          <option value="1tx">1_TX (1-yr lab grow-out)</option>
+          <option value="transplant">Orchard transplant</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <button id="expand-all">Expand All</button>
+        <button id="collapse-all">Collapse All</button>
+      </div>
+    </div>
+
+    <div class="diagram-container">
+      <svg id="diagram"></svg>
+    </div>
+
+    <div id="tooltip" class="tooltip hidden">
+      <div class="tooltip-title"></div>
+      <div class="tooltip-body"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

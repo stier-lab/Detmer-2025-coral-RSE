@@ -1,0 +1,315 @@
+/* ── Reset & Base ─────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  overflow-x: hidden;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ──────────────────────────────── */
+.header {
+  padding: 16px 24px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+}
+.subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* ── Controls ────────────────────────────── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+}
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.control-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.controls label {
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.controls select {
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  color: #334155;
+}
+.controls button {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.controls button:hover {
+  background: #f1f5f9;
+}
+
+/* ── Diagram Container ───────────────────── */
+.diagram-container {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+}
+#diagram {
+  width: 100%;
+  min-height: 700px;
+}
+
+/* ── SVG Styles ──────────────────────────── */
+
+/* Location boxes */
+.location-box {
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.location-box:hover {
+  filter: brightness(0.97);
+}
+.location-bg {
+  rx: 10;
+  ry: 10;
+  stroke-width: 2;
+  transition: all 0.4s ease;
+}
+.location-title {
+  font-size: 16px;
+  font-weight: 700;
+  fill: #1e293b;
+  pointer-events: none;
+}
+.location-subtitle {
+  font-size: 11px;
+  fill: #64748b;
+  pointer-events: none;
+}
+
+/* Size class nodes */
+.sc-node rect {
+  rx: 6;
+  ry: 6;
+  stroke-width: 1.5;
+  transition: opacity 0.3s;
+}
+.sc-node text {
+  font-size: 11px;
+  pointer-events: none;
+}
+.sc-label {
+  font-weight: 600;
+  fill: #1e293b;
+}
+.sc-range {
+  font-size: 10px;
+  fill: #64748b;
+}
+
+/* Arrows & paths */
+.flow-arrow {
+  fill: none;
+  stroke-width: 2;
+  transition: opacity 0.3s, stroke-width 0.3s;
+}
+.flow-arrow.collection { stroke: #8b5cf6; }
+.flow-arrow.outplant { stroke: #f59e0b; }
+.flow-arrow.transplant { stroke: #10b981; }
+
+.internal-arrow {
+  fill: none;
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+  marker-end: url(#arrowhead-grey);
+}
+.growth-arrow { stroke: #22c55e; marker-end: url(#arrowhead-green); }
+.shrinkage-arrow { stroke: #ef4444; marker-end: url(#arrowhead-red); }
+.frag-arrow { stroke: #a855f7; stroke-dasharray: 4,3; marker-end: url(#arrowhead-purple); }
+.fecundity-arrow { stroke: #f59e0b; stroke-dasharray: 6,3; marker-end: url(#arrowhead-amber); }
+
+.arrow-label {
+  font-size: 10px;
+  fill: #64748b;
+  pointer-events: none;
+}
+
+/* Decision diamonds */
+.decision-diamond {
+  cursor: pointer;
+}
+.decision-diamond polygon {
+  fill: #fef08a;
+  stroke: #ca8a04;
+  stroke-width: 1.5;
+  transition: fill 0.2s;
+}
+.decision-diamond:hover polygon {
+  fill: #fde047;
+}
+.decision-label {
+  font-size: 10px;
+  font-weight: 600;
+  fill: #854d0e;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+/* External inputs */
+.external-input line,
+.external-input path {
+  stroke: #9ca3af;
+  stroke-width: 1.5;
+  stroke-dasharray: 6,4;
+}
+.external-label {
+  font-size: 11px;
+  fill: #6b7280;
+  font-style: italic;
+}
+
+/* ── Layer overlays ──────────────────────── */
+.layer-disturbance { display: none; }
+.layer-stochasticity { display: none; }
+.layer-costs { display: none; }
+.layer-density { display: none; }
+
+.show-disturbance .layer-disturbance { display: initial; }
+.show-stochasticity .layer-stochasticity { display: initial; }
+.show-costs .layer-costs { display: initial; }
+.show-density .layer-density { display: initial; }
+
+.disturbance-indicator {
+  fill: none;
+  stroke: #dc2626;
+  stroke-width: 2;
+  stroke-dasharray: 4,4;
+  opacity: 0.7;
+}
+.stochasticity-badge {
+  font-size: 9px;
+  font-weight: 700;
+  fill: #7c3aed;
+}
+.cost-badge {
+  font-size: 9px;
+  fill: #059669;
+  font-weight: 600;
+}
+.density-badge {
+  font-size: 9px;
+  fill: #dc2626;
+  font-weight: 600;
+}
+
+/* ── Pathway highlighting ────────────────── */
+.dimmed {
+  opacity: 0.12 !important;
+}
+.highlighted {
+  opacity: 1 !important;
+  stroke-width: 3 !important;
+}
+
+/* ── Tooltip ─────────────────────────────── */
+.tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  max-width: 320px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1000;
+  line-height: 1.5;
+  transition: opacity 0.15s;
+}
+.tooltip.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.tooltip-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+.tooltip-body {
+  color: #cbd5e1;
+}
+.tooltip-body .param-name {
+  color: #fbbf24;
+  font-family: monospace;
+}
+
+/* ── Expand/collapse animation ───────────── */
+.location-detail {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.location-detail.expanded {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Core equation badge ─────────────────── */
+.equation-badge {
+  font-family: 'Georgia', serif;
+  font-size: 13px;
+  fill: #475569;
+}
+
+/* ── Process list (inside expanded location) */
+.process-label {
+  font-size: 10px;
+  fill: #475569;
+}
+
+/* ── Legend at bottom ─────────────────────── */
+.legend text {
+  font-size: 11px;
+  fill: #475569;
+}
+.legend-title {
+  font-size: 12px;
+  font-weight: 600;
+  fill: #1e293b;
+}
