@@ -18,7 +18,7 @@ export function computeLayout(width) {
   const marginLeft = 160;
   const marginRight = 220;
   const startX = marginLeft;
-  const startY = 90; // more room above for collection arc labels
+  const startY = 80; // room above for collection arc labels
 
   const locationPositions = {
     lab:     { x: startX,                          y: startY, w: LOC_WIDTH },

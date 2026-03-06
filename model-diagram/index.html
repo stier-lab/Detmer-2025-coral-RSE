@@ -4,36 +4,64 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coral RSE Model Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles.css" />
 </head>
 <body>
+  <!-- Ambient background layers -->
+  <div class="bg-gradient"></div>
+  <div class="bg-grain"></div>
+
   <div id="app">
     <header class="header">
-      <h1>Coral RSE Model Architecture</h1>
-      <p class="subtitle"><em>Acropora palmata</em> &mdash; Size-structured population dynamics across Lab, Orchard &amp; Reef</p>
+      <div class="header-left">
+        <h1>Coral RSE Model</h1>
+        <p class="subtitle"><em>Acropora palmata</em> — Size-structured population dynamics</p>
+      </div>
+      <div class="header-right">
+        <p class="equation-display">N(t+1) = (T + F) × (S ⊙ N(t)) + R(t)</p>
+      </div>
     </header>
 
     <div class="controls">
-      <div class="control-group">
-        <span class="control-label">Layers:</span>
-        <label><input type="checkbox" data-layer="disturbance" /> Disturbance</label>
-        <label><input type="checkbox" data-layer="stochasticity" /> Stochasticity</label>
-        <label><input type="checkbox" data-layer="costs" /> Costs</label>
-        <label><input type="checkbox" data-layer="density" /> Density Dep.</label>
+      <div class="control-section">
+        <span class="control-label">Layers</span>
+        <div class="toggle-group">
+          <label class="toggle-pill" data-color="disturbance">
+            <input type="checkbox" data-layer="disturbance" />
+            <span class="pill-inner">Disturbance</span>
+          </label>
+          <label class="toggle-pill" data-color="stochasticity">
+            <input type="checkbox" data-layer="stochasticity" />
+            <span class="pill-inner">Stochasticity</span>
+          </label>
+          <label class="toggle-pill" data-color="costs">
+            <input type="checkbox" data-layer="costs" />
+            <span class="pill-inner">Costs</span>
+          </label>
+          <label class="toggle-pill" data-color="density">
+            <input type="checkbox" data-layer="density" />
+            <span class="pill-inner">Density Dep.</span>
+          </label>
+        </div>
       </div>
-      <div class="control-group">
-        <span class="control-label">Highlight pathway:</span>
+
+      <div class="control-section">
+        <span class="control-label">Pathway</span>
         <select id="pathway-select">
           <option value="">All pathways</option>
           <option value="wild">Wild recruits</option>
-          <option value="0tx">0_TX (immediate outplant)</option>
-          <option value="1tx">1_TX (1-yr lab grow-out)</option>
-          <option value="transplant">Orchard transplant</option>
+          <option value="0tx">0_TX · immediate</option>
+          <option value="1tx">1_TX · 1-yr grow-out</option>
+          <option value="transplant">Transplant</option>
         </select>
       </div>
-      <div class="control-group">
-        <button id="expand-all">Expand All</button>
-        <button id="collapse-all">Collapse All</button>
+
+      <div class="control-section">
+        <button id="expand-all" class="btn">Expand All</button>
+        <button id="collapse-all" class="btn">Collapse All</button>
       </div>
     </div>
 

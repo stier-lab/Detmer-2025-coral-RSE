@@ -14,8 +14,8 @@ export const locations = {
     id: 'lab',
     name: 'Lab',
     fullName: 'Larval Rearing Facility',
-    color: '#d97706',
-    colorLight: '#fef3c7',
+    color: '#F59E0B',
+    colorLight: 'rgba(245, 158, 11, 0.08)',
     description: 'Collected larvae are settled onto tiles and grown out before outplanting.',
     parameters: [
       { name: 'lab_max', value: '~3,100 tiles', desc: 'Total tile capacity in lab' },
@@ -37,8 +37,8 @@ export const locations = {
     id: 'orchard',
     name: 'Orchard',
     fullName: 'Coral Nursery',
-    color: '#16a34a',
-    colorLight: '#dcfce7',
+    color: '#10B981',
+    colorLight: 'rgba(16, 185, 129, 0.08)',
     description: 'Managed grow-out facility (underwater coral trees/tables). Enhanced survival, faster growth, no fragmentation.',
     parameters: [
       { name: 'orchard_size', value: '~15,000', desc: 'Max colonies per orchard' },
@@ -59,8 +59,8 @@ export const locations = {
     id: 'reef',
     name: 'Reef',
     fullName: 'Wild / Restoration Site',
-    color: '#0891b2',
-    colorLight: '#cffafe',
+    color: '#38BDF8',
+    colorLight: 'rgba(56, 189, 248, 0.08)',
     description: 'Target ecosystem. Full demographic rates, space limitation, external recruitment, and disturbance.',
     parameters: [
       { name: 'reef_areas', value: '~7,837 m²', desc: 'Carrying capacity per reef site (cm²)' },

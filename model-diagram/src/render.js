@@ -15,17 +15,22 @@ export function initDiagram(svgEl) {
     .attr('viewBox', `0 0 ${layout.totalWidth} ${layout.totalHeight}`)
     .attr('preserveAspectRatio', 'xMidYMin meet');
 
-  // Defs: arrowheads
+  // Defs: arrowheads and glow filters
   const defs = svg.append('defs');
-  addArrowhead(defs, 'arrowhead-grey', '#94a3b8');
+  addArrowhead(defs, 'arrowhead-grey', '#64748B');
   addArrowhead(defs, 'arrowhead-green', '#22c55e');
   addArrowhead(defs, 'arrowhead-red', '#ef4444');
-  addArrowhead(defs, 'arrowhead-purple', '#a855f7');
-  addArrowhead(defs, 'arrowhead-amber', '#f59e0b');
-  addArrowhead(defs, 'arrowhead-flow-purple', '#8b5cf6');
-  addArrowhead(defs, 'arrowhead-flow-amber', '#f59e0b');
-  addArrowhead(defs, 'arrowhead-flow-green', '#10b981');
-  addArrowhead(defs, 'arrowhead-external', '#9ca3af');
+  addArrowhead(defs, 'arrowhead-purple', '#c084fc');
+  addArrowhead(defs, 'arrowhead-amber', '#FBBF24');
+  addArrowhead(defs, 'arrowhead-flow-purple', '#A78BFA');
+  addArrowhead(defs, 'arrowhead-flow-amber', '#FBBF24');
+  addArrowhead(defs, 'arrowhead-flow-green', '#34D399');
+  addArrowhead(defs, 'arrowhead-external', '#64748B');
+
+  // Glow filters
+  addGlowFilter(defs, 'glow-soft', 4, 0.3);
+  addGlowFilter(defs, 'glow-decision', 6, 0.4);
+  addGlowFilter(defs, 'glow-disturbance', 8, 0.5);
 
   mainGroup = svg.append('g').attr('class', 'main-diagram');
 
@@ -50,6 +55,26 @@ function addArrowhead(defs, id, color) {
     .append('polygon')
     .attr('points', '0 0, 10 3.5, 0 7')
     .attr('fill', color);
+}
+
+function addGlowFilter(defs, id, stdDev, opacity) {
+  const filter = defs.append('filter')
+    .attr('id', id)
+    .attr('x', '-50%').attr('y', '-50%')
+    .attr('width', '200%').attr('height', '200%');
+  filter.append('feGaussianBlur')
+    .attr('in', 'SourceGraphic')
+    .attr('stdDeviation', stdDev)
+    .attr('result', 'blur');
+  filter.append('feComponentTransfer')
+    .attr('in', 'blur')
+    .attr('result', 'glow')
+    .append('feFuncA')
+    .attr('type', 'linear')
+    .attr('slope', opacity);
+  const merge = filter.append('feMerge');
+  merge.append('feMergeNode').attr('in', 'glow');
+  merge.append('feMergeNode').attr('in', 'SourceGraphic');
 }
 
 // ── Location boxes ──────────────────────────
@@ -92,8 +117,10 @@ function drawLocation(locId) {
     .attr('x', pos.x + pos.w / 2)
     .attr('y', pos.y + 66)
     .attr('text-anchor', 'middle')
-    .attr('font-size', '10px')
-    .attr('fill', '#94a3b8')
+    .attr('font-size', '9px')
+    .attr('fill', loc.color)
+    .attr('opacity', 0.5)
+    .attr('letter-spacing', '0.1em')
     .text('click to expand');
 
   // Expanded detail group (hidden initially)
@@ -128,9 +155,9 @@ function drawSizeClasses(detailGroup, locId) {
       .attr('y', nodePos.y)
       .attr('width', nodePos.w)
       .attr('height', nodePos.h)
-      .attr('fill', '#fff')
+      .attr('fill', 'rgba(15, 23, 42, 0.6)')
       .attr('stroke', loc.color)
-      .attr('opacity', 0.9);
+      .attr('stroke-opacity', 0.4);
 
     // SC label
     scG.append('text')
@@ -160,7 +187,7 @@ function drawSizeClasses(detailGroup, locId) {
         .attr('y', nodePos.y + 22)
         .attr('text-anchor', 'end')
         .attr('font-size', '10px')
-        .attr('fill', '#f59e0b')
+        .attr('fill', '#FBBF24')
         .text('♀');
     }
     // Fragmentation indicator (reef only)
@@ -170,7 +197,7 @@ function drawSizeClasses(detailGroup, locId) {
         .attr('y', nodePos.y + 22)
         .attr('text-anchor', 'end')
         .attr('font-size', '10px')
-        .attr('fill', '#a855f7')
+        .attr('fill', '#C084FC')
         .text('⚡');
     }
   });
@@ -242,7 +269,8 @@ function drawInternalArrows(detailGroup, locId) {
     .attr('x', sc3Pos.x + sc3Pos.w + 4)
     .attr('y', sc3Pos.y - 6)
     .attr('font-size', '9px')
-    .attr('fill', '#f59e0b')
+    .attr('fill', '#FBBF24')
+    .attr('font-family', "'DM Sans', sans-serif")
     .text('larvae →');
 }
 
@@ -270,10 +298,11 @@ function drawLabDetail(detailGroup, locId) {
       .attr('y', boxY)
       .attr('width', boxW)
       .attr('height', boxH)
-      .attr('rx', 6).attr('ry', 6)
-      .attr('fill', '#fff')
-      .attr('stroke', '#d97706')
-      .attr('stroke-width', 1.5);
+      .attr('rx', 8).attr('ry', 8)
+      .attr('fill', 'rgba(15, 23, 42, 0.6)')
+      .attr('stroke', '#F59E0B')
+      .attr('stroke-opacity', 0.3)
+      .attr('stroke-width', 1);
 
     detailGroup.append('text')
       .attr('x', cx)
@@ -281,7 +310,8 @@ function drawLabDetail(detailGroup, locId) {
       .attr('text-anchor', 'middle')
       .attr('font-size', '12px')
       .attr('font-weight', '600')
-      .attr('fill', '#1e293b')
+      .attr('fill', '#E2E8F0')
+      .attr('font-family', "'DM Sans', sans-serif")
       .text(step.label);
 
     detailGroup.append('text')
@@ -289,7 +319,8 @@ function drawLabDetail(detailGroup, locId) {
       .attr('y', boxY + 42)
       .attr('text-anchor', 'middle')
       .attr('font-size', '10px')
-      .attr('fill', '#64748b')
+      .attr('fill', '#7A8BA8')
+      .attr('font-family', "'DM Sans', sans-serif")
       .text(step.sublabel);
 
     // Arrow to next step
@@ -307,7 +338,8 @@ function drawLabDetail(detailGroup, locId) {
         .attr('x', cx + boxW / 2 + 8)
         .attr('y', boxY + 35)
         .attr('font-size', '9px')
-        .attr('fill', '#ca8a04')
+        .attr('font-family', "'JetBrains Mono', monospace")
+        .attr('fill', '#FDE047')
         .text('lab_retain_max ↕');
     }
   });
@@ -324,7 +356,7 @@ function drawInterLocationFlows() {
     const toEdges = locEdges(toPos, true);
 
     let pathD, labelPos, markerEnd;
-    const colorMap = { collection: '#8b5cf6', outplant: '#f59e0b', transplant: '#10b981' };
+    const colorMap = { collection: '#A78BFA', outplant: '#FBBF24', transplant: '#34D399' };
     const markerMap = { collection: 'arrowhead-flow-purple', outplant: 'arrowhead-flow-amber', transplant: 'arrowhead-flow-green' };
 
     const collapsedH = layout.LOC_COLLAPSED_H;
@@ -378,6 +410,15 @@ function drawInterLocationFlows() {
       .attr('class', `flow-group flow-${flow.id}`)
       .attr('data-pathways', flow.pathways.join(','))
       .attr('data-flow', flow.id);
+
+    // Glow layer behind the arrow
+    flowG.append('path')
+      .attr('d', pathD)
+      .attr('fill', 'none')
+      .attr('stroke', colorMap[flow.type])
+      .attr('stroke-width', 8)
+      .attr('stroke-linecap', 'round')
+      .attr('opacity', 0.1);
 
     flowG.append('path')
       .attr('class', `flow-arrow ${flow.type}`)
@@ -567,12 +608,12 @@ function drawLegend() {
   const items = [
     { color: '#22c55e', label: 'Growth (→ larger class)', dash: '' },
     { color: '#ef4444', label: 'Shrinkage (→ smaller class)', dash: '' },
-    { color: '#a855f7', label: 'Fragmentation (asexual)', dash: '4,3' },
-    { color: '#f59e0b', label: 'Fecundity (larvae)', dash: '6,3' },
-    { color: '#8b5cf6', label: 'Larvae collection', dash: '' },
-    { color: '#f59e0b', label: 'Outplanting', dash: '' },
-    { color: '#10b981', label: 'Transplanting', dash: '' },
-    { color: '#9ca3af', label: 'External input', dash: '6,4' },
+    { color: '#C084FC', label: 'Fragmentation (asexual)', dash: '4,3' },
+    { color: '#FBBF24', label: 'Fecundity (larvae)', dash: '6,3' },
+    { color: '#A78BFA', label: 'Larvae collection', dash: '' },
+    { color: '#FBBF24', label: 'Outplanting', dash: '' },
+    { color: '#34D399', label: 'Transplanting', dash: '' },
+    { color: '#64748B', label: 'External input', dash: '6,4' },
   ];
 
   items.forEach((item, i) => {
@@ -611,8 +652,8 @@ function drawEquationBadge() {
     .attr('width', 310)
     .attr('height', 28)
     .attr('rx', 6).attr('ry', 6)
-    .attr('fill', '#f1f5f9')
-    .attr('stroke', '#cbd5e1');
+    .attr('fill', 'rgba(15, 23, 42, 0.5)')
+    .attr('stroke', 'rgba(255, 255, 255, 0.06)');
 
   eqG.append('text')
     .attr('class', 'equation-badge')
@@ -624,7 +665,8 @@ function drawEquationBadge() {
     .attr('x', x)
     .attr('y', y + 18)
     .attr('font-size', '9px')
-    .attr('fill', '#94a3b8')
+    .attr('fill', '#64748B')
+    .attr('font-family', "'DM Sans', sans-serif")
     .text('hover for annual cycle details');
 }
 
