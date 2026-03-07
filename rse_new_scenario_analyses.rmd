@@ -651,6 +651,7 @@ orch_exp_metric_fun <- function(sim_list, n_sample1, L1, max_yr, weights = list(
   tot_ROI_mean = rep(NA, L1), # average total ROI (total area covered by corals on reef and orchard per dollar spent)
   orch_function_mean = rep(NA, L1), # avg area covered by large/reproductive (size classes 3-5) corals in orchard
  tot_costs = rep(NA, L1), # total amount spent over length of simulation
+ costs_saved = rep(NA, L1), # amount saved relative to most expensive strategy
  strategy_score = rep(NA, L1), # weighted sum of top metrics relative to their max possible value
   reef_cover_cost = rep(NA, L1)#, # avg coral cover on reef over max_yr years compared to if all corals were put on the reef
   #orch_rep_cost = rep(NA, L1) # avg orchard reproduction over max_yr years compared to if all corals were put in the orchard
@@ -779,6 +780,7 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
     reef_recruits_out_tot_max_i <- max(dt_i$reef_recruits_out_tot)
     reef_recruits_out_tot_max_i <- ifelse(reef_recruits_out_tot_max_i == 0, 1, reef_recruits_out_tot_max_i)
     
+  
     
     # now add the scores for each 
     for(j in 1:L1){
@@ -789,7 +791,8 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       dt_i$strategy_score[j] <- weights$reef_cover/w_sum*dt_i$reef_cover_mean[j]/reef_cover_max_i + weights$orch_fun/w_sum*dt_i$orch_function_mean[j]/orch_fun_max_i + weights$reef_ROI/w_sum*dt_i$reef_ROI_mean[j]/reef_ROI_max_i + weights$tot_ROI/w_sum*dt_i$tot_ROI_mean[j]/tot_ROI_max_i + #weights$tot_costs/w_sum*(dt_i$tot_costs[j]/tot_costs_min_i)^(-1) +
 weights$tot_costs/w_sum*(tot_costs_max_i- dt_i$tot_costs[j])/tot_saved_max_i + weights$recruits_out/w_sum*dt_i$reef_recruits_out_tot[j]/reef_recruits_out_tot_max_i
     
-      
+      # calculate costs saved
+    dt_i$costs_saved[j] <- tot_costs_max_i- dt_i$tot_costs[j]
   
       
     }
@@ -828,8 +831,11 @@ orch_exp_5_D0 <- orch_exp_metric_fun(sim_list = orch_exp_list, n_sample1, L1, ma
 orch_exp_50_D0 <- orch_exp_metric_fun(sim_list = orch_exp_list, n_sample1, L1, max_yr = 51, weights = weights1)
 
 
+#View(orch_exp_5_D0)
+
 #orch_exp_5_D0$strategy_score
 
+#hist(orch_exp_5_D0$tot_costs)
 
 ```
 
@@ -888,8 +894,12 @@ ohi_fun <- function(dt_plot, opt_prop1){
 metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") # coral cover on reef, orchard function, reef ROI, total ROI, total costs, recruits outplanted to reef
 
   
-max_vals <- dt_plot %>% group_by(par_rep) %>% summarize(reef_cover_max = max(reef_cover_mean, na.rm = T), orch_function_max = max(orch_function_mean, na.rm = T), reef_ROI_max = max(reef_ROI_mean, na.rm = T), tot_ROI_max = max(tot_ROI_mean, na.rm = T), tot_costs_min = min(tot_costs, na.rm = T), recruits_out_max = max(reef_recruits_out_tot, na.rm = T), score_max = max(strategy_score)) %>% filter(is.na(score_max)==F)
+max_vals <- dt_plot %>% group_by(par_rep) %>% summarize(reef_cover_max = max(reef_cover_mean, na.rm = T), orch_function_max = max(orch_function_mean, na.rm = T), reef_ROI_max = max(reef_ROI_mean, na.rm = T), tot_ROI_max = max(tot_ROI_mean, na.rm = T), costs_saved_max = max(costs_saved, na.rm = T), recruits_out_max = max(reef_recruits_out_tot, na.rm = T), score_max = max(strategy_score)) %>% filter(is.na(score_max)==F)
 
+# if the maxes are zero, make them one to avoid dividing by zero to make the values zero instead of NA
+for(cc in 1:ncol(max_vals)){
+  max_vals[which(max_vals[,cc] == 0),cc] <- 1
+}
 
 dt_plot2 <- dt_plot %>% left_join(max_vals, by = c("par_rep")) %>% filter(is.na(reef_cover_max)==F) %>% filter(prop_out == opt_prop1) # filter out results for the proportion with the highest score
 
@@ -980,8 +990,9 @@ text(x = 1.5*r_out0*cos((th1 + th2)/2*pi/180), y =1.5*r_out0*sin((th1 + th2)/2*p
 
 #text(x = -r_out0, y =1.5*r_out0*sin((th1 + th2)/2*pi/180), as.character(round(mean(dt_plot2$tot_ROI_mean), 4)))
 
-# tot costs min
-r_out <- 1- (mean(dt_plot2$tot_costs/dt_plot2$tot_costs_min))^(-1) + r_in
+# tot costs saved
+# r_out <- 1- (mean(dt_plot2$tot_costs/dt_plot2$tot_costs_min))^(-1) + r_in
+r_out <- mean(dt_plot2$costs_saved/dt_plot2$costs_saved_max) + r_in
 th1 <- 240 # starting angle (in degrees)
 th2 <- 300 # ending angle (in degrees)
 r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
@@ -990,7 +1001,7 @@ polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r
 if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line with the color of this performance metric at zero
   lines(x = r_in_x, y = -sqrt(r_in^2 - r_in_x^2), col = metric_cols[5])
 }
-labs1 <- as.character(round(mean(dt_plot2$tot_costs), 0))
+labs1 <- as.character(round(mean(dt_plot2$costs_saved), 0))
 text(x = 0, y =1.15*r_out0*sin((th1 + th2)/2*pi/180), bquote("$"*.(labs1)), cex = lab_cex)
 #text(x = 0, y =1.1*r_out0*sin((th1 + th2)/2*pi/180), as.character(round(mean(dt_plot2$tot_costs), 0)))
 
@@ -1017,7 +1028,7 @@ text(x = 1.4*r_out0*cos((th1 + th2)/2*pi/180), y =1.4*r_out0*sin((th1 + th2)/2*p
 ```{r}
 
 # make the OHI plot for 5 years, no disturbance
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/OHI_5_D0.pdf", height = 7, width = 7)
+pdf("TempFigs/OHI_5_D0.pdf", height = 7, width = 7)
 
 ohi_fun(dt_plot = orch_exp_5_D0, opt_prop1 = orch_exp_5_D0_pmax)
 
@@ -1028,7 +1039,7 @@ dev.off()
 ```{r}
 # repeat for 50 years no disturbance
 
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/OHI_50_D0.pdf", height = 7, width = 7)
+pdf("TempFigs/OHI_50_D0.pdf", height = 7, width = 7)
 
 ohi_fun(dt_plot = orch_exp_50_D0, opt_prop1 = orch_exp_50_D0_pmax)
 
@@ -1040,9 +1051,9 @@ dev.off()
 
 ```{r}
 # make a legend
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/OHI_legend.pdf", height = 7, width = 7)
+pdf("TempFigs/OHI_legend.pdf", height = 7, width = 7)
 plot(x = 1, y = 1, col = NA, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n", bty = "n")#, bty = "n"
-legend("topleft", legend = c(expression("Reef coral cover ("*m^2*")"), expression("Orchard function ("*m^2*" adults)"), expression("Reef ROI ("*m^2~"coral/$)"), "Total ROI ("*m^2~"coral/$)", "Total costs ($)", "Reef recruits outplanted"), fill = metric_cols, bty = "n")
+legend("topleft", legend = c(expression("Reef coral cover ("*m^2*")"), expression("Orchard function ("*m^2*" adults)"), expression("Reef ROI ("*m^2~"coral/$)"), "Total ROI ("*m^2~"coral/$)", "Costs saved ($)", "Reef recruits outplanted"), fill = metric_cols, bty = "n")
 dev.off()
 ```
 
@@ -1080,7 +1091,7 @@ dt_plot <- orch_exp_5_D0
 
 lab_cx <- 0.85
 
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/metrics_5_D0.pdf", height = 7)
+pdf("TempFigs/metrics_5_D0.pdf", height = 7)
 
 par(mfrow = c(3, 2))
 layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
@@ -1145,15 +1156,15 @@ for(i in 1:n_sample1){
 
 # total costs
 xlab1 <- NA
-ylab1 <- "Total $ spent"
-plotlab <- "e) Total restoration costs"
-plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$tot_costs, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+ylab1 <- "$ saved"
+plotlab <- "e) Costs saved"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$costs_saved, na.rm = T)), las = 1, xlab = NA, ylab = NA)
 mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
 mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
 mtext(side = 3, plotlab, adj = 0)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
-  lines(x = dt_sub$prop_out, y = dt_sub$tot_costs, col = adjustcolor(col = "black", alpha.f = 0.2))
+  lines(x = dt_sub$prop_out, y = dt_sub$costs_saved, col = adjustcolor(col = "black", alpha.f = 0.2))
 }
 
 # total ROI
@@ -1206,7 +1217,7 @@ dt_plot <- orch_exp_50_D0
 
 lab_cx <- 0.85
 
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/metrics_50_D0.pdf", height = 7)
+pdf("TempFigs/metrics_50_D0.pdf", height = 7)
 
 par(mfrow = c(3, 2))
 layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
@@ -1275,17 +1286,17 @@ for(i in 1:n_sample1){
 }
 
 
-# total costs
+# total costs saved
 xlab1 <- NA
-ylab1 <- "Total $ spent"
-plotlab <- "e) Total restoration costs"
-plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$tot_costs, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+ylab1 <- "$ saved"
+plotlab <- "e) Costs saved"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(dt_plot$costs_saved, na.rm = T)), las = 1, xlab = NA, ylab = NA)
 mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
 mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
 mtext(side = 3, plotlab, adj = 0)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
-  lines(x = dt_sub$prop_out, y = dt_sub$tot_costs, col = adjustcolor(col = "black", alpha.f = 0.2))
+  lines(x = dt_sub$prop_out, y = dt_sub$costs_saved, col = adjustcolor(col = "black", alpha.f = 0.2))
 }
 
 # total ROI
@@ -1546,7 +1557,7 @@ orch_exp_50_D1 <- orch_exp_metric_fun(sim_list = orch_exp_list_D1, n_sample1, L1
 
 # NOTE: for the strategy score, values are NA for the cases where there are no babies that survival on the reef
 
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/OHI_50_D0.pdf", height = 7, width = 7)
+pdf("TempFigs/OHI_50_D0.pdf", height = 7, width = 7)
 
 ohi_fun(dt_plot = orch_exp_50_D0, opt_prop1 = orch_exp_50_D0_pmax)
 
@@ -1600,7 +1611,7 @@ orch_exp_50_D1_pmax <- mean_score$prop_out[which(mean_score$strategy_score == ma
 ```{r}
 # plot all 4 strategy score plots together
 
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/strategy_scores_orch_exp.pdf", height = 7)
+pdf("TempFigs/strategy_scores_orch_exp.pdf", height = 7)
 
 par(mfrow = c(3, 2))
 layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 2))
@@ -1677,7 +1688,7 @@ dev.off()
 
 ```{r}
 # make the OHI plot for 5 years, with disturbance
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/OHI_5_D1.pdf", height = 7, width = 7)
+pdf("TempFigs/OHI_5_D1.pdf", height = 7, width = 7)
 
 ohi_fun(dt_plot = orch_exp_5_D1, opt_prop1 = orch_exp_5_D1_pmax)
 
@@ -1688,7 +1699,7 @@ dev.off()
 
 ```{r}
 # make the OHI plot for 50 years, with disturbance
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/OHI_50_D1.pdf", height = 7, width = 7)
+pdf("TempFigs/OHI_50_D1.pdf", height = 7, width = 7)
 
 ohi_fun(dt_plot = orch_exp_50_D1, opt_prop1 = orch_exp_50_D1_pmax)
 
@@ -1708,7 +1719,7 @@ dt_plot <- orch_exp_5_D1
 
 lab_cx <- 0.85
 
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/metrics_5_D1.pdf", height = 7)
+pdf("TempFigs/metrics_5_D1.pdf", height = 7)
 
 par(mfrow = c(3, 2))
 layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
@@ -1811,7 +1822,7 @@ dt_plot <- orch_exp_50_D1
 
 lab_cx <- 0.85
 
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/metrics_50_D1.pdf", height = 7)
+pdf("TempFigs/metrics_50_D1.pdf", height = 7)
 
 par(mfrow = c(3, 2))
 layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
@@ -2486,7 +2497,7 @@ dt_plot <- lab_grow_5_D0
 
 lab_cx <- 0.85
 
-pdf("/Users/rainedetmer/Desktop/RSE_temp_figs/metrics_grow_5_D0.pdf", height = 7)
+pdf("TempFigs/metrics_grow_5_D0.pdf", height = 7)
 
 par(mfrow = c(3, 2))
 layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 2))
