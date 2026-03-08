@@ -576,10 +576,16 @@ function drawDecisionDiamonds() {
     decG.append('polygon')
       .attr('points', diamondPoints(cx, cy, ds));
 
+    // Position lab-retain label to the right to avoid overlapping the Lab box
+    const labelX = dec.id === 'lab-retain' ? cx + ds + 8 : cx;
+    const labelY = dec.id === 'lab-retain' ? cy + 5 : cy + ds + 16;
+    const anchor = dec.id === 'lab-retain' ? 'start' : 'middle';
+
     decG.append('text')
       .attr('class', 'decision-label')
-      .attr('x', cx)
-      .attr('y', cy + ds + 16)
+      .attr('x', labelX)
+      .attr('y', labelY)
+      .attr('text-anchor', anchor)
       .text(dec.label);
   });
 }
@@ -594,8 +600,10 @@ function updateDecisionPositions(animate) {
     const decG = mainGroup.select(`[data-decision="${dec.id}"]`);
     decG.select('polygon').transition().duration(dur)
       .attr('points', diamondPoints(cx, cy, ds));
+    const labelX = dec.id === 'lab-retain' ? cx + ds + 8 : cx;
+    const labelY = dec.id === 'lab-retain' ? cy + 5 : cy + ds + 16;
     decG.select('.decision-label').transition().duration(dur)
-      .attr('x', cx).attr('y', cy + ds + 16);
+      .attr('x', labelX).attr('y', labelY);
   });
 }
 
