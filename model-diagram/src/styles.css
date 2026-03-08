@@ -334,6 +334,7 @@ body {
 .sc-node:hover rect {
   filter: url(#glow-soft);
   stroke-opacity: 0.8 !important;
+  fill: rgba(18, 28, 50, 0.85) !important;
 }
 .sc-node text {
   pointer-events: none;
@@ -372,7 +373,8 @@ body {
   opacity: 0.35 !important;
 }
 .flow-group:hover .flow-label {
-  font-size: 14px !important;
+  font-size: 13px !important;
+  fill: var(--text-bright) !important;
 }
 .flow-group:hover .flow-label-bg {
   opacity: 0.85 !important;
@@ -380,8 +382,13 @@ body {
 
 .internal-arrow {
   fill: none;
-  stroke-width: 1.5;
+  stroke-width: 1.8;
   stroke-linecap: round;
+  opacity: 0.8;
+  transition: opacity 0.25s ease;
+}
+.location-detail.expanded:hover .internal-arrow {
+  opacity: 1;
 }
 .growth-arrow { stroke: #22c55e; marker-end: url(#arrowhead-green); }
 .shrinkage-arrow { stroke: #ef4444; marker-end: url(#arrowhead-red); }
@@ -471,26 +478,41 @@ body {
   stroke: var(--disturbance);
   stroke-width: 2;
   stroke-dasharray: 6,4;
-  opacity: 0.6;
+  opacity: 0.7;
   filter: url(#glow-disturbance);
 }
 .stochasticity-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  font-weight: 500;
+  font-weight: 600;
   fill: var(--stochasticity);
+}
+.stochasticity-badge-bg {
+  fill: rgba(192, 132, 252, 0.08);
+  stroke: rgba(192, 132, 252, 0.25);
+  stroke-width: 1;
 }
 .cost-badge {
   font-family: 'DM Sans', sans-serif;
   font-size: 9px;
   fill: var(--costs);
-  font-weight: 500;
+  font-weight: 600;
+}
+.cost-badge-bg {
+  fill: rgba(74, 222, 128, 0.06);
+  stroke: rgba(74, 222, 128, 0.2);
+  stroke-width: 1;
 }
 .density-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
   fill: var(--density);
-  font-weight: 500;
+  font-weight: 600;
+}
+.density-badge-bg {
+  fill: rgba(251, 146, 60, 0.06);
+  stroke: rgba(251, 146, 60, 0.2);
+  stroke-width: 1;
 }
 
 /* ── Pathway highlighting ────────────────── */
@@ -579,13 +601,14 @@ body {
   font-family: 'DM Sans', sans-serif;
   font-size: 11px;
   fill: var(--text-dim);
+  letter-spacing: 0.01em;
 }
 .legend-title {
   font-family: var(--font-display) !important;
-  font-size: 16px !important;
+  font-size: 17px !important;
   font-weight: 600 !important;
   fill: var(--text-bright) !important;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 
 /* ── Annual cycle badge (SVG) ────────────── */

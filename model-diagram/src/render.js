@@ -532,8 +532,16 @@ function drawInterLocationFlows() {
       .attr('letter-spacing', '0.03em')
       .text(flow.label);
 
-    // Cost layer badge
+    // Cost layer badge with background pill
     if (flow.costLayer) {
+      const costW = flow.costLayer.length * 5.2 + 16;
+      flowG.append('rect')
+        .attr('class', 'cost-badge-bg layer-costs')
+        .attr('x', labelPos.x - costW / 2)
+        .attr('y', labelPos.y + 5)
+        .attr('width', costW)
+        .attr('height', 16)
+        .attr('rx', 4).attr('ry', 4);
       flowG.append('text')
         .attr('class', 'cost-badge layer-costs')
         .attr('x', labelPos.x)
@@ -565,6 +573,12 @@ function updateFlowPositions(animate) {
     if (!costBadge.empty()) {
       costBadge.transition().duration(dur)
         .attr('x', labelPos.x).attr('y', labelPos.y + 16);
+    }
+    const costBg = flowG.select('.cost-badge-bg');
+    if (!costBg.empty()) {
+      const w = parseFloat(costBg.attr('width'));
+      costBg.transition().duration(dur)
+        .attr('x', labelPos.x - w / 2).attr('y', labelPos.y + 5);
     }
   });
 }
@@ -788,27 +802,57 @@ function drawLocationLayers(locGroup, locId) {
       .attr('rx', 12).attr('ry', 12);
   }
 
-  // Stochasticity badges
+  // Stochasticity badges — positioned above the box with shortened labels
   const stochSources = stochasticityLayer.sources.filter(s => s.affects.includes(locId));
   if (stochSources.length > 0) {
-    const badgeY = pos.y - 12;
-    stochSources.forEach((s, i) => {
+    const shortLabel = {
+      'sigma_s': '\u03C3_s',
+      'sigma_f': '\u03C3_f',
+      'ext_rand[1]': 'ext\u2081',
+      'ext_rand[2]': 'ext\u2082',
+      'rand_pars_fun()': 'rand',
+    };
+    const badgeY = pos.y - 16;
+    let bx = pos.x + 6;
+    stochSources.forEach((s) => {
+      const label = shortLabel[s.param] || s.param;
+      const badgeText = `\u00B1${label}`;
+      const badgeW = badgeText.length * 6.5 + 10;
+      locGroup.append('rect')
+        .attr('class', 'stochasticity-badge-bg layer-stochasticity')
+        .attr('x', bx)
+        .attr('y', badgeY - 10)
+        .attr('width', badgeW)
+        .attr('height', 16)
+        .attr('rx', 4).attr('ry', 4);
       locGroup.append('text')
         .attr('class', 'stochasticity-badge layer-stochasticity')
-        .attr('x', pos.x + 8 + i * 68)
+        .attr('x', bx + badgeW / 2)
         .attr('y', badgeY)
-        .text(`\u00B1${s.param}`);
+        .attr('text-anchor', 'middle')
+        .text(badgeText);
+      bx += badgeW + 4;
     });
   }
 
   // Density dependence badge (lab only)
   if (locId === 'lab') {
+    const densityText = 'Density dep: S = s_base \u00D7 exp(-m \u00D7 density)';
+    const densityW = densityText.length * 5.5 + 20;
+    const densityY = pos.y + layout.LOC_COLLAPSED_H + 18;
+    locGroup.append('rect')
+      .attr('class', 'density-badge-bg layer-density')
+      .attr('x', pos.x + pos.w / 2 - densityW / 2)
+      .attr('y', densityY - 11)
+      .attr('width', densityW)
+      .attr('height', 18)
+      .attr('rx', 4).attr('ry', 4);
     locGroup.append('text')
       .attr('class', 'density-badge layer-density')
       .attr('x', pos.x + pos.w / 2)
-      .attr('y', pos.y + layout.LOC_COLLAPSED_H + 18)
+      .attr('y', densityY)
       .attr('text-anchor', 'middle')
-      .text('Density dep: S = s_base \u00D7 exp(-m \u00D7 density)');
+      .text(densityText);
   }
 }
 
@@ -862,16 +906,22 @@ function drawLegend() {
       .text(item.label);
   });
 
-  // Symbol items (diamond, icons)
-  const symbolY = 22 + 4 * 20 + 6;
+  // Separator line
+  const symbolY = 22 + 4 * 20 + 8;
+  legendG.append('line')
+    .attr('x1', 0).attr('y1', symbolY - 8)
+    .attr('x2', 500).attr('y2', symbolY - 8)
+    .attr('stroke', 'rgba(255, 255, 255, 0.06)')
+    .attr('stroke-width', 1);
+
   const symbols = [
-    { symbol: '\u25C7', color: '#FDE047', label: 'Decision parameter', size: '13px' },
-    { symbol: '\u2640', color: '#FBBF24', label: 'Sexual reproduction', size: '12px' },
-    { symbol: '\u26A1', color: '#C084FC', label: 'Fragmentation capability', size: '12px' },
+    { symbol: '\u25C7', color: '#FDE047', label: 'Decision parameter', size: '14px' },
+    { symbol: '\u2640', color: '#FBBF24', label: 'Sexual reproduction', size: '13px' },
+    { symbol: '\u26A1', color: '#C084FC', label: 'Fragmentation capability', size: '13px' },
   ];
 
   symbols.forEach((item, i) => {
-    const x = i * 260;
+    const x = i * 180;
     legendG.append('text')
       .attr('x', x + 8)
       .attr('y', symbolY + 4)
@@ -964,13 +1014,18 @@ export function toggleLocation(locId) {
       .attr('height', (isExpanded ? layout.LOC_EXPANDED_H : layout.LOC_COLLAPSED_H) + 8);
   }
 
-  // Update density badge position
+  // Update density badge + bg position
+  const pos = layout.locationPositions[locId];
+  const targetH = isExpanded ? layout.LOC_EXPANDED_H : layout.LOC_COLLAPSED_H;
   const densityBadge = locGroup.select('.density-badge');
   if (!densityBadge.empty()) {
-    const pos = layout.locationPositions[locId];
-    const targetH = isExpanded ? layout.LOC_EXPANDED_H : layout.LOC_COLLAPSED_H;
     densityBadge.transition().duration(400)
       .attr('y', pos.y + targetH + 18);
+  }
+  const densityBg = locGroup.select('.density-badge-bg');
+  if (!densityBg.empty()) {
+    densityBg.transition().duration(400)
+      .attr('y', pos.y + targetH + 7);
   }
 
   // Animate bottom row shift (Orchard/Reef slide down when Lab expands)
