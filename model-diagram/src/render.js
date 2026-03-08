@@ -6,6 +6,35 @@ let layout;
 let svg, mainGroup;
 let expandedState = { lab: false, orchard: false, reef: false };
 
+// ── Dynamic positioning ──────────────────────
+// When Lab expands, push Orchard/Reef down to maintain spacing
+const MIN_GAP = 120; // minimum px between Lab bottom and bottom row top
+
+function getBottomRowShift() {
+  const labH = getLocHeight('lab', expandedState, layout);
+  const labBottom = layout.locationPositions.lab.y + labH;
+  return Math.max(0, labBottom + MIN_GAP - layout.locationPositions.orchard.y);
+}
+
+function getEffectivePositions() {
+  const base = layout.locationPositions;
+  const shift = getBottomRowShift();
+  return {
+    lab: base.lab,
+    orchard: { ...base.orchard, y: base.orchard.y + shift },
+    reef: { ...base.reef, y: base.reef.y + shift },
+  };
+}
+
+function getEffectiveViewHeight() {
+  const pos = getEffectivePositions();
+  const orchH = getLocHeight('orchard', expandedState, layout);
+  const reefH = getLocHeight('reef', expandedState, layout);
+  const maxBottom = Math.max(pos.orchard.y + orchH, pos.reef.y + reefH);
+  return maxBottom + 160; // space for legend + badge
+}
+
+// ── Init ─────────────────────────────────────
 export function initDiagram(svgEl) {
   svg = d3.select(svgEl);
   layout = computeLayout();
@@ -78,10 +107,11 @@ function addGlowFilter(defs, id, stdDev, opacity) {
 }
 
 // ── Flow path calculation ──────────────────
-// Calculates path + label position for a flow based on current expanded state
+// Uses effective positions so arrows follow shifted bottom row
 function calcFlowGeometry(flow) {
-  const fromPos = layout.locationPositions[flow.from];
-  const toPos = layout.locationPositions[flow.to];
+  const pos = getEffectivePositions();
+  const fromPos = pos[flow.from];
+  const toPos = pos[flow.to];
   const fromH = getLocHeight(flow.from, expandedState, layout);
   const toH = getLocHeight(flow.to, expandedState, layout);
 
@@ -90,54 +120,63 @@ function calcFlowGeometry(flow) {
 
   if (flow.type === 'collection') {
     // Collection flows go UP from Orchard/Reef to Lab (diagonal)
-    // Label near Lab end (t=0.75 from source toward Lab)
+    // Label near SOURCE end (near Orchard/Reef) to avoid center congestion
     if (flow.from === 'orchard') {
       const start = { x: fromPos.x + fromPos.w * 0.7, y: fromPos.y };
       const end = { x: toPos.x + toPos.w * 0.3, y: toPos.y + toH };
       const midX = (start.x + end.x) / 2 - 40;
       const midY = (start.y + end.y) / 2;
       pathD = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
-      const lx = start.x + (end.x - start.x) * 0.72 - 60;
-      const ly = start.y + (end.y - start.y) * 0.72;
-      labelPos = { x: lx, y: ly };
+      // Label at t=0.18 from source (near Orchard)
+      const t = 0.18;
+      labelPos = {
+        x: start.x + (end.x - start.x) * t - 80,
+        y: start.y + (end.y - start.y) * t,
+      };
     } else {
       const start = { x: fromPos.x + fromPos.w * 0.3, y: fromPos.y };
       const end = { x: toPos.x + toPos.w * 0.7, y: toPos.y + toH };
       const midX = (start.x + end.x) / 2 + 40;
       const midY = (start.y + end.y) / 2;
       pathD = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
-      const lx = start.x + (end.x - start.x) * 0.72 + 60;
-      const ly = start.y + (end.y - start.y) * 0.72;
-      labelPos = { x: lx, y: ly };
+      const t = 0.18;
+      labelPos = {
+        x: start.x + (end.x - start.x) * t + 80,
+        y: start.y + (end.y - start.y) * t,
+      };
     }
   } else if (flow.type === 'outplant') {
     // Outplant flows go DOWN from Lab to Orchard/Reef (diagonal)
-    // Label near Orchard/Reef end (t=0.75 from Lab toward destination)
+    // Label near SOURCE end (near Lab) to avoid center congestion
     if (flow.to === 'reef') {
       const start = { x: fromPos.x + fromPos.w * 0.8, y: fromPos.y + fromH };
       const end = { x: toPos.x + toPos.w * 0.2, y: toPos.y };
       const midX = (start.x + end.x) / 2 + 35;
       const midY = (start.y + end.y) / 2;
       pathD = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
-      const lx = start.x + (end.x - start.x) * 0.72 + 55;
-      const ly = start.y + (end.y - start.y) * 0.72;
-      labelPos = { x: lx, y: ly };
+      const t = 0.18;
+      labelPos = {
+        x: start.x + (end.x - start.x) * t + 70,
+        y: start.y + (end.y - start.y) * t,
+      };
     } else {
       const start = { x: fromPos.x + fromPos.w * 0.2, y: fromPos.y + fromH };
       const end = { x: toPos.x + toPos.w * 0.8, y: toPos.y };
       const midX = (start.x + end.x) / 2 - 35;
       const midY = (start.y + end.y) / 2;
       pathD = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
-      const lx = start.x + (end.x - start.x) * 0.72 - 55;
-      const ly = start.y + (end.y - start.y) * 0.72;
-      labelPos = { x: lx, y: ly };
+      const t = 0.18;
+      labelPos = {
+        x: start.x + (end.x - start.x) * t - 70,
+        y: start.y + (end.y - start.y) * t,
+      };
     }
   } else {
     // Transplant: Orchard → Reef, horizontal at bottom
     const fromMidY = fromPos.y + fromH / 2;
     const toMidY = toPos.y + toH / 2;
     pathD = `M ${fromPos.x + fromPos.w} ${fromMidY} L ${toPos.x} ${toMidY}`;
-    labelPos = { x: (fromPos.x + fromPos.w + toPos.x) / 2, y: Math.min(fromMidY, toMidY) - 12 };
+    labelPos = { x: (fromPos.x + fromPos.w + toPos.x) / 2, y: Math.min(fromMidY, toMidY) - 14 };
   }
 
   return { pathD, labelPos, color: colorMap[flow.type] };
@@ -149,7 +188,8 @@ function drawLocation(locId) {
   const pos = layout.locationPositions[locId];
   const g = mainGroup.append('g')
     .attr('class', `location-box location-${locId}`)
-    .attr('data-location', locId);
+    .attr('data-location', locId)
+    .attr('transform', 'translate(0, 0)'); // animated when Lab expands
 
   // Background rect
   g.append('rect')
@@ -445,7 +485,7 @@ function drawInterLocationFlows() {
       .attr('d', pathD)
       .attr('marker-end', `url(#${markerMap[flow.type]})`);
 
-    // Label — short text, arrow shows direction
+    // Label
     flowG.append('text')
       .attr('class', 'flow-label')
       .attr('x', labelPos.x)
@@ -491,28 +531,30 @@ function updateFlowPositions(animate) {
 
 // ── Decision diamonds ───────────────────────
 function calcDecisionPositions() {
-  const labPos = layout.locationPositions.lab;
-  const orchPos = layout.locationPositions.orchard;
-  const reefPos = layout.locationPositions.reef;
+  const pos = getEffectivePositions();
   const labH = getLocHeight('lab', expandedState, layout);
   const orchH = getLocHeight('orchard', expandedState, layout);
   const reefH = getLocHeight('reef', expandedState, layout);
 
   const positions = {};
 
-  // reef_prop: in the center of the triangle, between Lab and the bottom row
-  const centerX = (labPos.x + labPos.w / 2);
-  const centerY = (labPos.y + labH + orchPos.y) / 2;
-  positions['reef-prop'] = { cx: centerX, cy: centerY };
+  // reef_prop: centered in the gap between Lab bottom and bottom row top
+  const labBottom = pos.lab.y + labH;
+  const bottomRowTop = pos.orchard.y;
+  const gapMidY = (labBottom + bottomRowTop) / 2;
+  positions['reef-prop'] = {
+    cx: pos.lab.x + pos.lab.w / 2,
+    cy: gapMidY,
+  };
 
   // lab_retain_max: above Lab
-  positions['lab-retain'] = { cx: labPos.x + labPos.w / 2, cy: labPos.y - 30 };
+  positions['lab-retain'] = { cx: pos.lab.x + pos.lab.w / 2, cy: pos.lab.y - 30 };
 
-  // transplant[yr]: on the transplant line between Orchard and Reef
-  const transplantY = (orchPos.y + orchH / 2 + reefPos.y + reefH / 2) / 2;
+  // transplant[yr]: below the transplant line between Orchard and Reef
+  const transplantMidY = (pos.orchard.y + orchH / 2 + pos.reef.y + reefH / 2) / 2;
   positions['transplant-timing'] = {
-    cx: (orchPos.x + orchPos.w + reefPos.x) / 2,
-    cy: transplantY + 30,
+    cx: (pos.orchard.x + pos.orchard.w + pos.reef.x) / 2,
+    cy: transplantMidY + 30,
   };
 
   return positions;
@@ -539,29 +581,6 @@ function drawDecisionDiamonds() {
       .attr('x', cx)
       .attr('y', cy + ds + 16)
       .text(dec.label);
-
-    // Thin connecting line from diamond to associated flow
-    if (dec.id === 'reef-prop') {
-      // reef_prop governs both outplant arrows — draw lines toward Lab outflow
-      const labPos = layout.locationPositions.lab;
-      const labH = getLocHeight('lab', expandedState, layout);
-      decG.append('line')
-        .attr('class', 'decision-connector')
-        .attr('x1', cx).attr('y1', cy - ds)
-        .attr('x2', labPos.x + labPos.w / 2).attr('y2', labPos.y + labH)
-        .attr('stroke', '#FDE047').attr('stroke-width', 0.8)
-        .attr('stroke-dasharray', '3,3').attr('opacity', 0.4);
-    } else if (dec.id === 'transplant-timing') {
-      // Connect to transplant flow line
-      const orchPos = layout.locationPositions.orchard;
-      const reefPos = layout.locationPositions.reef;
-      decG.append('line')
-        .attr('class', 'decision-connector')
-        .attr('x1', cx).attr('y1', cy - ds)
-        .attr('x2', cx).attr('y2', cy - ds - 20)
-        .attr('stroke', '#FDE047').attr('stroke-width', 0.8)
-        .attr('stroke-dasharray', '3,3').attr('opacity', 0.4);
-    }
   });
 }
 
@@ -577,22 +596,6 @@ function updateDecisionPositions(animate) {
       .attr('points', diamondPoints(cx, cy, ds));
     decG.select('.decision-label').transition().duration(dur)
       .attr('x', cx).attr('y', cy + ds + 16);
-
-    // Update connector lines
-    const connector = decG.select('.decision-connector');
-    if (!connector.empty()) {
-      if (dec.id === 'reef-prop') {
-        const labPos = layout.locationPositions.lab;
-        const labH = getLocHeight('lab', expandedState, layout);
-        connector.transition().duration(dur)
-          .attr('x1', cx).attr('y1', cy - ds)
-          .attr('x2', labPos.x + labPos.w / 2).attr('y2', labPos.y + labH);
-      } else if (dec.id === 'transplant-timing') {
-        connector.transition().duration(dur)
-          .attr('x1', cx).attr('y1', cy - ds)
-          .attr('x2', cx).attr('y2', cy - ds - 20);
-      }
-    }
   });
 }
 
@@ -601,7 +604,8 @@ function drawExternalInputs() {
   const extGroup = mainGroup.append('g').attr('class', 'external-inputs-group');
 
   externalInputs.forEach(ext => {
-    const targetPos = layout.locationPositions[ext.target];
+    const pos = getEffectivePositions();
+    const targetPos = pos[ext.target];
     const targetH = getLocHeight(ext.target, expandedState, layout);
     const extG = extGroup.append('g')
       .attr('class', 'external-input')
@@ -609,7 +613,6 @@ function drawExternalInputs() {
       .attr('data-external', ext.id);
 
     if (ext.target === 'reef') {
-      // Arrow entering reef from the right — target lower area (SC1 region) to avoid fecundity overlap
       const entryX = targetPos.x + targetPos.w + 70;
       const entryY = targetPos.y + targetH * 0.75;
       extG.append('line')
@@ -631,7 +634,6 @@ function drawExternalInputs() {
         .attr('font-size', '11px')
         .text('(\u03BB) \u2192 SC1');
     } else {
-      // Arrow entering lab from the left
       const entryX = targetPos.x - 70;
       const entryY = targetPos.y + targetH / 2;
       extG.append('line')
@@ -658,9 +660,10 @@ function drawExternalInputs() {
 
 function updateExternalPositions(animate) {
   const dur = animate ? 400 : 0;
+  const pos = getEffectivePositions();
 
   externalInputs.forEach(ext => {
-    const targetPos = layout.locationPositions[ext.target];
+    const targetPos = pos[ext.target];
     const targetH = getLocHeight(ext.target, expandedState, layout);
     const extG = mainGroup.select(`[data-external="${ext.id}"]`);
 
@@ -668,7 +671,8 @@ function updateExternalPositions(animate) {
       const entryX = targetPos.x + targetPos.w + 70;
       const entryY = targetPos.y + targetH * 0.75;
       extG.select('line').transition().duration(dur)
-        .attr('y1', entryY).attr('y2', entryY);
+        .attr('x1', entryX).attr('y1', entryY)
+        .attr('x2', targetPos.x + targetPos.w).attr('y2', entryY);
       const texts = extG.selectAll('text');
       texts.filter(function(d, i) { return i === 0; }).transition().duration(dur).attr('y', entryY - 6);
       texts.filter(function(d, i) { return i === 1; }).transition().duration(dur).attr('y', entryY + 14);
@@ -676,7 +680,8 @@ function updateExternalPositions(animate) {
       const entryX = targetPos.x - 70;
       const entryY = targetPos.y + targetH / 2;
       extG.select('line').transition().duration(dur)
-        .attr('y1', entryY).attr('y2', entryY);
+        .attr('x1', entryX).attr('y1', entryY)
+        .attr('x2', targetPos.x).attr('y2', entryY);
       const texts = extG.selectAll('text');
       texts.filter(function(d, i) { return i === 0; }).transition().duration(dur).attr('y', entryY - 6);
       texts.filter(function(d, i) { return i === 1; }).transition().duration(dur).attr('y', entryY + 14);
@@ -686,25 +691,30 @@ function updateExternalPositions(animate) {
 
 // ── Dynamic viewBox sizing ──────────────────
 function updateViewBox() {
-  const anyExpanded = Object.values(expandedState).some(v => v);
-  const targetH = anyExpanded ? layout.totalHeight : layout.collapsedHeight;
+  const targetH = getEffectiveViewHeight();
   svg.transition().duration(400)
     .attr('viewBox', `0 0 ${layout.totalWidth} ${targetH}`);
 }
 
 // ── Legend + badge repositioning ─────────────
+function getLegendY() {
+  const pos = getEffectivePositions();
+  const orchH = getLocHeight('orchard', expandedState, layout);
+  const reefH = getLocHeight('reef', expandedState, layout);
+  const maxBottom = Math.max(pos.orchard.y + orchH, pos.reef.y + reefH);
+  return maxBottom + 20;
+}
+
 function updateLegendPosition(animate) {
   const dur = animate ? 400 : 0;
   const legendY = getLegendY();
   mainGroup.select('.legend').transition().duration(dur)
     .attr('transform', `translate(${layout.locationPositions.orchard.x}, ${legendY})`);
 
-  // Update equation/annual cycle badge
-  const anyExpanded = Object.values(expandedState).some(v => v);
-  const badgeY = anyExpanded ? layout.totalHeight - 100 : layout.collapsedHeight - 60;
+  // Update annual cycle badge
+  const badgeY = legendY + 10;
   const eqG = mainGroup.select('.equation-group');
   if (!eqG.empty()) {
-    const x = layout.locationPositions.reef.x;
     eqG.select('.annual-cycle-badge').transition().duration(dur)
       .attr('y', badgeY - 18);
     const texts = eqG.selectAll('text');
@@ -755,11 +765,6 @@ function drawLocationLayers(locGroup, locId) {
 }
 
 // ── Legend ───────────────────────────────────
-function getLegendY() {
-  const anyExpanded = Object.values(expandedState).some(v => v);
-  return anyExpanded ? layout.totalHeight - 140 : layout.collapsedHeight - 100;
-}
-
 function drawLegend() {
   const legendG = mainGroup.append('g')
     .attr('class', 'legend')
@@ -767,7 +772,6 @@ function drawLegend() {
 
   legendG.append('text').attr('class', 'legend-title').attr('y', 0).text('Legend');
 
-  // Arrow items
   const arrowItems = [
     { color: '#22c55e', label: 'Growth (\u2192 larger class)', dash: '' },
     { color: '#ef4444', label: 'Shrinkage (\u2192 smaller class)', dash: '' },
@@ -830,10 +834,8 @@ function drawEquationBadge() {
     .attr('data-tooltip-title', 'Core Equation')
     .attr('data-tooltip-body', annualCycle.map(s => `Step ${s.step}: ${s.name} \u2014 ${s.desc}`).join('\n'));
 
-  // Position to the right of the legend area
   const x = layout.locationPositions.reef.x;
-  const anyExpanded = Object.values(expandedState).some(v => v);
-  const y = anyExpanded ? layout.totalHeight - 100 : layout.collapsedHeight - 60;
+  const y = getLegendY() + 10;
 
   eqG.append('rect')
     .attr('class', 'annual-cycle-badge')
@@ -846,7 +848,6 @@ function drawEquationBadge() {
     .attr('stroke', 'rgba(56, 189, 248, 0.25)')
     .attr('cursor', 'pointer');
 
-  // Info icon
   eqG.append('text')
     .attr('x', x)
     .attr('y', y + 2)
@@ -911,7 +912,15 @@ export function toggleLocation(locId) {
       .attr('y', pos.y + targetH + 18);
   }
 
-  // Reposition flows, decisions, externals, legend, equation badge
+  // Animate bottom row shift (Orchard/Reef slide down when Lab expands)
+  const shift = getBottomRowShift();
+  ['orchard', 'reef'].forEach(id => {
+    mainGroup.select(`.location-${id}`)
+      .transition().duration(400)
+      .attr('transform', `translate(0, ${shift})`);
+  });
+
+  // Reposition all dynamic elements using effective positions
   updateFlowPositions(true);
   updateDecisionPositions(true);
   updateExternalPositions(true);
