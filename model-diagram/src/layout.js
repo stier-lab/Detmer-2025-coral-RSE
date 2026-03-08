@@ -2,7 +2,7 @@
 // Lab at top-center, Orchard bottom-left, Reef bottom-right
 
 const LOC_WIDTH = 300;
-const LOC_COLLAPSED_H = 80;
+const LOC_COLLAPSED_H = 90;
 const LOC_EXPANDED_H = 420;
 const SC_NODE_H = 46;
 const SC_NODE_W = 240;

@@ -205,7 +205,7 @@ function drawLocation(locId) {
   g.append('text')
     .attr('class', 'location-title')
     .attr('x', pos.x + pos.w / 2)
-    .attr('y', pos.y + 32)
+    .attr('y', pos.y + 36)
     .attr('text-anchor', 'middle')
     .text(loc.name);
 
@@ -213,7 +213,7 @@ function drawLocation(locId) {
   g.append('text')
     .attr('class', 'location-subtitle')
     .attr('x', pos.x + pos.w / 2)
-    .attr('y', pos.y + 50)
+    .attr('y', pos.y + 55)
     .attr('text-anchor', 'middle')
     .text(loc.fullName);
 
@@ -221,7 +221,7 @@ function drawLocation(locId) {
   g.append('text')
     .attr('class', 'click-hint')
     .attr('x', pos.x + pos.w / 2)
-    .attr('y', pos.y + 68)
+    .attr('y', pos.y + 74)
     .attr('text-anchor', 'middle')
     .attr('font-size', '10px')
     .attr('fill', loc.color)
