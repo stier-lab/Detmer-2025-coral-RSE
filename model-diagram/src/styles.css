@@ -103,42 +103,45 @@ body {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 20px 28px 14px;
+  padding: 20px 32px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(12px);
-  background: rgba(11, 22, 40, 0.6);
+  backdrop-filter: blur(16px) saturate(1.4);
+  background: linear-gradient(180deg, rgba(11, 22, 40, 0.7) 0%, rgba(11, 22, 40, 0.5) 100%);
 }
 
 .header h1 {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 600;
   color: var(--text-bright);
   letter-spacing: -0.02em;
+  text-shadow: 0 0 40px rgba(56, 189, 248, 0.08);
 }
 
 .subtitle {
   font-size: 13px;
   color: var(--text-dim);
-  margin-top: 2px;
+  margin-top: 3px;
   font-weight: 400;
+  letter-spacing: 0.02em;
 }
 .subtitle em {
   color: var(--reef);
   font-style: italic;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .equation-display {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 /* ── Controls ────────────────────────────── */
@@ -146,9 +149,9 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-  padding: 12px 28px;
-  backdrop-filter: blur(12px);
-  background: rgba(11, 22, 40, 0.4);
+  padding: 10px 32px;
+  backdrop-filter: blur(16px) saturate(1.3);
+  background: rgba(11, 22, 40, 0.35);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   align-items: center;
 }
@@ -280,25 +283,25 @@ body {
 /* Location boxes */
 .location-box {
   cursor: pointer;
-  transition: filter 0.25s ease;
+  transition: filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .location-box:hover .location-bg {
-  stroke-width: 2.4;
-  filter: url(#glow-soft) brightness(1.15);
+  stroke-width: 2.2;
+  filter: url(#glow-soft) brightness(1.1);
 }
 .location-box:hover .click-hint {
-  opacity: 0.9 !important;
+  opacity: 1 !important;
 }
 .location-bg {
-  rx: 14;
-  ry: 14;
-  stroke-width: 1.8;
-  transition: all 0.4s ease;
+  rx: 12;
+  ry: 12;
+  stroke-width: 1.6;
+  transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
   filter: url(#glow-soft);
 }
 .location-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   fill: var(--text-bright);
   pointer-events: none;
@@ -306,22 +309,24 @@ body {
 }
 .location-subtitle {
   font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   fill: var(--text-dim);
   pointer-events: none;
   font-weight: 400;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
 }
 
 /* Size class nodes */
 .sc-node rect {
-  rx: 8;
-  ry: 8;
+  rx: 6;
+  ry: 6;
   stroke-width: 1;
-  transition: opacity 0.3s, filter 0.3s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .sc-node:hover rect {
   filter: url(#glow-soft);
+  stroke-opacity: 0.8 !important;
 }
 .sc-node text {
   pointer-events: none;
@@ -336,14 +341,15 @@ body {
   font-family: 'DM Sans', sans-serif;
   font-size: 10px;
   fill: var(--text-dim);
+  letter-spacing: 0.01em;
 }
 
 /* ── Arrows & paths ──────────────────────── */
 .flow-arrow {
   fill: none;
-  stroke-width: 2.8;
+  stroke-width: 2.5;
   stroke-linecap: round;
-  transition: opacity 0.3s, stroke-width 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .flow-arrow.collection { stroke: var(--flow-collection); }
 .flow-arrow.outplant { stroke: var(--flow-outplant); }
@@ -353,13 +359,16 @@ body {
   cursor: pointer;
 }
 .flow-group:hover .flow-arrow {
-  stroke-width: 4;
+  stroke-width: 3.5;
 }
 .flow-group:hover .flow-glow {
-  opacity: 0.3 !important;
+  opacity: 0.35 !important;
 }
 .flow-group:hover .flow-label {
-  font-size: 14px;
+  font-size: 14px !important;
+}
+.flow-group:hover .flow-label-bg {
+  opacity: 0.85 !important;
 }
 
 .internal-arrow {
@@ -487,20 +496,21 @@ body {
 .tooltip {
   position: fixed;
   pointer-events: none;
-  background: rgba(8, 15, 30, 0.92);
-  backdrop-filter: blur(20px);
+  background: rgba(6, 12, 26, 0.94);
+  backdrop-filter: blur(24px) saturate(1.5);
   color: var(--text);
-  padding: 14px 18px;
-  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  border-radius: 12px;
   font-size: 12px;
-  max-width: 340px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  max-width: 360px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 0 80px rgba(56, 189, 248, 0.03);
   z-index: 1000;
-  line-height: 1.6;
-  transition: opacity 0.15s;
+  line-height: 1.65;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .tooltip.hidden {
   opacity: 0;
@@ -528,7 +538,7 @@ body {
 /* ── Expand/collapse animation ───────────── */
 .location-detail {
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 .location-detail.expanded {
@@ -539,10 +549,10 @@ body {
 /* ── Click hint ──────────────────────────── */
 .click-hint {
   font-family: 'DM Sans', sans-serif;
-  letter-spacing: 0.05em;
-  text-decoration: underline;
-  text-decoration-color: rgba(255, 255, 255, 0.2);
-  text-underline-offset: 2px;
+  letter-spacing: 0.08em;
+  font-size: 9px !important;
+  text-transform: lowercase;
+  transition: opacity 0.25s ease;
 }
 
 /* ── Process labels ──────────────────────── */
@@ -555,15 +565,15 @@ body {
 /* ── Legend ───────────────────────────────── */
 .legend text {
   font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   fill: var(--text-dim);
 }
 .legend-title {
   font-family: var(--font-display) !important;
-  font-size: 15px !important;
+  font-size: 16px !important;
   font-weight: 600 !important;
   fill: var(--text-bright) !important;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
 /* ── Annual cycle badge (SVG) ────────────── */
@@ -591,8 +601,21 @@ body {
 
 /* ── SC icons (♀ ⚡) ────────────────────── */
 .sc-icon {
-  transition: font-size 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .sc-icon:hover {
-  font-size: 14px !important;
+  font-size: 15px !important;
+}
+
+/* ── Flow label pill backgrounds ────────── */
+.flow-label-bg {
+  transition: opacity 0.25s ease;
+}
+
+/* ── SC accent bar ──────────────────────── */
+.sc-accent {
+  transition: opacity 0.25s ease;
+}
+.sc-node:hover .sc-accent {
+  opacity: 1 !important;
 }

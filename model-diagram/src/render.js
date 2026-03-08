@@ -61,6 +61,16 @@ export function initDiagram(svgEl) {
   addGlowFilter(defs, 'glow-decision', 6, 0.4);
   addGlowFilter(defs, 'glow-disturbance', 8, 0.5);
 
+  // Location box gradient fills (top-heavy color → transparent)
+  Object.entries(locations).forEach(([locId, loc]) => {
+    const grad = defs.append('linearGradient')
+      .attr('id', `grad-${locId}`)
+      .attr('x1', '0%').attr('y1', '0%')
+      .attr('x2', '0%').attr('y2', '100%');
+    grad.append('stop').attr('offset', '0%').attr('stop-color', loc.color).attr('stop-opacity', 0.15);
+    grad.append('stop').attr('offset', '100%').attr('stop-color', loc.color).attr('stop-opacity', 0.04);
+  });
+
   mainGroup = svg.append('g').attr('class', 'main-diagram');
 
   // Draw order: flows behind, then locations, then external+decisions on top
@@ -191,14 +201,14 @@ function drawLocation(locId) {
     .attr('data-location', locId)
     .attr('transform', 'translate(0, 0)'); // animated when Lab expands
 
-  // Background rect
+  // Background rect with gradient fill
   g.append('rect')
     .attr('class', 'location-bg')
     .attr('x', pos.x)
     .attr('y', pos.y)
     .attr('width', pos.w)
     .attr('height', layout.LOC_COLLAPSED_H)
-    .attr('fill', loc.colorLight)
+    .attr('fill', `url(#grad-${locId})`)
     .attr('stroke', loc.color);
 
   // Title
@@ -261,9 +271,20 @@ function drawSizeClasses(detailGroup, locId) {
       .attr('y', nodePos.y)
       .attr('width', nodePos.w)
       .attr('height', nodePos.h)
-      .attr('fill', 'rgba(15, 23, 42, 0.65)')
+      .attr('fill', 'rgba(12, 20, 38, 0.7)')
       .attr('stroke', loc.color)
-      .attr('stroke-opacity', 0.55);
+      .attr('stroke-opacity', 0.4);
+
+    // Accent bar (left edge)
+    scG.append('rect')
+      .attr('class', 'sc-accent')
+      .attr('x', nodePos.x)
+      .attr('y', nodePos.y + 4)
+      .attr('width', 3)
+      .attr('height', nodePos.h - 8)
+      .attr('rx', 1.5)
+      .attr('fill', loc.color)
+      .attr('opacity', 0.6);
 
     // SC label
     scG.append('text')
@@ -410,10 +431,10 @@ function drawLabDetail(detailGroup, locId) {
       .attr('y', boxY)
       .attr('width', boxW)
       .attr('height', boxH)
-      .attr('rx', 8).attr('ry', 8)
-      .attr('fill', 'rgba(15, 23, 42, 0.6)')
+      .attr('rx', 6).attr('ry', 6)
+      .attr('fill', 'rgba(12, 20, 38, 0.7)')
       .attr('stroke', '#F59E0B')
-      .attr('stroke-opacity', 0.3)
+      .attr('stroke-opacity', 0.25)
       .attr('stroke-width', 1);
 
     detailGroup.append('text')
@@ -486,17 +507,29 @@ function drawInterLocationFlows() {
       .attr('d', pathD)
       .attr('marker-end', `url(#${markerMap[flow.type]})`);
 
+    // Label background pill
+    const labelW = flow.label.length * 8 + 20;
+    flowG.append('rect')
+      .attr('class', 'flow-label-bg')
+      .attr('x', labelPos.x - labelW / 2)
+      .attr('y', labelPos.y - 13)
+      .attr('width', labelW)
+      .attr('height', 20)
+      .attr('rx', 10).attr('ry', 10)
+      .attr('fill', 'rgba(7, 14, 26, 0.75)')
+      .attr('opacity', 0.7);
+
     // Label
     flowG.append('text')
       .attr('class', 'flow-label')
       .attr('x', labelPos.x)
       .attr('y', labelPos.y)
       .attr('text-anchor', 'middle')
-      .attr('font-size', '13px')
+      .attr('font-size', '12px')
       .attr('fill', color)
       .attr('font-weight', '600')
       .attr('font-family', "'DM Sans', sans-serif")
-      .attr('style', 'filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7))')
+      .attr('letter-spacing', '0.03em')
       .text(flow.label);
 
     // Cost layer badge
@@ -522,6 +555,12 @@ function updateFlowPositions(animate) {
     flowG.selectAll('path').transition().duration(dur).attr('d', pathD);
     flowG.select('.flow-label').transition().duration(dur)
       .attr('x', labelPos.x).attr('y', labelPos.y);
+    const labelBg = flowG.select('.flow-label-bg');
+    if (!labelBg.empty()) {
+      const w = parseFloat(labelBg.attr('width'));
+      labelBg.transition().duration(dur)
+        .attr('x', labelPos.x - w / 2).attr('y', labelPos.y - 13);
+    }
     const costBadge = flowG.select('.cost-badge');
     if (!costBadge.empty()) {
       costBadge.transition().duration(dur)
@@ -721,15 +760,15 @@ function updateLegendPosition(animate) {
     .attr('transform', `translate(${layout.locationPositions.orchard.x}, ${legendY})`);
 
   // Update annual cycle badge
-  const badgeY = legendY + 10;
+  const badgeY = legendY + 8;
   const eqG = mainGroup.select('.equation-group');
   if (!eqG.empty()) {
     eqG.select('.annual-cycle-badge').transition().duration(dur)
-      .attr('y', badgeY - 18);
+      .attr('y', badgeY - 16);
     const texts = eqG.selectAll('text');
-    texts.filter(function(d, i) { return i === 0; }).transition().duration(dur).attr('y', badgeY + 2);
-    texts.filter(function(d, i) { return i === 1; }).transition().duration(dur).attr('y', badgeY + 2);
-    texts.filter(function(d, i) { return i === 2; }).transition().duration(dur).attr('y', badgeY + 16);
+    texts.filter(function(d, i) { return i === 0; }).transition().duration(dur).attr('y', badgeY + 1);
+    texts.filter(function(d, i) { return i === 1; }).transition().duration(dur).attr('y', badgeY + 1);
+    texts.filter(function(d, i) { return i === 2; }).transition().duration(dur).attr('y', badgeY + 14);
   }
 }
 
@@ -779,7 +818,18 @@ function drawLegend() {
     .attr('class', 'legend')
     .attr('transform', `translate(${layout.locationPositions.orchard.x}, ${getLegendY()})`);
 
-  legendG.append('text').attr('class', 'legend-title').attr('y', 0).text('Legend');
+  // Subtle background
+  legendG.append('rect')
+    .attr('x', -12)
+    .attr('y', -14)
+    .attr('width', 540)
+    .attr('height', 128)
+    .attr('rx', 10).attr('ry', 10)
+    .attr('fill', 'rgba(7, 14, 26, 0.4)')
+    .attr('stroke', 'rgba(255, 255, 255, 0.04)')
+    .attr('stroke-width', 1);
+
+  legendG.append('text').attr('class', 'legend-title').attr('y', 2).text('Legend');
 
   const arrowItems = [
     { color: '#22c55e', label: 'Growth (\u2192 larger class)', dash: '' },
@@ -795,34 +845,35 @@ function drawLegend() {
   arrowItems.forEach((item, i) => {
     const col = Math.floor(i / 4);
     const row = i % 4;
-    const x = col * 280;
-    const y = 22 + row * 22;
+    const x = col * 260;
+    const y = 22 + row * 20;
 
     legendG.append('line')
       .attr('x1', x).attr('y1', y)
-      .attr('x2', x + 36).attr('y2', y)
+      .attr('x2', x + 30).attr('y2', y)
       .attr('stroke', item.color)
-      .attr('stroke-width', 2.5)
-      .attr('stroke-dasharray', item.dash);
+      .attr('stroke-width', 2)
+      .attr('stroke-dasharray', item.dash)
+      .attr('stroke-linecap', 'round');
 
     legendG.append('text')
-      .attr('x', x + 44)
+      .attr('x', x + 38)
       .attr('y', y + 4)
       .text(item.label);
   });
 
   // Symbol items (diamond, icons)
-  const symbolY = 22 + 4 * 22 + 8;
+  const symbolY = 22 + 4 * 20 + 6;
   const symbols = [
-    { symbol: '\u25C7', color: '#FDE047', label: 'Decision parameter', size: '14px' },
-    { symbol: '\u2640', color: '#FBBF24', label: 'Sexual reproduction', size: '13px' },
-    { symbol: '\u26A1', color: '#C084FC', label: 'Fragmentation capability', size: '13px' },
+    { symbol: '\u25C7', color: '#FDE047', label: 'Decision parameter', size: '13px' },
+    { symbol: '\u2640', color: '#FBBF24', label: 'Sexual reproduction', size: '12px' },
+    { symbol: '\u26A1', color: '#C084FC', label: 'Fragmentation capability', size: '12px' },
   ];
 
   symbols.forEach((item, i) => {
-    const x = i * 280;
+    const x = i * 260;
     legendG.append('text')
-      .attr('x', x + 10)
+      .attr('x', x + 8)
       .attr('y', symbolY + 4)
       .attr('text-anchor', 'middle')
       .attr('font-size', item.size)
@@ -830,7 +881,7 @@ function drawLegend() {
       .text(item.symbol);
 
     legendG.append('text')
-      .attr('x', x + 28)
+      .attr('x', x + 24)
       .attr('y', symbolY + 4)
       .text(item.label);
   });
@@ -843,41 +894,42 @@ function drawEquationBadge() {
     .attr('data-tooltip-title', 'Core Equation')
     .attr('data-tooltip-body', annualCycle.map(s => `Step ${s.step}: ${s.name} \u2014 ${s.desc}`).join('\n'));
 
-  const x = layout.locationPositions.reef.x;
-  const y = getLegendY() + 10;
+  const x = layout.locationPositions.reef.x - 40;
+  const y = getLegendY() + 8;
 
   eqG.append('rect')
     .attr('class', 'annual-cycle-badge')
     .attr('x', x - 12)
-    .attr('y', y - 18)
-    .attr('width', 240)
-    .attr('height', 36)
+    .attr('y', y - 16)
+    .attr('width', 220)
+    .attr('height', 32)
     .attr('rx', 8).attr('ry', 8)
-    .attr('fill', 'rgba(15, 23, 42, 0.65)')
-    .attr('stroke', 'rgba(56, 189, 248, 0.25)')
+    .attr('fill', 'rgba(12, 20, 38, 0.6)')
+    .attr('stroke', 'rgba(56, 189, 248, 0.2)')
     .attr('cursor', 'pointer');
 
   eqG.append('text')
     .attr('x', x)
-    .attr('y', y + 2)
-    .attr('font-size', '14px')
+    .attr('y', y + 1)
+    .attr('font-size', '13px')
     .attr('fill', '#38BDF8')
     .text('\u24D8');
 
   eqG.append('text')
-    .attr('x', x + 18)
-    .attr('y', y + 2)
-    .attr('font-size', '12px')
+    .attr('x', x + 16)
+    .attr('y', y + 1)
+    .attr('font-size', '11px')
     .attr('fill', '#E2E8F0')
     .attr('font-family', "'DM Sans', sans-serif")
     .attr('font-weight', '500')
+    .attr('letter-spacing', '0.02em')
     .attr('cursor', 'pointer')
     .text('Annual Cycle \u2014 8 steps');
 
   eqG.append('text')
-    .attr('x', x + 18)
-    .attr('y', y + 16)
-    .attr('font-size', '10px')
+    .attr('x', x + 16)
+    .attr('y', y + 14)
+    .attr('font-size', '9px')
     .attr('fill', '#7A8BA8')
     .attr('font-family', "'DM Sans', sans-serif")
     .attr('cursor', 'pointer')
