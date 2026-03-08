@@ -5,8 +5,8 @@ export const sizeClasses = [
   { id: 'SC1', label: 'SC1', range: '0–10 cm²', midpoint: 0.1, role: 'Recruits / settlers', reproduces: false, fragments: false },
   { id: 'SC2', label: 'SC2', range: '10–100 cm²', midpoint: 43, role: 'Small juveniles', reproduces: false, fragments: false },
   { id: 'SC3', label: 'SC3', range: '100–900 cm²', midpoint: 369, role: 'Large juveniles (begin reproducing)', reproduces: true, fragments: false },
-  { id: 'SC4', label: 'SC4', range: '900–4,000 cm²', midpoint: 2158, role: 'Subadults (reproduce + fragment)', reproduces: true, fragments: true },
-  { id: 'SC5', label: 'SC5', range: '> 4,000 cm²', midpoint: 11171, role: 'Reproductive adults (max fecundity + fragmentation)', reproduces: true, fragments: true },
+  { id: 'SC4', label: 'SC4', range: '900–4,000 cm²', midpoint: 2158, role: 'Subadults (reproduce + frag.)', reproduces: true, fragments: true },
+  { id: 'SC5', label: 'SC5', range: '> 4,000 cm²', midpoint: 11171, role: 'Adults (max fecundity + frag.)', reproduces: true, fragments: true },
 ];
 
 export const locations = {
@@ -15,7 +15,7 @@ export const locations = {
     name: 'Lab',
     fullName: 'Larval Rearing Facility',
     color: '#F59E0B',
-    colorLight: 'rgba(245, 158, 11, 0.08)',
+    colorLight: 'rgba(245, 158, 11, 0.12)',
     description: 'Collected larvae are settled onto tiles and grown out before outplanting.',
     parameters: [
       { name: 'lab_max', value: '~3,100 tiles', desc: 'Total tile capacity in lab' },
@@ -38,7 +38,7 @@ export const locations = {
     name: 'Orchard',
     fullName: 'Coral Nursery',
     color: '#10B981',
-    colorLight: 'rgba(16, 185, 129, 0.08)',
+    colorLight: 'rgba(16, 185, 129, 0.12)',
     description: 'Managed grow-out facility (underwater coral trees/tables). Enhanced survival, faster growth, no fragmentation.',
     parameters: [
       { name: 'orchard_size', value: '~15,000', desc: 'Max colonies per orchard' },
@@ -60,7 +60,7 @@ export const locations = {
     name: 'Reef',
     fullName: 'Wild / Restoration Site',
     color: '#38BDF8',
-    colorLight: 'rgba(56, 189, 248, 0.08)',
+    colorLight: 'rgba(56, 189, 248, 0.12)',
     description: 'Target ecosystem. Full demographic rates, space limitation, external recruitment, and disturbance.',
     parameters: [
       { name: 'reef_areas', value: '~7,837 m²', desc: 'Carrying capacity per reef site (cm²)' },
@@ -86,7 +86,7 @@ export const flows = [
   {
     id: 'orchard-to-lab',
     from: 'orchard', to: 'lab',
-    label: 'Larvae collection',
+    label: 'Larvae Collection',
     description: 'Fraction of orchard larvae collected (orchard_yield) and sent to lab for settlement.',
     param: 'orchard_yield',
     pathways: ['0tx', '1tx'],
@@ -96,7 +96,7 @@ export const flows = [
   {
     id: 'reef-to-lab',
     from: 'reef', to: 'lab',
-    label: 'Larvae collection',
+    label: 'Larvae Collection',
     description: 'Fraction of reference reef larvae collected (reef_yield) and sent to lab.',
     param: 'reef_yield',
     pathways: ['0tx', '1tx'],

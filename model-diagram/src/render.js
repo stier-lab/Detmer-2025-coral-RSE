@@ -388,7 +388,7 @@ function drawInternalArrows(detailGroup, locId) {
 function drawLabDetail(detailGroup, locId) {
   const pos = layout.locationPositions[locId];
   const cx = pos.x + pos.w / 2;
-  let y = pos.y + 70;
+  let y = pos.y + 85;
 
   const steps = [
     { label: 'Larvae collected', sublabel: 'from orchard + ref. reef' },
@@ -398,7 +398,7 @@ function drawLabDetail(detailGroup, locId) {
     { label: 'Outplant to reef/orchard', sublabel: 'via reef_prop allocation' },
   ];
 
-  const stepSpacing = 66;
+  const stepSpacing = 62;
   const boxH = 50;
 
   steps.forEach((step, i) => {
@@ -444,15 +444,16 @@ function drawLabDetail(detailGroup, locId) {
         .attr('marker-end', 'url(#arrowhead-grey)');
     }
 
-    // Branch indicator for 0_TX / 1_TX split
+    // Branch split label between step 2 (0_TX) and step 3 (1_TX)
     if (i === 2) {
       detailGroup.append('text')
         .attr('x', cx + boxW / 2 + 8)
-        .attr('y', boxY + 30)
+        .attr('y', boxY + boxH + 8)
         .attr('font-size', '9px')
         .attr('font-family', "'JetBrains Mono', monospace")
         .attr('fill', '#FDE047')
-        .text('lab_retain_max \u2195');
+        .attr('text-anchor', 'start')
+        .text('\u2195 split');
     }
   });
 }

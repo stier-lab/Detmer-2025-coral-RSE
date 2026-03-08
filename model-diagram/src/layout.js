@@ -3,11 +3,11 @@
 
 const LOC_WIDTH = 300;
 const LOC_COLLAPSED_H = 90;
-const LOC_EXPANDED_H = 420;
+const LOC_EXPANDED_H = 440;
 const SC_NODE_H = 46;
 const SC_NODE_W = 240;
 const SC_GAP = 10;
-const SC_PAD_TOP = 60;
+const SC_PAD_TOP = 85;
 const SC_PAD_LEFT = 30;
 const DIAMOND_SIZE = 24;
 
