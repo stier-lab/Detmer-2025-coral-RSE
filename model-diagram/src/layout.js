@@ -1,30 +1,36 @@
-// Layout calculations — positions for all diagram elements
+// Layout calculations — TRIANGULAR LAYOUT
+// Lab at top-center, Orchard bottom-left, Reef bottom-right
 
-const PADDING = 24;
 const LOC_WIDTH = 300;
-const LOC_GAP = 160;
 const LOC_COLLAPSED_H = 80;
-const LOC_EXPANDED_H = 540;
-const SC_NODE_H = 52;
+const LOC_EXPANDED_H = 420;
+const SC_NODE_H = 46;
 const SC_NODE_W = 240;
-const SC_GAP = 14;
-const SC_PAD_TOP = 70;
+const SC_GAP = 10;
+const SC_PAD_TOP = 60;
 const SC_PAD_LEFT = 30;
-const DIAMOND_SIZE = 22;
+const DIAMOND_SIZE = 24;
 
 export function computeLayout(width) {
-  const totalLocWidth = 3 * LOC_WIDTH + 2 * LOC_GAP;
-  // Extra left margin for external label, extra right for wild recruitment label + equation
-  const marginLeft = 160;
-  const marginRight = 220;
-  const startX = marginLeft;
-  const startY = 80; // room above for collection arc labels
+  // Bottom row positioning — tightened for 1080p viewport
+  const orchardX = 60;
+  const reefX = 600;
+  const bottomRowY = 470;
+
+  // Lab centered above the midpoint of Orchard and Reef
+  const bottomCenterX = (orchardX + LOC_WIDTH / 2 + reefX + LOC_WIDTH / 2) / 2;
+  const labX = bottomCenterX - LOC_WIDTH / 2;
+  const labY = 40;
 
   const locationPositions = {
-    lab:     { x: startX,                          y: startY, w: LOC_WIDTH },
-    orchard: { x: startX + LOC_WIDTH + LOC_GAP,    y: startY, w: LOC_WIDTH },
-    reef:    { x: startX + 2 * (LOC_WIDTH + LOC_GAP), y: startY, w: LOC_WIDTH },
+    lab:     { x: labX,     y: labY,       w: LOC_WIDTH },
+    orchard: { x: orchardX, y: bottomRowY, w: LOC_WIDTH },
+    reef:    { x: reefX,    y: bottomRowY, w: LOC_WIDTH },
   };
+
+  const totalWidth = reefX + LOC_WIDTH + 180;
+  const totalHeight = bottomRowY + LOC_EXPANDED_H + 100;
+  const collapsedHeight = bottomRowY + LOC_COLLAPSED_H + 120; // compact viewBox when collapsed
 
   return {
     locationPositions,
@@ -37,14 +43,15 @@ export function computeLayout(width) {
     SC_PAD_TOP,
     SC_PAD_LEFT,
     DIAMOND_SIZE,
-    totalWidth: marginLeft + totalLocWidth + marginRight,
-    totalHeight: LOC_EXPANDED_H + startY + 120,
+    totalWidth,
+    totalHeight,
+    collapsedHeight,
   };
 }
 
 // Get position of a size class node within an expanded location
 export function scNodePos(locPos, scIndex, layout) {
-  // SC1 at bottom, SC5 at top → reverse index
+  // SC1 at bottom, SC5 at top -> reverse index
   const reversedIdx = 4 - scIndex;
   return {
     x: locPos.x + layout.SC_PAD_LEFT,
@@ -54,31 +61,39 @@ export function scNodePos(locPos, scIndex, layout) {
   };
 }
 
-// Get center point of a location box (collapsed)
-export function locCenter(locPos, collapsed) {
-  const h = collapsed ? LOC_COLLAPSED_H : LOC_EXPANDED_H;
+// Get the current height of a location box
+export function getLocHeight(locId, expandedState, layout) {
+  return expandedState[locId] ? layout.LOC_EXPANDED_H : layout.LOC_COLLAPSED_H;
+}
+
+// Get center point of a location box
+export function locCenter(locPos, height) {
   return {
     x: locPos.x + locPos.w / 2,
-    y: locPos.y + h / 2,
+    y: locPos.y + height / 2,
   };
 }
 
-// Get edge midpoints of a location box for arrow connections
-export function locEdges(locPos, collapsed) {
-  const h = collapsed ? LOC_COLLAPSED_H : LOC_EXPANDED_H;
+// Get edge midpoints of a location box
+export function locEdges(locPos, height) {
   return {
-    left:   { x: locPos.x,              y: locPos.y + h / 2 },
-    right:  { x: locPos.x + locPos.w,   y: locPos.y + h / 2 },
+    left:   { x: locPos.x,              y: locPos.y + height / 2 },
+    right:  { x: locPos.x + locPos.w,   y: locPos.y + height / 2 },
     top:    { x: locPos.x + locPos.w / 2, y: locPos.y },
-    bottom: { x: locPos.x + locPos.w / 2, y: locPos.y + h },
+    bottom: { x: locPos.x + locPos.w / 2, y: locPos.y + height },
   };
 }
 
-// Generate curved path between two points (for inter-location flows)
+// Generate curved path between two points
 export function curvedPath(from, to, curveDir = 'above', offset = 50) {
   const midX = (from.x + to.x) / 2;
-  const cpY = curveDir === 'above' ? Math.min(from.y, to.y) - offset : Math.max(from.y, to.y) + offset;
-  return `M ${from.x} ${from.y} Q ${midX} ${cpY} ${to.x} ${to.y}`;
+  const midY = (from.y + to.y) / 2;
+  // For diagonal paths, offset perpendicular to the line
+  const cpX = midX + (curveDir === 'left' ? -offset : curveDir === 'right' ? offset : 0);
+  const cpY = curveDir === 'above' ? Math.min(from.y, to.y) - offset
+            : curveDir === 'below' ? Math.max(from.y, to.y) + offset
+            : midY;
+  return `M ${from.x} ${from.y} Q ${cpX} ${cpY} ${to.x} ${to.y}`;
 }
 
 // Diamond points for a decision node centered at (cx, cy)

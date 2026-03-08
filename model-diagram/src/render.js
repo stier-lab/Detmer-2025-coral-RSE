@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { sizeClasses, locations, flows, decisions, externalInputs, coreEquation, annualCycle, disturbanceLayer, stochasticityLayer, costsLayer } from './data.js';
-import { computeLayout, scNodePos, locEdges, curvedPath, diamondPoints } from './layout.js';
+import { computeLayout, scNodePos, getLocHeight, curvedPath, diamondPoints } from './layout.js';
 
 let layout;
 let svg, mainGroup;
@@ -8,11 +8,10 @@ let expandedState = { lab: false, orchard: false, reef: false };
 
 export function initDiagram(svgEl) {
   svg = d3.select(svgEl);
-  const containerWidth = Math.max(1100, svgEl.parentElement.clientWidth - 32);
-  layout = computeLayout(containerWidth);
+  layout = computeLayout();
 
   svg
-    .attr('viewBox', `0 0 ${layout.totalWidth} ${layout.totalHeight}`)
+    .attr('viewBox', `0 0 ${layout.totalWidth} ${layout.collapsedHeight}`)
     .attr('preserveAspectRatio', 'xMidYMin meet');
 
   // Defs: arrowheads and glow filters
@@ -22,13 +21,14 @@ export function initDiagram(svgEl) {
   addArrowhead(defs, 'arrowhead-red', '#ef4444');
   addArrowhead(defs, 'arrowhead-purple', '#c084fc');
   addArrowhead(defs, 'arrowhead-amber', '#FBBF24');
-  addArrowhead(defs, 'arrowhead-flow-purple', '#A78BFA');
+  addArrowhead(defs, 'arrowhead-flow-cyan', '#67E8F9');
   addArrowhead(defs, 'arrowhead-flow-amber', '#FBBF24');
-  addArrowhead(defs, 'arrowhead-flow-green', '#34D399');
+  addArrowhead(defs, 'arrowhead-flow-teal', '#2DD4BF');
+  addArrowhead(defs, 'arrowhead-fecundity', '#FB923C');
   addArrowhead(defs, 'arrowhead-external', '#64748B');
 
   // Glow filters
-  addGlowFilter(defs, 'glow-soft', 4, 0.3);
+  addGlowFilter(defs, 'glow-soft', 3, 0.3);
   addGlowFilter(defs, 'glow-decision', 6, 0.4);
   addGlowFilter(defs, 'glow-disturbance', 8, 0.5);
 
@@ -77,6 +77,72 @@ function addGlowFilter(defs, id, stdDev, opacity) {
   merge.append('feMergeNode').attr('in', 'SourceGraphic');
 }
 
+// ── Flow path calculation ──────────────────
+// Calculates path + label position for a flow based on current expanded state
+function calcFlowGeometry(flow) {
+  const fromPos = layout.locationPositions[flow.from];
+  const toPos = layout.locationPositions[flow.to];
+  const fromH = getLocHeight(flow.from, expandedState, layout);
+  const toH = getLocHeight(flow.to, expandedState, layout);
+
+  let pathD, labelPos;
+  const colorMap = { collection: '#67E8F9', outplant: '#FBBF24', transplant: '#2DD4BF' };
+
+  if (flow.type === 'collection') {
+    // Collection flows go UP from Orchard/Reef to Lab (diagonal)
+    // Label near Lab end (t=0.75 from source toward Lab)
+    if (flow.from === 'orchard') {
+      const start = { x: fromPos.x + fromPos.w * 0.7, y: fromPos.y };
+      const end = { x: toPos.x + toPos.w * 0.3, y: toPos.y + toH };
+      const midX = (start.x + end.x) / 2 - 40;
+      const midY = (start.y + end.y) / 2;
+      pathD = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
+      const lx = start.x + (end.x - start.x) * 0.72 - 60;
+      const ly = start.y + (end.y - start.y) * 0.72;
+      labelPos = { x: lx, y: ly };
+    } else {
+      const start = { x: fromPos.x + fromPos.w * 0.3, y: fromPos.y };
+      const end = { x: toPos.x + toPos.w * 0.7, y: toPos.y + toH };
+      const midX = (start.x + end.x) / 2 + 40;
+      const midY = (start.y + end.y) / 2;
+      pathD = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
+      const lx = start.x + (end.x - start.x) * 0.72 + 60;
+      const ly = start.y + (end.y - start.y) * 0.72;
+      labelPos = { x: lx, y: ly };
+    }
+  } else if (flow.type === 'outplant') {
+    // Outplant flows go DOWN from Lab to Orchard/Reef (diagonal)
+    // Label near Orchard/Reef end (t=0.75 from Lab toward destination)
+    if (flow.to === 'reef') {
+      const start = { x: fromPos.x + fromPos.w * 0.8, y: fromPos.y + fromH };
+      const end = { x: toPos.x + toPos.w * 0.2, y: toPos.y };
+      const midX = (start.x + end.x) / 2 + 35;
+      const midY = (start.y + end.y) / 2;
+      pathD = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
+      const lx = start.x + (end.x - start.x) * 0.72 + 55;
+      const ly = start.y + (end.y - start.y) * 0.72;
+      labelPos = { x: lx, y: ly };
+    } else {
+      const start = { x: fromPos.x + fromPos.w * 0.2, y: fromPos.y + fromH };
+      const end = { x: toPos.x + toPos.w * 0.8, y: toPos.y };
+      const midX = (start.x + end.x) / 2 - 35;
+      const midY = (start.y + end.y) / 2;
+      pathD = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
+      const lx = start.x + (end.x - start.x) * 0.72 - 55;
+      const ly = start.y + (end.y - start.y) * 0.72;
+      labelPos = { x: lx, y: ly };
+    }
+  } else {
+    // Transplant: Orchard → Reef, horizontal at bottom
+    const fromMidY = fromPos.y + fromH / 2;
+    const toMidY = toPos.y + toH / 2;
+    pathD = `M ${fromPos.x + fromPos.w} ${fromMidY} L ${toPos.x} ${toMidY}`;
+    labelPos = { x: (fromPos.x + fromPos.w + toPos.x) / 2, y: Math.min(fromMidY, toMidY) - 12 };
+  }
+
+  return { pathD, labelPos, color: colorMap[flow.type] };
+}
+
 // ── Location boxes ──────────────────────────
 function drawLocation(locId) {
   const loc = locations[locId];
@@ -99,7 +165,7 @@ function drawLocation(locId) {
   g.append('text')
     .attr('class', 'location-title')
     .attr('x', pos.x + pos.w / 2)
-    .attr('y', pos.y + 30)
+    .attr('y', pos.y + 32)
     .attr('text-anchor', 'middle')
     .text(loc.name);
 
@@ -107,21 +173,21 @@ function drawLocation(locId) {
   g.append('text')
     .attr('class', 'location-subtitle')
     .attr('x', pos.x + pos.w / 2)
-    .attr('y', pos.y + 48)
+    .attr('y', pos.y + 50)
     .attr('text-anchor', 'middle')
     .text(loc.fullName);
 
-  // Click hint
+  // Click hint with chevron
   g.append('text')
     .attr('class', 'click-hint')
     .attr('x', pos.x + pos.w / 2)
-    .attr('y', pos.y + 66)
+    .attr('y', pos.y + 68)
     .attr('text-anchor', 'middle')
-    .attr('font-size', '9px')
+    .attr('font-size', '10px')
     .attr('fill', loc.color)
-    .attr('opacity', 0.5)
-    .attr('letter-spacing', '0.1em')
-    .text('click to expand');
+    .attr('opacity', 0.7)
+    .attr('letter-spacing', '0.08em')
+    .text('\u25B6 expand');
 
   // Expanded detail group (hidden initially)
   const detail = g.append('g')
@@ -155,50 +221,56 @@ function drawSizeClasses(detailGroup, locId) {
       .attr('y', nodePos.y)
       .attr('width', nodePos.w)
       .attr('height', nodePos.h)
-      .attr('fill', 'rgba(15, 23, 42, 0.6)')
+      .attr('fill', 'rgba(15, 23, 42, 0.65)')
       .attr('stroke', loc.color)
-      .attr('stroke-opacity', 0.4);
+      .attr('stroke-opacity', 0.55);
 
     // SC label
     scG.append('text')
       .attr('class', 'sc-label')
       .attr('x', nodePos.x + 12)
-      .attr('y', nodePos.y + 22)
+      .attr('y', nodePos.y + 20)
       .text(sc.label);
 
     // Range text
     scG.append('text')
       .attr('class', 'sc-range')
       .attr('x', nodePos.x + 50)
-      .attr('y', nodePos.y + 22)
+      .attr('y', nodePos.y + 20)
       .text(sc.range);
 
     // Role text
     scG.append('text')
       .attr('class', 'sc-range')
       .attr('x', nodePos.x + 12)
-      .attr('y', nodePos.y + 40)
+      .attr('y', nodePos.y + 36)
       .text(sc.role);
 
-    // Reproduction indicator
+    // Reproduction indicator (interactive)
     if (sc.reproduces) {
       scG.append('text')
+        .attr('class', 'sc-icon sc-icon-repro')
         .attr('x', nodePos.x + nodePos.w - 12)
-        .attr('y', nodePos.y + 22)
+        .attr('y', nodePos.y + 20)
         .attr('text-anchor', 'end')
-        .attr('font-size', '10px')
+        .attr('font-size', '12px')
         .attr('fill', '#FBBF24')
-        .text('♀');
+        .attr('cursor', 'help')
+        .style('pointer-events', 'all')
+        .text('\u2640');
     }
-    // Fragmentation indicator (reef only)
+    // Fragmentation indicator (reef only, interactive)
     if (sc.fragments && !loc.noFragmentation) {
       scG.append('text')
+        .attr('class', 'sc-icon sc-icon-frag')
         .attr('x', nodePos.x + nodePos.w - 28)
-        .attr('y', nodePos.y + 22)
+        .attr('y', nodePos.y + 20)
         .attr('text-anchor', 'end')
-        .attr('font-size', '10px')
+        .attr('font-size', '12px')
         .attr('fill', '#C084FC')
-        .text('⚡');
+        .attr('cursor', 'help')
+        .style('pointer-events', 'all')
+        .text('\u26A1');
     }
   });
 
@@ -214,7 +286,7 @@ function drawInternalArrows(detailGroup, locId) {
     const fromPos = scNodePos(pos, i, layout);
     const toPos = scNodePos(pos, i + 1, layout);
 
-    // Growth arrow (up — from SC_i to SC_i+1) on left side
+    // Growth arrow (up) on left side
     const gx = fromPos.x + 6;
     detailGroup.append('line')
       .attr('class', 'internal-arrow growth-arrow')
@@ -222,7 +294,7 @@ function drawInternalArrows(detailGroup, locId) {
       .attr('x2', gx).attr('y2', toPos.y + toPos.h)
       .attr('marker-end', 'url(#arrowhead-green)');
 
-    // Shrinkage arrow (down — from SC_i+1 to SC_i) on right side
+    // Shrinkage arrow (down) on right side
     const sx = fromPos.x + fromPos.w - 6;
     detailGroup.append('line')
       .attr('class', 'internal-arrow shrinkage-arrow')
@@ -231,11 +303,10 @@ function drawInternalArrows(detailGroup, locId) {
       .attr('marker-end', 'url(#arrowhead-red)');
   }
 
-  // Fragmentation arrows (reef only): SC4/SC5 → smaller classes
+  // Fragmentation arrows (reef only): SC4/SC5 -> smaller classes
   if (!loc.noFragmentation) {
     [3, 4].forEach(fromIdx => {
       const fromSc = scNodePos(pos, fromIdx, layout);
-      // Arrow curving left from parent back down to SC1-SC3
       for (let toIdx = 0; toIdx <= 2; toIdx++) {
         const toSc = scNodePos(pos, toIdx, layout);
         const fx = fromSc.x - 8;
@@ -250,7 +321,7 @@ function drawInternalArrows(detailGroup, locId) {
     });
   }
 
-  // Fecundity arrows: SC3-SC5 exit right side → label
+  // Fecundity arrows: SC3-SC5 exit right side
   [2, 3, 4].forEach(scIdx => {
     const scPos = scNodePos(pos, scIdx, layout);
     const exitX = scPos.x + scPos.w;
@@ -259,7 +330,7 @@ function drawInternalArrows(detailGroup, locId) {
       .attr('class', 'internal-arrow fecundity-arrow')
       .attr('x1', exitX).attr('y1', exitY)
       .attr('x2', exitX + 20).attr('y2', exitY)
-      .attr('marker-end', 'url(#arrowhead-amber)');
+      .attr('marker-end', 'url(#arrowhead-fecundity)');
   });
 
   // Fecundity label
@@ -268,18 +339,17 @@ function drawInternalArrows(detailGroup, locId) {
     .attr('class', 'arrow-label')
     .attr('x', sc3Pos.x + sc3Pos.w + 4)
     .attr('y', sc3Pos.y - 6)
-    .attr('font-size', '9px')
-    .attr('fill', '#FBBF24')
+    .attr('font-size', '10px')
+    .attr('fill', '#FB923C')
     .attr('font-family', "'DM Sans', sans-serif")
-    .text('larvae →');
+    .text('larvae \u2192');
 }
 
 function drawLabDetail(detailGroup, locId) {
   const pos = layout.locationPositions[locId];
   const cx = pos.x + pos.w / 2;
-  let y = pos.y + 80;
+  let y = pos.y + 70;
 
-  // Lab flow diagram: simpler representation
   const steps = [
     { label: 'Larvae collected', sublabel: 'from orchard + ref. reef' },
     { label: 'Settlement on tiles', sublabel: '~15% success rate' },
@@ -288,10 +358,12 @@ function drawLabDetail(detailGroup, locId) {
     { label: 'Outplant to reef/orchard', sublabel: 'via reef_prop allocation' },
   ];
 
+  const stepSpacing = 66;
+  const boxH = 50;
+
   steps.forEach((step, i) => {
-    const boxY = y + i * 85;
+    const boxY = y + i * stepSpacing;
     const boxW = 240;
-    const boxH = 60;
 
     detailGroup.append('rect')
       .attr('x', cx - boxW / 2)
@@ -306,7 +378,7 @@ function drawLabDetail(detailGroup, locId) {
 
     detailGroup.append('text')
       .attr('x', cx)
-      .attr('y', boxY + 24)
+      .attr('y', boxY + 22)
       .attr('text-anchor', 'middle')
       .attr('font-size', '12px')
       .attr('font-weight', '600')
@@ -316,7 +388,7 @@ function drawLabDetail(detailGroup, locId) {
 
     detailGroup.append('text')
       .attr('x', cx)
-      .attr('y', boxY + 42)
+      .attr('y', boxY + 38)
       .attr('text-anchor', 'middle')
       .attr('font-size', '10px')
       .attr('fill', '#7A8BA8')
@@ -328,7 +400,7 @@ function drawLabDetail(detailGroup, locId) {
       detailGroup.append('line')
         .attr('class', 'internal-arrow')
         .attr('x1', cx).attr('y1', boxY + boxH)
-        .attr('x2', cx).attr('y2', boxY + 85)
+        .attr('x2', cx).attr('y2', boxY + stepSpacing)
         .attr('marker-end', 'url(#arrowhead-grey)');
     }
 
@@ -336,11 +408,11 @@ function drawLabDetail(detailGroup, locId) {
     if (i === 2) {
       detailGroup.append('text')
         .attr('x', cx + boxW / 2 + 8)
-        .attr('y', boxY + 35)
+        .attr('y', boxY + 30)
         .attr('font-size', '9px')
         .attr('font-family', "'JetBrains Mono', monospace")
         .attr('fill', '#FDE047')
-        .text('lab_retain_max ↕');
+        .text('lab_retain_max \u2195');
     }
   });
 }
@@ -348,63 +420,10 @@ function drawLabDetail(detailGroup, locId) {
 // ── Inter-location flow arrows ──────────────
 function drawInterLocationFlows() {
   const flowGroup = mainGroup.append('g').attr('class', 'inter-flows');
+  const markerMap = { collection: 'arrowhead-flow-cyan', outplant: 'arrowhead-flow-amber', transplant: 'arrowhead-flow-teal' };
 
   flows.forEach(flow => {
-    const fromPos = layout.locationPositions[flow.from];
-    const toPos = layout.locationPositions[flow.to];
-    const fromEdges = locEdges(fromPos, true);
-    const toEdges = locEdges(toPos, true);
-
-    let pathD, labelPos, markerEnd;
-    const colorMap = { collection: '#A78BFA', outplant: '#FBBF24', transplant: '#34D399' };
-    const markerMap = { collection: 'arrowhead-flow-purple', outplant: 'arrowhead-flow-amber', transplant: 'arrowhead-flow-green' };
-
-    const collapsedH = layout.LOC_COLLAPSED_H;
-
-    if (flow.type === 'collection') {
-      // Collection flows arc above the boxes (right-to-left)
-      if (flow.from === 'orchard') {
-        // Orchard → Lab: shorter arc
-        pathD = curvedPath(
-          { x: fromPos.x + 60, y: fromPos.y },
-          { x: toPos.x + toPos.w - 60, y: toPos.y },
-          'above', 40
-        );
-        labelPos = { x: (fromPos.x + toPos.x + toPos.w) / 2, y: fromPos.y - 48 };
-      } else {
-        // Reef → Lab: taller arc spanning full width
-        pathD = curvedPath(
-          { x: fromPos.x + 60, y: fromPos.y },
-          { x: toPos.x + toPos.w - 60, y: toPos.y },
-          'above', 70
-        );
-        labelPos = { x: (fromPos.x + toPos.x + toPos.w) / 2, y: fromPos.y - 78 };
-      }
-    } else if (flow.type === 'outplant') {
-      // Outplant flows arc below the boxes
-      if (flow.to === 'reef') {
-        // Lab → Reef: long arc below
-        pathD = curvedPath(
-          { x: fromPos.x + fromPos.w - 40, y: fromPos.y + collapsedH },
-          { x: toPos.x + 40, y: toPos.y + collapsedH },
-          'below', 50
-        );
-        labelPos = { x: (fromPos.x + fromPos.w + toPos.x) / 2, y: fromPos.y + collapsedH + 62 };
-      } else {
-        // Lab → Orchard: shorter arc below
-        pathD = curvedPath(
-          { x: fromPos.x + fromPos.w - 40, y: fromPos.y + collapsedH },
-          { x: toPos.x + 40, y: toPos.y + collapsedH },
-          'below', 30
-        );
-        labelPos = { x: (fromPos.x + fromPos.w + toPos.x) / 2, y: fromPos.y + collapsedH + 40 };
-      }
-    } else {
-      // Transplant: orchard → reef, straight line through middle
-      const midY = fromPos.y + collapsedH / 2;
-      pathD = `M ${fromPos.x + fromPos.w} ${midY} L ${toPos.x} ${midY}`;
-      labelPos = { x: (fromPos.x + fromPos.w + toPos.x) / 2, y: midY - 10 };
-    }
+    const { pathD, labelPos, color } = calcFlowGeometry(flow);
 
     const flowG = flowGroup.append('g')
       .attr('class', `flow-group flow-${flow.id}`)
@@ -413,71 +432,99 @@ function drawInterLocationFlows() {
 
     // Glow layer behind the arrow
     flowG.append('path')
+      .attr('class', 'flow-glow')
       .attr('d', pathD)
       .attr('fill', 'none')
-      .attr('stroke', colorMap[flow.type])
-      .attr('stroke-width', 8)
+      .attr('stroke', color)
+      .attr('stroke-width', 10)
       .attr('stroke-linecap', 'round')
-      .attr('opacity', 0.1);
+      .attr('opacity', 0.15);
 
     flowG.append('path')
       .attr('class', `flow-arrow ${flow.type}`)
       .attr('d', pathD)
       .attr('marker-end', `url(#${markerMap[flow.type]})`);
 
-    // Label with from→to context (shortened for transplant to avoid overlap with diamond)
-    const fromName = locations[flow.from].name;
-    const toName = locations[flow.to].name;
-    const labelText = flow.type === 'transplant' ? flow.label : `${flow.label} (${fromName} → ${toName})`;
+    // Label — short text, arrow shows direction
     flowG.append('text')
-      .attr('class', 'arrow-label')
+      .attr('class', 'flow-label')
       .attr('x', labelPos.x)
       .attr('y', labelPos.y)
       .attr('text-anchor', 'middle')
-      .attr('font-size', '11px')
-      .attr('fill', colorMap[flow.type])
+      .attr('font-size', '13px')
+      .attr('fill', color)
       .attr('font-weight', '600')
-      .text(labelText);
+      .attr('font-family', "'DM Sans', sans-serif")
+      .attr('style', 'filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7))')
+      .text(flow.label);
 
     // Cost layer badge
     if (flow.costLayer) {
       flowG.append('text')
         .attr('class', 'cost-badge layer-costs')
         .attr('x', labelPos.x)
-        .attr('y', labelPos.y + 14)
+        .attr('y', labelPos.y + 16)
         .attr('text-anchor', 'middle')
-        .text(`💰 ${flow.costLayer}`);
+        .text(flow.costLayer);
+    }
+  });
+}
+
+// Update flow positions on expand/collapse
+function updateFlowPositions(animate) {
+  const dur = animate ? 400 : 0;
+
+  flows.forEach(flow => {
+    const { pathD, labelPos } = calcFlowGeometry(flow);
+    const flowG = mainGroup.select(`.flow-${flow.id}`);
+
+    flowG.selectAll('path').transition().duration(dur).attr('d', pathD);
+    flowG.select('.flow-label').transition().duration(dur)
+      .attr('x', labelPos.x).attr('y', labelPos.y);
+    const costBadge = flowG.select('.cost-badge');
+    if (!costBadge.empty()) {
+      costBadge.transition().duration(dur)
+        .attr('x', labelPos.x).attr('y', labelPos.y + 16);
     }
   });
 }
 
 // ── Decision diamonds ───────────────────────
-function drawDecisionDiamonds() {
-  const decGroup = mainGroup.append('g').attr('class', 'decisions-group');
+function calcDecisionPositions() {
   const labPos = layout.locationPositions.lab;
   const orchPos = layout.locationPositions.orchard;
   const reefPos = layout.locationPositions.reef;
-  const collapsedH = layout.LOC_COLLAPSED_H;
+  const labH = getLocHeight('lab', expandedState, layout);
+  const orchH = getLocHeight('orchard', expandedState, layout);
+  const reefH = getLocHeight('reef', expandedState, layout);
+
+  const positions = {};
+
+  // reef_prop: in the center of the triangle, between Lab and the bottom row
+  const centerX = (labPos.x + labPos.w / 2);
+  const centerY = (labPos.y + labH + orchPos.y) / 2;
+  positions['reef-prop'] = { cx: centerX, cy: centerY };
+
+  // lab_retain_max: above Lab
+  positions['lab-retain'] = { cx: labPos.x + labPos.w / 2, cy: labPos.y - 30 };
+
+  // transplant[yr]: on the transplant line between Orchard and Reef
+  const transplantY = (orchPos.y + orchH / 2 + reefPos.y + reefH / 2) / 2;
+  positions['transplant-timing'] = {
+    cx: (orchPos.x + orchPos.w + reefPos.x) / 2,
+    cy: transplantY + 30,
+  };
+
+  return positions;
+}
+
+function drawDecisionDiamonds() {
+  const decGroup = mainGroup.append('g').attr('class', 'decisions-group');
   const ds = layout.DIAMOND_SIZE;
+  const positions = calcDecisionPositions();
 
   decisions.forEach(dec => {
-    let cx, cy;
-    const gap = orchPos.x - labPos.x - labPos.w;
-    const gap2 = reefPos.x - orchPos.x - orchPos.w;
-
-    if (dec.id === 'reef-prop') {
-      // Between lab and orchard, below the outplanting flows
-      cx = labPos.x + labPos.w + gap / 2;
-      cy = labPos.y + collapsedH + 50;
-    } else if (dec.id === 'lab-retain') {
-      // Above lab box, centered horizontally
-      cx = labPos.x + labPos.w / 2;
-      cy = labPos.y - 34;
-    } else {
-      // Between orchard and reef, below transplant line
-      cx = orchPos.x + orchPos.w + gap2 / 2;
-      cy = orchPos.y + collapsedH + 20;
-    }
+    const { cx, cy } = positions[dec.id];
 
     const decG = decGroup.append('g')
       .attr('class', 'decision-diamond')
@@ -487,12 +534,65 @@ function drawDecisionDiamonds() {
     decG.append('polygon')
       .attr('points', diamondPoints(cx, cy, ds));
 
-    // Label below the diamond
     decG.append('text')
       .attr('class', 'decision-label')
       .attr('x', cx)
-      .attr('y', cy + ds + 14)
+      .attr('y', cy + ds + 16)
       .text(dec.label);
+
+    // Thin connecting line from diamond to associated flow
+    if (dec.id === 'reef-prop') {
+      // reef_prop governs both outplant arrows — draw lines toward Lab outflow
+      const labPos = layout.locationPositions.lab;
+      const labH = getLocHeight('lab', expandedState, layout);
+      decG.append('line')
+        .attr('class', 'decision-connector')
+        .attr('x1', cx).attr('y1', cy - ds)
+        .attr('x2', labPos.x + labPos.w / 2).attr('y2', labPos.y + labH)
+        .attr('stroke', '#FDE047').attr('stroke-width', 0.8)
+        .attr('stroke-dasharray', '3,3').attr('opacity', 0.4);
+    } else if (dec.id === 'transplant-timing') {
+      // Connect to transplant flow line
+      const orchPos = layout.locationPositions.orchard;
+      const reefPos = layout.locationPositions.reef;
+      decG.append('line')
+        .attr('class', 'decision-connector')
+        .attr('x1', cx).attr('y1', cy - ds)
+        .attr('x2', cx).attr('y2', cy - ds - 20)
+        .attr('stroke', '#FDE047').attr('stroke-width', 0.8)
+        .attr('stroke-dasharray', '3,3').attr('opacity', 0.4);
+    }
+  });
+}
+
+function updateDecisionPositions(animate) {
+  const dur = animate ? 400 : 0;
+  const ds = layout.DIAMOND_SIZE;
+  const positions = calcDecisionPositions();
+
+  decisions.forEach(dec => {
+    const { cx, cy } = positions[dec.id];
+    const decG = mainGroup.select(`[data-decision="${dec.id}"]`);
+    decG.select('polygon').transition().duration(dur)
+      .attr('points', diamondPoints(cx, cy, ds));
+    decG.select('.decision-label').transition().duration(dur)
+      .attr('x', cx).attr('y', cy + ds + 16);
+
+    // Update connector lines
+    const connector = decG.select('.decision-connector');
+    if (!connector.empty()) {
+      if (dec.id === 'reef-prop') {
+        const labPos = layout.locationPositions.lab;
+        const labH = getLocHeight('lab', expandedState, layout);
+        connector.transition().duration(dur)
+          .attr('x1', cx).attr('y1', cy - ds)
+          .attr('x2', labPos.x + labPos.w / 2).attr('y2', labPos.y + labH);
+      } else if (dec.id === 'transplant-timing') {
+        connector.transition().duration(dur)
+          .attr('x1', cx).attr('y1', cy - ds)
+          .attr('x2', cx).attr('y2', cy - ds - 20);
+      }
+    }
   });
 }
 
@@ -502,59 +602,116 @@ function drawExternalInputs() {
 
   externalInputs.forEach(ext => {
     const targetPos = layout.locationPositions[ext.target];
+    const targetH = getLocHeight(ext.target, expandedState, layout);
     const extG = extGroup.append('g')
       .attr('class', 'external-input')
       .attr('data-pathways', ext.pathways.join(','))
       .attr('data-external', ext.id);
 
     if (ext.target === 'reef') {
-      // Arrow entering reef from the right
-      const entryX = targetPos.x + targetPos.w + 60;
-      const entryY = targetPos.y + layout.LOC_COLLAPSED_H / 2 + 15;
+      // Arrow entering reef from the right — target lower area (SC1 region) to avoid fecundity overlap
+      const entryX = targetPos.x + targetPos.w + 70;
+      const entryY = targetPos.y + targetH * 0.75;
       extG.append('line')
         .attr('x1', entryX).attr('y1', entryY)
         .attr('x2', targetPos.x + targetPos.w).attr('y2', entryY)
         .attr('marker-end', 'url(#arrowhead-external)');
 
-      // Label above the arrow
       extG.append('text')
         .attr('class', 'external-label')
-        .attr('x', targetPos.x + targetPos.w + 30)
-        .attr('y', entryY - 8)
-        .attr('text-anchor', 'middle')
+        .attr('x', entryX + 8)
+        .attr('y', entryY - 6)
+        .attr('text-anchor', 'start')
         .text('Wild recruitment');
       extG.append('text')
         .attr('class', 'external-label')
-        .attr('x', targetPos.x + targetPos.w + 30)
-        .attr('y', entryY + 16)
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '10px')
-        .text('(λ) → SC1');
+        .attr('x', entryX + 8)
+        .attr('y', entryY + 14)
+        .attr('text-anchor', 'start')
+        .attr('font-size', '11px')
+        .text('(\u03BB) \u2192 SC1');
     } else {
       // Arrow entering lab from the left
-      const entryX = targetPos.x - 60;
-      const entryY = targetPos.y + layout.LOC_COLLAPSED_H / 2 + 15;
+      const entryX = targetPos.x - 70;
+      const entryY = targetPos.y + targetH / 2;
       extG.append('line')
         .attr('x1', entryX).attr('y1', entryY)
         .attr('x2', targetPos.x).attr('y2', entryY)
         .attr('marker-end', 'url(#arrowhead-external)');
 
-      // Label above the arrow
       extG.append('text')
         .attr('class', 'external-label')
-        .attr('x', targetPos.x - 30)
-        .attr('y', entryY - 8)
-        .attr('text-anchor', 'middle')
+        .attr('x', entryX - 8)
+        .attr('y', entryY - 6)
+        .attr('text-anchor', 'end')
         .text('Ref. reef larvae');
       extG.append('text')
         .attr('class', 'external-label')
-        .attr('x', targetPos.x - 30)
-        .attr('y', entryY + 16)
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '10px')
-        .text('(λ_R)');
+        .attr('x', entryX - 8)
+        .attr('y', entryY + 14)
+        .attr('text-anchor', 'end')
+        .attr('font-size', '11px')
+        .text('(\u03BB_R)');
     }
   });
+}
+
+function updateExternalPositions(animate) {
+  const dur = animate ? 400 : 0;
+
+  externalInputs.forEach(ext => {
+    const targetPos = layout.locationPositions[ext.target];
+    const targetH = getLocHeight(ext.target, expandedState, layout);
+    const extG = mainGroup.select(`[data-external="${ext.id}"]`);
+
+    if (ext.target === 'reef') {
+      const entryX = targetPos.x + targetPos.w + 70;
+      const entryY = targetPos.y + targetH * 0.75;
+      extG.select('line').transition().duration(dur)
+        .attr('y1', entryY).attr('y2', entryY);
+      const texts = extG.selectAll('text');
+      texts.filter(function(d, i) { return i === 0; }).transition().duration(dur).attr('y', entryY - 6);
+      texts.filter(function(d, i) { return i === 1; }).transition().duration(dur).attr('y', entryY + 14);
+    } else {
+      const entryX = targetPos.x - 70;
+      const entryY = targetPos.y + targetH / 2;
+      extG.select('line').transition().duration(dur)
+        .attr('y1', entryY).attr('y2', entryY);
+      const texts = extG.selectAll('text');
+      texts.filter(function(d, i) { return i === 0; }).transition().duration(dur).attr('y', entryY - 6);
+      texts.filter(function(d, i) { return i === 1; }).transition().duration(dur).attr('y', entryY + 14);
+    }
+  });
+}
+
+// ── Dynamic viewBox sizing ──────────────────
+function updateViewBox() {
+  const anyExpanded = Object.values(expandedState).some(v => v);
+  const targetH = anyExpanded ? layout.totalHeight : layout.collapsedHeight;
+  svg.transition().duration(400)
+    .attr('viewBox', `0 0 ${layout.totalWidth} ${targetH}`);
+}
+
+// ── Legend + badge repositioning ─────────────
+function updateLegendPosition(animate) {
+  const dur = animate ? 400 : 0;
+  const legendY = getLegendY();
+  mainGroup.select('.legend').transition().duration(dur)
+    .attr('transform', `translate(${layout.locationPositions.orchard.x}, ${legendY})`);
+
+  // Update equation/annual cycle badge
+  const anyExpanded = Object.values(expandedState).some(v => v);
+  const badgeY = anyExpanded ? layout.totalHeight - 100 : layout.collapsedHeight - 60;
+  const eqG = mainGroup.select('.equation-group');
+  if (!eqG.empty()) {
+    const x = layout.locationPositions.reef.x;
+    eqG.select('.annual-cycle-badge').transition().duration(dur)
+      .attr('y', badgeY - 18);
+    const texts = eqG.selectAll('text');
+    texts.filter(function(d, i) { return i === 0; }).transition().duration(dur).attr('y', badgeY + 2);
+    texts.filter(function(d, i) { return i === 1; }).transition().duration(dur).attr('y', badgeY + 2);
+    texts.filter(function(d, i) { return i === 2; }).transition().duration(dur).attr('y', badgeY + 16);
+  }
 }
 
 // ── Location layer overlays ─────────────────
@@ -576,13 +733,13 @@ function drawLocationLayers(locGroup, locId) {
   // Stochasticity badges
   const stochSources = stochasticityLayer.sources.filter(s => s.affects.includes(locId));
   if (stochSources.length > 0) {
-    const badgeY = pos.y - 10;
+    const badgeY = pos.y - 12;
     stochSources.forEach((s, i) => {
       locGroup.append('text')
         .attr('class', 'stochasticity-badge layer-stochasticity')
-        .attr('x', pos.x + 8 + i * 65)
+        .attr('x', pos.x + 8 + i * 68)
         .attr('y', badgeY)
-        .text(`±${s.param}`);
+        .text(`\u00B1${s.param}`);
     });
   }
 
@@ -591,83 +748,130 @@ function drawLocationLayers(locGroup, locId) {
     locGroup.append('text')
       .attr('class', 'density-badge layer-density')
       .attr('x', pos.x + pos.w / 2)
-      .attr('y', pos.y + layout.LOC_COLLAPSED_H + 16)
+      .attr('y', pos.y + layout.LOC_COLLAPSED_H + 18)
       .attr('text-anchor', 'middle')
-      .text('Density dep: S = s_base × exp(-m × density)');
+      .text('Density dep: S = s_base \u00D7 exp(-m \u00D7 density)');
   }
 }
 
 // ── Legend ───────────────────────────────────
+function getLegendY() {
+  const anyExpanded = Object.values(expandedState).some(v => v);
+  return anyExpanded ? layout.totalHeight - 140 : layout.collapsedHeight - 100;
+}
+
 function drawLegend() {
   const legendG = mainGroup.append('g')
     .attr('class', 'legend')
-    .attr('transform', `translate(${layout.locationPositions.lab.x}, ${layout.totalHeight - 80})`);
+    .attr('transform', `translate(${layout.locationPositions.orchard.x}, ${getLegendY()})`);
 
-  legendG.append('text').attr('class', 'legend-title').attr('y', 0).text('Arrow Legend');
+  legendG.append('text').attr('class', 'legend-title').attr('y', 0).text('Legend');
 
-  const items = [
-    { color: '#22c55e', label: 'Growth (→ larger class)', dash: '' },
-    { color: '#ef4444', label: 'Shrinkage (→ smaller class)', dash: '' },
+  // Arrow items
+  const arrowItems = [
+    { color: '#22c55e', label: 'Growth (\u2192 larger class)', dash: '' },
+    { color: '#ef4444', label: 'Shrinkage (\u2192 smaller class)', dash: '' },
     { color: '#C084FC', label: 'Fragmentation (asexual)', dash: '4,3' },
-    { color: '#FBBF24', label: 'Fecundity (larvae)', dash: '6,3' },
-    { color: '#A78BFA', label: 'Larvae collection', dash: '' },
+    { color: '#FB923C', label: 'Fecundity (larvae)', dash: '6,3' },
+    { color: '#67E8F9', label: 'Larvae Collection', dash: '' },
     { color: '#FBBF24', label: 'Outplanting', dash: '' },
-    { color: '#34D399', label: 'Transplanting', dash: '' },
+    { color: '#2DD4BF', label: 'Transplanting', dash: '' },
     { color: '#64748B', label: 'External input', dash: '6,4' },
   ];
 
-  items.forEach((item, i) => {
+  arrowItems.forEach((item, i) => {
     const col = Math.floor(i / 4);
     const row = i % 4;
     const x = col * 280;
-    const y = 18 + row * 18;
+    const y = 22 + row * 22;
 
     legendG.append('line')
       .attr('x1', x).attr('y1', y)
-      .attr('x2', x + 30).attr('y2', y)
+      .attr('x2', x + 36).attr('y2', y)
       .attr('stroke', item.color)
-      .attr('stroke-width', 2)
+      .attr('stroke-width', 2.5)
       .attr('stroke-dasharray', item.dash);
 
     legendG.append('text')
-      .attr('x', x + 36)
+      .attr('x', x + 44)
       .attr('y', y + 4)
+      .text(item.label);
+  });
+
+  // Symbol items (diamond, icons)
+  const symbolY = 22 + 4 * 22 + 8;
+  const symbols = [
+    { symbol: '\u25C7', color: '#FDE047', label: 'Decision parameter', size: '14px' },
+    { symbol: '\u2640', color: '#FBBF24', label: 'Sexual reproduction', size: '13px' },
+    { symbol: '\u26A1', color: '#C084FC', label: 'Fragmentation capability', size: '13px' },
+  ];
+
+  symbols.forEach((item, i) => {
+    const x = i * 280;
+    legendG.append('text')
+      .attr('x', x + 10)
+      .attr('y', symbolY + 4)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', item.size)
+      .attr('fill', item.color)
+      .text(item.symbol);
+
+    legendG.append('text')
+      .attr('x', x + 28)
+      .attr('y', symbolY + 4)
       .text(item.label);
   });
 }
 
-// ── Core equation badge ─────────────────────
+// ── Annual cycle info badge (equation is in the header) ─────
 function drawEquationBadge() {
   const eqG = mainGroup.append('g')
     .attr('class', 'equation-group')
     .attr('data-tooltip-title', 'Core Equation')
-    .attr('data-tooltip-body', annualCycle.map(s => `Step ${s.step}: ${s.name} — ${s.desc}`).join('\n'));
+    .attr('data-tooltip-body', annualCycle.map(s => `Step ${s.step}: ${s.name} \u2014 ${s.desc}`).join('\n'));
 
-  const x = layout.locationPositions.orchard.x;
-  const y = layout.totalHeight - 30;
+  // Position to the right of the legend area
+  const x = layout.locationPositions.reef.x;
+  const anyExpanded = Object.values(expandedState).some(v => v);
+  const y = anyExpanded ? layout.totalHeight - 100 : layout.collapsedHeight - 60;
 
   eqG.append('rect')
-    .attr('x', x - 8)
-    .attr('y', y - 16)
-    .attr('width', 310)
-    .attr('height', 28)
-    .attr('rx', 6).attr('ry', 6)
-    .attr('fill', 'rgba(15, 23, 42, 0.5)')
-    .attr('stroke', 'rgba(255, 255, 255, 0.06)');
+    .attr('class', 'annual-cycle-badge')
+    .attr('x', x - 12)
+    .attr('y', y - 18)
+    .attr('width', 240)
+    .attr('height', 36)
+    .attr('rx', 8).attr('ry', 8)
+    .attr('fill', 'rgba(15, 23, 42, 0.65)')
+    .attr('stroke', 'rgba(56, 189, 248, 0.25)')
+    .attr('cursor', 'pointer');
 
-  eqG.append('text')
-    .attr('class', 'equation-badge')
-    .attr('x', x)
-    .attr('y', y)
-    .text(coreEquation);
-
+  // Info icon
   eqG.append('text')
     .attr('x', x)
-    .attr('y', y + 18)
-    .attr('font-size', '9px')
-    .attr('fill', '#64748B')
+    .attr('y', y + 2)
+    .attr('font-size', '14px')
+    .attr('fill', '#38BDF8')
+    .text('\u24D8');
+
+  eqG.append('text')
+    .attr('x', x + 18)
+    .attr('y', y + 2)
+    .attr('font-size', '12px')
+    .attr('fill', '#E2E8F0')
     .attr('font-family', "'DM Sans', sans-serif")
-    .text('hover for annual cycle details');
+    .attr('font-weight', '500')
+    .attr('cursor', 'pointer')
+    .text('Annual Cycle \u2014 8 steps');
+
+  eqG.append('text')
+    .attr('x', x + 18)
+    .attr('y', y + 16)
+    .attr('font-size', '10px')
+    .attr('fill', '#7A8BA8')
+    .attr('font-family', "'DM Sans', sans-serif")
+    .attr('cursor', 'pointer')
+    .text('hover for details');
 }
 
 // ── Expand/collapse ─────────────────────────
@@ -685,18 +889,36 @@ export function toggleLocation(locId) {
 
   if (isExpanded) {
     detail.classed('expanded', true);
-    hint.text('click to collapse');
+    hint.text('\u25BC collapse');
   } else {
     detail.classed('expanded', false);
-    hint.text('click to expand');
+    hint.text('\u25B6 expand');
   }
 
-  // Update disturbance indicator height too
+  // Update disturbance indicator height
   const distRect = locGroup.select('.disturbance-indicator');
   if (!distRect.empty()) {
     distRect.transition().duration(400)
       .attr('height', (isExpanded ? layout.LOC_EXPANDED_H : layout.LOC_COLLAPSED_H) + 8);
   }
+
+  // Update density badge position
+  const densityBadge = locGroup.select('.density-badge');
+  if (!densityBadge.empty()) {
+    const pos = layout.locationPositions[locId];
+    const targetH = isExpanded ? layout.LOC_EXPANDED_H : layout.LOC_COLLAPSED_H;
+    densityBadge.transition().duration(400)
+      .attr('y', pos.y + targetH + 18);
+  }
+
+  // Reposition flows, decisions, externals, legend, equation badge
+  updateFlowPositions(true);
+  updateDecisionPositions(true);
+  updateExternalPositions(true);
+  updateLegendPosition(true);
+
+  // Resize viewBox to fit content
+  updateViewBox();
 }
 
 export function expandAll() {
