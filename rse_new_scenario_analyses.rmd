@@ -2087,7 +2087,7 @@ all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = lengt
 
 # run for 100 years because interested in both short-term (5 years) and long-term (100 years) but it's more efficient to just run everything once for 100 years
 
-prop_set_short <- c(0, 0.5, 1) # proportion tiles outplanted to reef (can be higher than this if orchard gets full though)
+prop_set_short <- c(0.01, 0.5, 0.99) # proportion tiles outplanted to reef (can be higher than this if orchard gets full though)
 
 orch_exp_mean <- list()
 
@@ -2105,6 +2105,7 @@ for(i in 1:1){ # for each parameter set
   shrink_pars.r <- all_pars$shrink_pars.r
   frag_pars.r <- all_pars$frag_pars.r
   surv_pars.o <- all_pars$surv_pars.o
+# surv_pars.o <- list(list(c(1, 1, 1, 1, 1)))
   growth_pars.o <- all_pars$growth_pars.o
   shrink_pars.o <- all_pars$shrink_pars.o
   frag_pars.o <- all_pars$frag_pars.o
@@ -2117,6 +2118,8 @@ for(i in 1:1){ # for each parameter set
     rest_pars_ij <- rest_pars
     
     rest_pars_ij$reef_prop <- prop_set_short[j] # proportion of tiles outplanted to reef
+    
+   # rest_pars_ij$orchard_size <- 100000*30 # see what happens if the orchard has no limits
     
     # run the model
     sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars_ij, N0.r, N0.o, N0.l)
@@ -2160,6 +2163,7 @@ for(j in 1:length(prop_set_short)){
   
   lines(x = c(1:years), y = reef_cover_ij, col = prop_cols[j], lwd = 2)
 }
+legend("topleft", legend = c("1", "50", "99"), col = prop_cols, lwd = 3, title = "% Initially \noutplanted to reef", bty = "n", cex = 0.75, inset = c(0, 0.1))
 
 
 
@@ -2175,7 +2179,7 @@ for(j in 1:length(prop_set_short)){
  orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
   
   lines(x = c(1:years), y = orch_fun_ij, col = prop_cols[j], lwd = 2)
-  lines(x = c(1:years), y = sim_ij$orchard_tiles_out, col = prop_cols[j], lwd = 2, lty = 2)
+ # lines(x = c(1:years), y = sim_ij$orchard_tiles_out, col = prop_cols[j], lwd = 2, lty = 2)
 }
 
 
@@ -2221,13 +2225,93 @@ abline(h = rest_pars$lab_max, lty = 2)
 # }
 # abline(h = rest_pars$orchard_size, lty = 2)
 
+# check number of individuals in smallest size class in orchard
+# plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 15000), las = 1, xlab = NA, ylab = NA)
+# mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+# mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+# #mtext(side = 3, plotlab, adj = 0)
+# for(j in 1:length(prop_set_short)){
+#   sim_ij <- orch_exp_mean[[1]][[j]] 
+#  orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(1, 2))
+#   
+#   lines(x = c(1:years), y = orch_fun_ij, col = prop_cols[j], lwd = 2)
+#   lines(x = c(1:years), y = sim_ij$orchard_tiles_out, col = prop_cols[j], lwd = 2, lty = 2)
+# }
 
 
 ```
 
-
+Orchard decline doesn't happen if 1) the orchard is huge so it never fills, or 2) the corals in the orchard never die, BUT it does still happen if just density dependent mortality is turned off. So I think it just happens because initially you put out a bunch of full substrates, and those corals start to die (remember there's no fragmentation in the orchard right now, so the population can't grow on its own), so there's fewer corals per substrate. And eventually you start adding more substrates to keep it full, but it's just little bursts that don't cause the same big increase because at that point most of the substrates in the orchard just have a few corals
 
 ## sensitivity
+
+
+```{r}
+
+
+# turn this into a function for making time series with different restoration parameter values
+# par_set = parameter set to iterate over
+# par_name = name of the parameter to iterate over (NOTE: function currently only allows for parameters that are in rest_pars list or production from the reference reef)
+# dem_pars = demographic parameters to use
+# prop_set1 = values proportion of substrates to outplant to orchard to iterate over
+par_sens_fun1 <- function(par_set, par_name, prop_set1, dem_pars){
+  
+  out_list <- list()
+
+
+# outer loop = demographic parameter values
+# inner loop = proportion to outplant to the reef
+
+
+for(i in 1:length(par_set)){ # for each parameter set
+  
+  # set up the parameters
+  
+  surv_pars.r <- dem_pars$surv_pars.r
+  growth_pars.r <- dem_pars$growth_pars.r
+  shrink_pars.r <- dem_pars$shrink_pars.r
+  frag_pars.r <- dem_pars$frag_pars.r
+  surv_pars.o <- dem_pars$surv_pars.o
+  growth_pars.o <- dem_pars$growth_pars.o
+  shrink_pars.o <- dem_pars$shrink_pars.o
+  frag_pars.o <- dem_pars$frag_pars.o
+  
+  # holding list for model simulations with this parameter set
+  mod_list <- list()
+  
+  for(j in 1:length(prop_set1)){ # for each proportion outplanted to reef
+    
+    rest_pars_ij <- rest_pars
+    
+    rest_pars_ij$reef_prop <- prop_set1[j] # proportion of tiles outplanted to reef
+    
+    if(par_name %in% names(rest_pars_ij)){
+      rest_pars_ij[[which(names(rest_pars_ij) == par_name)]] <- par_set[i]
+    } else{
+      lambda_R <- par_set[i]
+    }
+    
+    # run the model
+    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars_ij, N0.r, N0.o, N0.l)
+    
+    
+    # save the output
+    mod_list[[j]] <- sim_ij
+    
+  } # end of iterations over outplanting proportions
+  
+  
+  out_list[[i]] <- mod_list
+  
+} # end of iterations over parameter sets
+
+return(par_set)
+  
+}
+
+
+
+```
 
 
 # lab grow-out
