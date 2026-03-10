@@ -851,7 +851,7 @@ weights1 <- list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_co
 # D0 for no disturbance simulations
 orch_exp_5_D0 <- orch_exp_metric_fun(sim_list = orch_exp_list, n_sample1, L1, max_yr = 6, weights = weights1)
 
-# View(orch_exp_5_D0)
+#View(orch_exp_5_D0)
 # make this a function of the list, n_sample1, L1, and the time point of interest
 
 # data frame for all the performance metrics at year 50 (use data from time points 2 through 51)
@@ -919,8 +919,19 @@ figure out why the costs have that strange pattern
 
 dt_plot <- orch_exp_5_D0
 
+
+pdf("TempFigs/costs_5_D0.pdf", height = 7)
+
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
+#layout.show(2)
+par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+
+
+
 xlab1 <- NA
-ylab1 <- "$"
+#ylab1 <- "$"
+ylab1 <- NA
 plotlab <- "Fixed costs"
 c_choice <- "c_fixed"
 plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(min(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T), max(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T)), las = 1, xlab = NA, ylab = NA)
@@ -992,6 +1003,7 @@ for(i in 1:n_sample1){
 
 # tot = c_fixed + c_subs + c_out + c_maint + c_lab + c_spawn
 
+dev.off()
 
 # plot total costs
 plotlab <- "Total costs"
@@ -1011,7 +1023,7 @@ bump in between 0.6 and 0.8: gained an extra day outplanting to the reef? Then a
 ```{r}
 #rest_pars$lab_max
 
-plot(x = prop_set, y = ceiling(rest_pars$lab_max*prop_set/2000), type = "l", ylim = c(0, 6), las = 1, ylab = "Days spent outplanting", xlab = "Prop. outplanted to reef")
+plot(x = prop_set, y = ceiling(rest_pars$lab_max*prop_set/2000), type = "l", ylim = c(0, 6), las = 1, ylab = "Days spent outplanting", xlab = "Prop. initially outplanted to reef")
 lines(x = prop_set, y = ceiling(rest_pars$lab_max*(1-prop_set)/800), col = "dodgerblue")
 lines(x = prop_set, y = ceiling(rest_pars$lab_max*prop_set/2000) + ceiling(rest_pars$lab_max*(1-prop_set)/800), col = "red")
 legend("topright", legend = c("reef", "orchard", "total"), col = c("black", "dodgerblue", "red"), lwd = 2, ncol = 3, bty = "n")
@@ -1045,7 +1057,8 @@ plot(x = 1, y = 1, col = NA, xlim = c(-5, 5), ylim = c(-5, 5), asp = 1, las = 1,
 polygon(x = c(test_x, rev(test_x)), y = c(sqrt((r_in)^2 - test_x^2), rev(-1*sqrt(r_in^2 - test_x^2))), border = Lcol) # , col = "gray"
 test_x <- seq(from = -r_out0, to = r_out0, length.out = 100)
 polygon(x = c(test_x, rev(test_x)), y = c(sqrt((r_out0)^2 - test_x^2), rev(-1*sqrt(r_out0^2 - test_x^2))), border = Lcol)
-text(x = 0, y = 0, paste(as.character(round(opt_prop1*100,0)), "%", sep = ""))
+#text(x = 0, y = 0, paste(as.character(round(opt_prop1*100,0)), "%", sep = ""))
+text(x = 0, y = 0, as.character(round(opt_prop1,2)))
 
 # add background lines
 th1_set <- seq(from = 0, to = 300, by = 60)
@@ -1104,7 +1117,7 @@ polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_o
 if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line with the color of this performance metric at zero
   lines(x = r_in_x, y = sqrt(r_in^2 - r_in_x^2), col = metric_cols[3])
 }
-labs1 <- as.character(round(mean(dt_plot2$reef_ROI_mean), 4))
+labs1 <- as.character(round(mean(dt_plot2$reef_ROI_mean), 5))
 text(x = 1.5*r_out0*cos((th1 + th2)/2*pi/180), y =1.5*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)~m^2*"/$"), cex = lab_cex)
 
 # past 180: need to switch to negative square root
@@ -1156,6 +1169,9 @@ text(x = 1.4*r_out0*cos((th1 + th2)/2*pi/180), y =1.4*r_out0*sin((th1 + th2)/2*p
 }
 
 ```
+
+
+NOTE: right now, the cases with zero reef cover are included but it's shown as being 0% of the max possible, even though the max possible is 0 (because the alternative is to have 0/0 which is NA so they aren't shown at all in the plot... not sure which is better). So reef cover looks far from the outer ring of the OHI plot because of all the parameter sets where reef cover = 0 so prop of max is 0. Some options could be to artifically increase the 0's to 0.0001 or something?
 
 
 ```{r}
@@ -2415,93 +2431,134 @@ N0.o[[1]][[1]] <- rep(0, n) # reset initial conditions in the orchard
 ```
 
 
+
 ```{r}
+# function for showing the timeseries
+# plot_sims = simulations to plot
+# yrs_p = number of years to plot
+# legend2_title = title for the second legend
+# legend2_labs = labels for second legend
+# ymaxs = max y limit values for 1) reef cover, 2) orchard function, 3) number of substrates in lab, and 4) number of substrates in orchard
+# par_ltys = lty values for first and second parameter sets
+# add_h3 = if T, add another horizontal line on plot 3 at double the lab capacity
+# add_h4 = if T, add another horizontal line on plot 4 at double the orchard capacity
+
 prop_cols <- c("#FEC44F", "#CC4C02", "#662506")
 
-plot_sims <- sims_lambdaR1
+ts_plot1 <- function(plot_sims, yrs_p, legend2_title, legend2_labs, par_ltys, ymaxs, add_h3 = F, add_h4 = F){
+  
+  par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 2))
+#layout.show(2)
+par(mar=c(0, 2.5, 2.5, 1), oma = c(4.5, 2.5, 2, 0))
 
-yrs_p <- years # number of years to plot
 
-xlab1 <- "Proportion substrates initially outplanted to reef"
+xlab1 <- NA
 ylab1 <- expression("Reef cover ("*m^2*")")
 #plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, 60), las = 1, xlab = NA, ylab = NA)
+plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, ymaxs[1]), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = NA)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+mtext(side = 3, ylab1, line = 0, cex = lab_cx)
 #mtext(side = 3, plotlab, adj = 0)
 for(j in 1:length(prop_set_short)){
   sim_ij <- plot_sims[[1]][[j]] 
   reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
   
-  lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
+  lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = par_ltys[1])
   
   sim_ij <- plot_sims[[2]][[j]] 
   reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
   
-  lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
+  lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = par_ltys[2])
 }
 legend("topleft", legend = c("1", "50", "99"), col = prop_cols, lwd = 3, title = "% Initially \noutplanted to reef", bty = "n", cex = 0.75, inset = c(0, 0.1))
-legend("bottomright", legend = c("default", "none"), lty = c(1, 2), title = "Reference reef supply", bty = "n", cex = 0.75, lwd = 2)
+legend("bottomright", legend = c(legend2_labs[1], legend2_labs[2]), lty = par_ltys, title = legend2_title, bty = "n", cex = 0.75, lwd = 2)
 
 
 
-xlab1 <- "Proportion substrates initially outplanted to reef"
+xlab1 <- "Year in simulation"
 ylab1 <- expression("Orchard function ("*m^2~"adults)")
 #plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, 6000), las = 1, xlab = NA, ylab = NA)
+plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, ymaxs[2]), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = NA)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+mtext(side = 3, ylab1, line = 0, cex = lab_cx)
 #mtext(side = 3, plotlab, adj = 0)
 for(j in 1:length(prop_set_short)){
   sim_ij <- plot_sims[[1]][[j]] 
  orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
   
-  lines(x = c(1:yrs_p), y = orch_fun_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
+  lines(x = c(1:yrs_p), y = orch_fun_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = par_ltys[1])
   
    sim_ij <- plot_sims[[2]][[j]] 
  orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
  
- lines(x = c(1:yrs_p), y = orch_fun_ij[1:yrs_p], col = prop_cols[j], lwd = 2)
+ lines(x = c(1:yrs_p), y = orch_fun_ij[1:yrs_p], col = prop_cols[j], lty = par_ltys[2], lwd = 2)
  
 }
 
 
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- "Substrates in orchard"
+xlab1 <- NA
+ylab1 <- "Substrates used in lab"
 #plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, rest_pars$orchard_size), las = 1, xlab = NA, ylab = NA)
+plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, ymaxs[3]), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = c(0, 10, 20, 30, 40, 50) + 2025)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+mtext(side = 3, ylab1, line = 0, cex = lab_cx)
 #mtext(side = 3, plotlab, adj = 0)
 for(j in 1:length(prop_set_short)){
   sim_ij <- plot_sims[[1]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$orchard_tiles[[1]][1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
+  lines(x = c(1:yrs_p), y = sim_ij$tiles_out_tot[1:yrs_p], col = prop_cols[j], lwd = 2, lty = par_ltys[1])
   
   sim_ij <- plot_sims[[2]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$orchard_tiles[[1]][1:yrs_p], col = prop_cols[j], lwd = 2)
-}
-abline(h = rest_pars$orchard_size, lty = 2)
-
-
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- "Substrates used"
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, rest_pars$lab_max), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$tiles_out_tot[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
-  
-  sim_ij <- plot_sims[[2]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$tiles_out_tot[1:yrs_p], col = prop_cols[j], lwd = 2)
+  lines(x = c(1:yrs_p), y = sim_ij$tiles_out_tot[1:yrs_p], col = prop_cols[j], lwd = 2, lty = par_ltys[2])
 }
 abline(h = rest_pars$lab_max, lty = 2)
+if(add_h3 == T){
+  abline(h = rest_pars$lab_max*2, lty = 2)
+}
+
+
+xlab1 <- NA
+ylab1 <- "Substrates in orchard"
+#plotlab <- "c) Reef ROI"
+plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, ymaxs[4]), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = c(0, 10, 20, 30, 40, 50) + 2025)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 3, ylab1, line = 0, cex = lab_cx)
+#mtext(side = 3, plotlab, adj = 0)
+for(j in 1:length(prop_set_short)){
+  sim_ij <- plot_sims[[1]][[j]] 
+  lines(x = c(1:yrs_p), y = sim_ij$orchard_tiles[[1]][1:yrs_p], col = prop_cols[j], lwd = 2, lty = par_ltys[1])
+  
+  sim_ij <- plot_sims[[2]][[j]] 
+  lines(x = c(1:yrs_p), y = sim_ij$orchard_tiles[[1]][1:yrs_p], col = prop_cols[j], lwd = 2, lty = par_ltys[2])
+}
+abline(h = rest_pars$orchard_size, lty = 2)
+if(add_h4 == T){
+  abline(h = rest_pars$orchard_size*2, lty = 2)
+}
+  
+}
+
+```
+
+
+
+```{r}
+
+pdf("TempFigs/ts_lambdaR1.pdf", height = 5, width = 6)
+
+ts_plot1(plot_sims = sims_lambdaR1, yrs_p = years, legend2_title = "Reference reef supply", legend2_labs = c("none","default"), par_ltys = c(2, 1), ymaxs = c(60, 6000, rest_pars$lab_max, rest_pars$orchard_size))
+
+dev.off()
 
 
 ```
 
+
+I think you end up with the same number of corals on the reef with and without external supply because the lab becomes limiting
 
 ```{r}
 #  show the reef values zoomed in
@@ -2527,6 +2584,8 @@ for(j in 1:length(prop_set_short)){
   lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
 }
 legend("topleft", legend = c("1", "50", "99"), col = prop_cols, lwd = 3, title = "% Initially \noutplanted to reef", bty = "n", cex = 0.75, inset = c(0, 0.1))
+legend("top", legend = c("default", "none"), lty = c(1, 2), title = "Reference reef supply", bty = "n", cex = 0.75, lwd = 2)
+
 
 ```
 
@@ -2542,90 +2601,12 @@ sims_lab_max1 <- par_sens_fun1(par_set = lab_max_set, par_name = "lab_max", prop
 
 
 ```{r}
-prop_cols <- c("#FEC44F", "#CC4C02", "#662506")
 
-plot_sims <- sims_lab_max1
+pdf("TempFigs/ts_lab_max1.pdf", height = 5, width = 6)
 
-yrs_p <- years # number of years to plot
+ts_plot1(plot_sims = sims_lab_max1, yrs_p = years, legend2_title = "Lab capacity", legend2_labs = c("default", "2x default"), par_ltys = c(1, 2), ymaxs = c(110, 6000, rest_pars$lab_max*2, rest_pars$orchard_size), add_h3 = T)
 
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- expression("Reef cover ("*m^2*")")
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, 110), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
-  reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
-  
-  lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
-  
-  sim_ij <- plot_sims[[2]][[j]] 
-  reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
-  
-  lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
-}
-legend("topleft", legend = c("1", "50", "99"), col = prop_cols, lwd = 3, title = "% Initially \noutplanted to reef", bty = "n", cex = 0.75, inset = c(0, 0.1))
-legend("bottomright", legend = c("default", "2x default"), lty = c(1, 2), title = "Lab capacity", bty = "n", cex = 0.75, lwd = 2)
-
-
-
-
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- expression("Orchard function ("*m^2~"adults)")
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, 6000), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
- orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
-  
-  lines(x = c(1:yrs_p), y = orch_fun_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
-  
-   sim_ij <- plot_sims[[2]][[j]] 
- orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
- 
- lines(x = c(1:yrs_p), y = orch_fun_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
- 
-}
-
-
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- "Substrates in orchard"
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, rest_pars$orchard_size), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$orchard_tiles[[1]][1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
-  
-  sim_ij <- plot_sims[[2]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$orchard_tiles[[1]][1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
-}
-abline(h = rest_pars$orchard_size, lty = 2)
-
-
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- "Substrates used"
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, rest_pars$lab_max*2), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$tiles_out_tot[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
-  
-  sim_ij <- plot_sims[[2]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$tiles_out_tot[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
-}
-abline(h = lab_max_set[1], lty = 2)
-abline(h = lab_max_set[2], lty = 2)
+dev.off()
 
 
 ```
@@ -2642,100 +2623,27 @@ sims_orchard_size1 <- par_sens_fun1(par_set = orchard_size_set, par_name = "orch
 
 
 ```{r}
-prop_cols <- c("#FEC44F", "#CC4C02", "#662506")
 
-plot_sims <- sims_orchard_size1
+pdf("TempFigs/ts_orchard_size1.pdf", height = 5, width = 6)
 
-yrs_p <- years # number of years to plot
+ts_plot1(plot_sims = sims_orchard_size1, yrs_p = years, legend2_title = "Orchard capacity", legend2_labs = c("default", "2x default"), par_ltys = c(1, 2), ymaxs = c(60, 10000, rest_pars$lab_max, rest_pars$orchard_size*2), add_h4 = T)
 
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- expression("Reef cover ("*m^2*")")
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, 60), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
-  reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
-  
-  lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 1.75, lty = 1)
-  
-  sim_ij <- plot_sims[[2]][[j]] 
-  reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
-  
-  lines(x = c(1:yrs_p), y = reef_cover_ij[1:yrs_p], col = prop_cols[j], lwd = 2.5, lty = 2)
-}
-legend("topleft", legend = c("1", "50", "99"), col = prop_cols, lwd = 3, title = "% Initially \noutplanted to reef", bty = "n", cex = 0.75, inset = c(0, 0.1))
-legend("bottomright", legend = c("default", "2x default"), lty = c(1, 2), title = "Orchard capacity", bty = "n", cex = 0.75, lwd = 2)
-
-
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- expression("Orchard function ("*m^2~"adults)")
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, 10000), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
- orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
-  
-  lines(x = c(1:yrs_p), y = orch_fun_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
-  
-   sim_ij <- plot_sims[[2]][[j]] 
- orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
- 
- lines(x = c(1:yrs_p), y = orch_fun_ij[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
- 
-}
-
-
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- "Substrates in orchard"
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, rest_pars$orchard_size*2), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$orchard_tiles[[1]][1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
-  
-  sim_ij <- plot_sims[[2]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$orchard_tiles[[1]][1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
-}
-abline(h = rest_pars$orchard_size, lty = 2)
-abline(h = rest_pars$orchard_size*2, lty = 2)
-
-
-xlab1 <- "Proportion substrates initially outplanted to reef"
-ylab1 <- "Substrates used"
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, rest_pars$lab_max), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
-  sim_ij <- plot_sims[[1]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$tiles_out_tot[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 1)
-  
-  sim_ij <- plot_sims[[2]][[j]] 
-  lines(x = c(1:yrs_p), y = sim_ij$tiles_out_tot[1:yrs_p], col = prop_cols[j], lwd = 2, lty = 2)
-}
-abline(h = lab_max_set[1], lty = 2)
-
-
+dev.off()
 
 ```
 
-doubling orchard size doesn't have a huge effect on the reef bc the lab is already full (basically no effect for 99% case bc lab is the pinch point), so really the main effect you see is the greater lag in filling up the orchard = less surplus substrates being outplanted to the reef
+
+doubling orchard size doesn't have a huge effect on the reef bc the lab is already full (basically no effect for 99% case bc lab is the pinch point), so really the main effect you see is the greater lag in filling up the orchard because bigger orchard = less surplus substrates being outplanted to the reef
+
+ADD TIMESERIES WITH AND WITHOUT ORCHARD FRAGMENTATION
 
 
 should look at the sensitivity of max strategy score to different parameters
 -- reference reef supply
 -- lab capacity
 -- orchard capacity
+-- orchard fecundity, orchard fecundity x reference reef supply
+-- fragmentation rates in the orchard?
 -- orchard survival rates relative to reef (which should also affect how many die from disturbance? Or should that be explored separately?)
 
 For each of these, start by just using mean parameter combination (or mean and 95% and 5% quantiles?). Can use the same function above and run it three times for each case. 
