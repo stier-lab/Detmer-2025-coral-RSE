@@ -1747,6 +1747,109 @@ orch_exp_50_D1_pmax <- mean_score$prop_out[which(mean_score$strategy_score == ma
 ```
 
 
+check the costs
+
+```{r}
+
+dt_plot <- orch_exp_5_D1
+
+# 
+# par(mfrow = c(3, 2))
+# layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
+# #layout.show(2)
+# par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+# 
+
+
+xlab1 <- NA
+#ylab1 <- "$"
+ylab1 <- NA
+plotlab <- "Fixed costs"
+c_choice <- "c_fixed"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(min(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T), max(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub[,which(colnames(dt_plot)==c_choice)], col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+plotlab <- "Substrate costs"
+c_choice <- "c_subs"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(min(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T), max(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub[,which(colnames(dt_plot)==c_choice)], col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+plotlab <- "Outplanting costs"
+c_choice <- "c_out"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(min(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T), max(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub[,which(colnames(dt_plot)==c_choice)], col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+
+plotlab <- "Maintenance costs"
+c_choice <- "c_maint"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(min(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T), max(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub[,which(colnames(dt_plot)==c_choice)], col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+plotlab <- "Lab costs"
+c_choice <- "c_lab"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(min(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T), max(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub[,which(colnames(dt_plot)==c_choice)], col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+
+plotlab <- "Spawning costs"
+c_choice <- "c_spawn"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(min(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T), max(dt_plot[,which(colnames(dt_plot)==c_choice)], na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub[,which(colnames(dt_plot)==c_choice)], col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+
+# tot = c_fixed + c_subs + c_out + c_maint + c_lab + c_spawn
+
+#dev.off()
+
+# plot total costs
+plotlab <- "Total costs"
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(min(dt_plot$tot_costs, na.rm = T), max(dt_plot$tot_costs, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$tot_costs, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+```
+
 
 ```{r}
 # plot all 4 strategy score plots together
@@ -2806,16 +2909,19 @@ I think you end up with the same number of corals on the reef with and without e
 ```{r}
 #  show the reef values zoomed in
 
+plot_sims <- sims_lambdaR1
+
 yrs_p <- 10
 
-xlab1 <- "Proportion substrates initially outplanted to reef"
+xlab1 <- "Year in simulation"
 ylab1 <- expression("Reef cover ("*m^2*")")
 #plotlab <- "c) Reef ROI"
-plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, 15), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+plot(x = c(1:yrs_p), y = rep(0, yrs_p), type = "l", col = NA, ylim = c(0, 20), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 4, 6, 8, 10), labels = c(2, 4, 6, 8, 10) + 2025)
+mtext(side = 1, xlab1, line = 2)
+mtext(side = 2, ylab1, line = 1.75, cex = 1)
 #mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_set_short)){
+for(j in 1:3){
   sim_ij <- plot_sims[[1]][[j]] 
   reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
   
@@ -2955,7 +3061,7 @@ Plots to make: x-axis = parameter being varied, y-axis = 1) proportion outplante
 
 
 
-Should also make plots showing each of the performance metrics at the max outplanting proportions and their cvs across outplanting proportions, or maybe just do that for the cases with the greatest variation in strategy scores?
+Should also make plots showing each of the performance metrics at the max outplanting proportions and their cvs across outplanting proportions, or maybe just do that for the cases with the greatest variation in strategy scores? Could scale them all relative to max and just put that on a single plot with line colors that match the OHI plots
 
 And maybe do all of this with and without disturbance?
 
@@ -2971,24 +3077,146 @@ L2 <- 25
 
 lambda_R0 <- 1255111 # default value
 
-lambda_R_setL <- seq(from = 0, to = 1.5, length.out = L2)*lambda_R0
+lambda_R_setL <- seq(from = 0, to = 1, length.out = L2)*lambda_R0
+
+# remember you need to start with a few corals in the orchard for the lambda_R = 0 case
+N0.o[[1]][[1]] <- c(0.1, 0, 0, 0, 0)
 
 # par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
 # dem_pars = demographic parameters to use
 # prop_set1 = values proportion of substrates to outplant to orchard to iterate over
 tic()
 sens_lambda_R2 <- par_sens_fun1(par_set = lambda_R_setL, par_name = "lambda_R", prop_set, dem_pars = all_pars)
+N0.o[[1]][[1]] <- rep(0, n) # reset initial conditions in the orchard
+
 toc()
 
 # process the results
-lambda_R2_dt <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_R_setL, L2, L1, max_yr, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 1, recruits_out = 1), dt_D0 = data.frame(NA))
+lambda_R2_dt5 <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_R_setL, L2, L1, max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 1, recruits_out = 1), dt_D0 = data.frame(NA))
  
+lambda_R2_dt50 <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_R_setL, L2, L1, max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 1, recruits_out = 1), dt_D0 = data.frame(NA))
 
-View(lambda_R2_dt)
+
+#View(lambda_R2_dt)
 #sens_lambda_R2[[25]][[50]]
+
+
+# now process the data frame to calculate:
+# 1) proportion outplanted that maximizes strategy score for each par2 value
+# 2) strategy score at the max outplanting proportion
+# 3) difference between max and min scores or cv of strategy scores across outplanting proportions? (to try to capture how much the outplanting proportion matters at each of these parameter values)
+# 4) somehow want to show raw metric values for each parameter combination... maybe heatmaps? Or maybe just the max/min/cv/mean of each metric across outplanting proportions at each par2 value?
+
+#score_summ_lambda_R5 <- lambda_R2_dt5 %>% group_by(par_val) %>% mutate(max_score = max(strategy_score), cv_score = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_score)
+
+#score_summ_lambda_R50 <- lambda_R2_dt50 %>% group_by(par_val) %>% mutate(max_score = max(strategy_score), cv_score = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_score)
+
+# make a function for returning data frames with the proportions to outplant that maximize a given metric
+
+max_fun <- function(dt){
+  
+  # strategy score
+ strategy_score_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(strategy_score), cv_val = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_val)
+ 
+ # reef cover
+ reef_cover_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(reef_cover_mean), cv_val = sd(reef_cover_mean)/mean(reef_cover_mean)) %>% ungroup() %>% filter(reef_cover_mean == max_val)
+ 
+ # orchard function
+ orchard_fun_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(orch_function_mean), cv_val = sd(orch_function_mean)/mean(orch_function_mean)) %>% ungroup() %>% filter(orch_function_mean == max_val)
+ 
+ # reef ROI
+ reef_ROI_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(reef_ROI_mean), cv_val = sd(reef_ROI_mean)/mean(reef_ROI_mean)) %>% ungroup() %>% filter(reef_ROI_mean == max_val)
+ 
+ # total ROI
+ tot_ROI_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(tot_ROI_mean), cv_val = sd(tot_ROI_mean)/mean(tot_ROI_mean)) %>% ungroup() %>% filter(tot_ROI_mean == max_val)
+ 
+ 
+ return(list(reef_cover = reef_cover_mx, orchard_fun = orchard_fun_mx, reef_ROI = reef_ROI_mx, tot_ROI = tot_ROI_mx, strategy_score = strategy_score_mx))
+  
+}
+
+
+lambda_R2_dt5_mx <- max_fun(lambda_R2_dt5)
+
+lambda_R2_dt50_mx <- max_fun(lambda_R2_dt50)
+
+
 
 ```
 
+
+```{r}
+dt_plot <- lambda_R2_dt5_mx$reef_cover
+plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
+
+dt_plot <- lambda_R2_dt5_mx$orchard_fun
+plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
+
+dt_plot <- lambda_R2_dt5_mx$reef_ROI
+plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
+
+dt_plot <- lambda_R2_dt5_mx$tot_ROI
+plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
+
+
+#plot(x = dt_plot$par_val/lambda_R, y = dt_plot$max_val, type = "l")
+
+#plot(x = dt_plot$par_val/lambda_R, y = dt_plot$cv_score, type = "l")
+
+
+dt_plot <- lambda_R2_dt50_mx$reef_cover
+
+plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
+
+
+```
+
+
+lab capacity
+
+```{r}
+
+#L1 <- 50
+#prop_set <- seq(from = 0, to = 1, length.out = L1) # proportion tiles outplanted to reef (can be higher than this if orchard gets full though)
+
+lab_max0 <- 3100 # default value
+
+lab_max_setL <- seq(from = 1, to = 2, length.out = L2)*lab_max0
+
+# par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
+# dem_pars = demographic parameters to use
+# prop_set1 = values proportion of substrates to outplant to orchard to iterate over
+tic()
+sens_lab_max2 <- par_sens_fun1(par_set = lab_max_setL, par_name = "lab_max", prop_set, dem_pars = all_pars)
+
+toc()
+
+# process the results
+lab_max2_dt5 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, L2, L1, max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 1, recruits_out = 1), dt_D0 = data.frame(NA))
+
+lab_max2_dt50 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, L2, L1, max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 1, recruits_out = 1), dt_D0 = data.frame(NA))
+ 
+
+score_summ_lab_max5 <- lab_max2_dt5 %>% group_by(par_val) %>% mutate(max_score = max(strategy_score), cv_score = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_score)
+
+score_summ_lab_max50 <- lab_max2_dt50 %>% group_by(par_val) %>% mutate(max_score = max(strategy_score), cv_score = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_score)
+
+#View(score_summ)
+
+```
+
+
+```{r}
+dt_plot <- score_summ_lab_max5
+plot(x = dt_plot$par_val, y = dt_plot$prop_out, type = "l")
+
+
+dt_plot <- score_summ_lab_max50
+plot(x = dt_plot$par_val, y = dt_plot$prop_out, type = "l")
+
+```
+
+maybe instead of looking at the strategy score, plot the outplanting proportions that maximize each performance metric (with different colors for the different metrics)? Or the main metrics of interest since there's so much correlation: 1) coral cover on reef, 2) orchard function, 3) reef ROI, and 4) total ROI. Can put them all on the same plot since it's just the proportion that maximizes each
 
 # lab grow-out
 
@@ -3636,5 +3864,6 @@ dev.off()
 
 should change this to vary length of time the tiles are kept in the lab (from a few months to a year) and then play with assumptions about how survival/growth scale with length of time kept in the lab. Assume fixed proportions of substrates are retained, e.g., 50%
 
-maybe the question is how much survival and/or growth need to increase to make it "worth it" to keep the substrates in the lab for a certain amount of time?
+maybe the question is how much survival and/or growth need to increase relative to corals outplanted immediately (growth could be in the lab, i.e, proportion that are in size class 1 or 2 when outplanted) to make it "worth it" to keep the substrates in the lab for a certain amount of time? By "worth it", maybe that's a higher ROI than if everything was outplanted immediately?
+-- BUT also have the question of how long they should be kept in the lab... so could either approach this as 1) have some relationship btw weeks in lab and growth/survival, and for each determine how many weeks to keep them, or 2) for each week kept in lab, determine how big the increase in growth and/or survival would need to be to make it worth it to keep them for that many weeks
 
