@@ -1,4 +1,4 @@
-# README: functions for simulating the RSE (Reef Stocking Enhancement) coral population model
+# README: functions for simulating the RSE (Restoration Strategy Evaluation) coral population model
 
 
 #' @title Matrix Parameters Function
@@ -1123,32 +1123,59 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # calculate total number of corals currently in each orchard subpopulation
     ind_tots <- rep(NA, s_orchard)
     for(ss in 1:s_orchard){
-      
+
       ind_tots_ss <- rep(NA, source_orchard)
-      
+
       for(rr in 1:source_orchard){
-        
+
         ind_tots_ss[rr] <- sum(orchard_pops[[ss]][[rr]][ ,i])
       }
-      
+
       ind_tots[ss] <- sum(ind_tots_ss)
-      
-      # if number of individuals in ss^th orchard is less than the number of tiles, update number of tiles to be equal to number of individuals (i.e., you remove tiles with no corals)
-      if(ind_tots[ss] < orchard_tiles[[ss]][i-1]){
-        orchard_tiles[[ss]][i-1] <- ind_tots[ss]#floor(ind_tots[ss])
-      } #else{
-        #orchard_tiles[[ss]][i-1] <- orchard_tiles[[ss]][i-1] # otherwise keep the same number of tiles
-      #}
-      
+
     }
     
-    # now calculate the space in each orchard (max number of tiles that can go to each)
-    orchard_space <- rep(NA, s_orchard)
+    # update: make orchard capacity in terms of area covered?
+    # area covered by substrates (from 9/15 "FW: Data for RSE" email from Maria):
+    # tetrapod cement are 130cm2, cookies not standardized, attached info for gear
+    # ceramic (about 80mm wide and 90mm tall = 8cm x 9cm = 72cm2) and new r2d2 
+    # (about 110 mm tall and 60 mm wide = 11cm x 6 cm = 66cm2). Mean = ~90cm2
+    
+    # then base everything on area, with a max area possible on the reef stars and
+    # can fill up remaining area after area of live coral is calculated with new substrates?
+    # but only if number of individuals is less than number of substrates? (to avoid outplanting over baby corals)
+    
+    #NOTE: if making max in terms of area, will also need to put a cap on total area in the population dynamics section
+    
+    # calculate total coral area in the orchards
+    
+    # area_tots <- rep(NA, s_orchard)
+    # 
+    # for(ss in 1:s_orchard){ # for each orchard
+    #   
+    #   area_tots_ss <- rep(NA, source_orchard)
+    #   
+    #   for(rr in 1:source_orchard){ # for each source to each orchard
+    #     
+    #     area_tots_ss[rr] <- sum(orchard_pops[[ss]][[rr]][ ,i]*A_mids)
+    #   }
+    #   
+    #   area_tots[ss] <- sum(area_tots_ss)
+    # }
+    # 
+    # # now calculate the space in each orchard 
+    # orchard_space <- rep(NA, s_orchard)
+    # 
+    # for(ss in 1:s_orchard){
+    #   
+    #   orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - ind_tots[ss]) # number of individuals ss^th orchard has space for
+    #   
+    # }
     
     for(ss in 1:s_orchard){
-      
+
       orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - orchard_tiles[[ss]][i-1]) # number of tiles ss^th orchard has space for
-      
+
     }
     
     
