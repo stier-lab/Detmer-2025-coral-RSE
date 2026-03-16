@@ -908,9 +908,16 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
     } # end of iterations over each reef subpop
     
+    # calculate total number of tiles in orchard (needed for density dependence calculations below)
+    tot_tiles1 <- rep(NA, s_orchard)
+    for(ss in 1:s_orchard){
+      tot_tiles1[ss] <- orchard_tiles[[ss]][i-1]
+    }
+    
+    tot_tiles1 <- sum(tot_tiles1)
     
     # orchard dynamics
-    for(ss in 1:s_orchard){ # for each orchard treatment
+    for(ss in 1:s_orchard){ # for each orchard 
       
       # calculate total number of colonies in this orchard across all sources
       # ind_tots_ss <- rep(NA, source_orchard)
@@ -952,6 +959,46 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         
         # now update the population sizes:
         orchard_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1)
+        
+        
+        # UPDATE: add a cap to make sure only one juvenile per tile can mature to the adult stage and assume the extras die
+        
+        # need to calculate the total number of tiles in ss^th orchard from rr^th lab source
+        # first get the total number of tiles in the orchard
+        
+        # tiles in ss^th orchard from rr^th lab treatment = proportion of tiles that are treatment rr x proportion from rr^th treatment that went to ss^ orchard
+        tot_tiles_rr <- tot_tiles1*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[rr])]]*rest_pars$orchard_out_props[rr,ss] #*(1-rest_pars$reef_prop[rr])
+        
+        if(tot_tiles_rr > 0){ # if there were tiles in this orchard
+          if(sum(orchard_pops[[ss]][[rr]][c(3:5) ,i]) > tot_tiles_rr){ # if there is more than one adult per tile
+            
+            # cap the number of juveniles that were able to mature by removing the extra new adults
+            extra_adults <- sum(orchard_pops[[ss]][[rr]][c(3:5) ,i]) - tot_tiles_rr
+            
+            if(extra_adults > 0){
+              # remove from size class 3 first (most new juveniles would enter this size class)
+              sz3_new <- orchard_pops[[ss]][[rr]][3 ,i] - min(extra_adults, orchard_pops[[ss]][[rr]][3 ,i])
+              
+              # any remaining extra adults:
+              extra_adults2 <- extra_adults - min(extra_adults, orchard_pops[[ss]][[rr]][3 ,i])
+              
+              # if the number of extra adults was greater than the number of class 3 adults, remove the remainder from size class 4
+              if(extra_adults2 > 0){
+                sz4_new <- orchard_pops[[ss]][[rr]][4 ,i] - min(extra_adults2, orchard_pops[[ss]][[rr]][4 ,i])
+                
+              } else{
+                sz4_new <- orchard_pops[[ss]][[rr]][4 ,i]
+              }
+              
+              # update the population sizes
+              orchard_pops[[ss]][[rr]][3 ,i] <- sz3_new
+              orchard_pops[[ss]][[rr]][4 ,i] <- sz4_new
+              
+            }
+          
+          }
+        } # end of adding artificial caps
+        
         
         # record this as the pre-outplant population size
         orchard_pops_pre[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i]
@@ -1120,32 +1167,32 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     
     
     # figure out how many can go to the orchard populations
-    # calculate total number of corals currently in each orchard subpopulation
-    ind_tots <- rep(NA, s_orchard)
+    # calculate total number of corals and adult corals currently in each orchard subpopulation
+    ind_tots <- rep(NA, s_orchard) # all corals
+    adult_tots <- rep(NA, s_orchard) # adults only
     for(ss in 1:s_orchard){
 
-      ind_tots_ss <- rep(NA, source_orchard)
+    ind_tots_ss <- rep(NA, source_orchard)
+     adult_tots_ss <- rep(NA, source_orchard)
 
       for(rr in 1:source_orchard){
 
+        # all corals
         ind_tots_ss[rr] <- sum(orchard_pops[[ss]][[rr]][ ,i])
+        # adults only:
+        adult_tots_ss[rr] <- sum(orchard_pops[[ss]][[rr]][c(3:5) ,i])
       }
 
-      ind_tots[ss] <- sum(ind_tots_ss)
+     ind_tots[ss] <- sum(ind_tots_ss)
+     adult_tots[ss] <- sum(adult_tots_ss)
+      
+      # if number of individuals in ss^th orchard is less than the number of tiles, update number of tiles to be equal to number of individuals (i.e., you remove substrates/outplant over substrates with no corals)
+      if(ind_tots[ss] < orchard_tiles[[ss]][i-1]){
+        orchard_tiles[[ss]][i-1] <- ind_tots[ss]#floor(ind_tots[ss])
+      }
 
     }
     
-    # update: make orchard capacity in terms of area covered?
-    # area covered by substrates (from 9/15 "FW: Data for RSE" email from Maria):
-    # tetrapod cement are 130cm2, cookies not standardized, attached info for gear
-    # ceramic (about 80mm wide and 90mm tall = 8cm x 9cm = 72cm2) and new r2d2 
-    # (about 110 mm tall and 60 mm wide = 11cm x 6 cm = 66cm2). Mean = ~90cm2
-    
-    # then base everything on area, with a max area possible on the reef stars and
-    # can fill up remaining area after area of live coral is calculated with new substrates?
-    # but only if number of individuals is less than number of substrates? (to avoid outplanting over baby corals)
-    
-    #NOTE: if making max in terms of area, will also need to put a cap on total area in the population dynamics section
     
     # calculate total coral area in the orchards
     
@@ -1163,18 +1210,14 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     #   area_tots[ss] <- sum(area_tots_ss)
     # }
     # 
-    # # now calculate the space in each orchard 
-    # orchard_space <- rep(NA, s_orchard)
-    # 
-    # for(ss in 1:s_orchard){
-    #   
-    #   orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - ind_tots[ss]) # number of individuals ss^th orchard has space for
-    #   
-    # }
+    
+    # now calculate the space in each orchard 
+    orchard_space <- rep(NA, s_orchard)
     
     for(ss in 1:s_orchard){
 
-      orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - orchard_tiles[[ss]][i-1]) # number of tiles ss^th orchard has space for
+     # orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - orchard_tiles[[ss]][i-1]) # number of tiles ss^th orchard has space for
+      orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - max(orchard_tiles[[ss]][i-1], adult_tots[ss])) # number of tiles ss^th orchard has space for
 
     }
     

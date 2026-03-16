@@ -224,7 +224,7 @@ apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "standardized_data/apal_sur
 
 ```{r}
 
-years <- 20
+years <- 100
 n <- 5
 
 # define size classes
@@ -288,6 +288,8 @@ fec_pars.r[[1]][[3]] <- fec_pars.r[[1]][[1]]
 
 # orchard parameters: survival
 surv_pars.o <- all_pars$surv_pars.o
+#surv_pars.o <- list(c(1, 1, 1, 1, 1))
+#surv_pars.o <- list(c(1, 1, 0.9, 0.9, 0.9))
 
 # orchard parameters: growth
 growth_pars.o <- all_pars$growth_pars.o
@@ -393,8 +395,8 @@ s0 <- matrix(NA, nrow = years, ncol = 2)
 s0[,1] <- rep(0.95, years)
 s0[,2] <- rep(0.95, years)
 
-s0[10,1] <- 0.05
-s0[10,2] <- 0.05
+#s0[10,1] <- 0.05
+#s0[10,2] <- 0.05
 #s1 <- c(0.7, 0.7) # fraction of settled larvae in each lab treatment that survive to 1 yr outplanting
 s1 <- matrix(NA, nrow = years, ncol = 2)
 s1[,1] <- rep(0.7, years)
@@ -412,7 +414,7 @@ tile_props <- list(T1 = 0.25, T2 = 0.75) # proportion of tiles that are each typ
 orchard_yield <- 0 # percent of new orchard babies successfully collected
 reef_yield <- 1 # percent of new reef babies successfully collected and fertilized
 spawn_target <- 2000000 # target number of embryos to collect from orchard each year (note: if this is set to zero, there won't be any settlers)
-reef_prop <- c(1, 1) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
+reef_prop <- c(0, 0) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
 reef_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion recruits going from each lab treatment to each reef treatment (row = origin lab treatment, column = destination reef treatment)
 reef_out_props[1,] <- c(1) # from first lab treatment to each reef treatment (here there's just on intervention reef so they all go there)
 reef_out_props[2,] <- c(1) # from second lab treatment to each reef treatment 
@@ -462,6 +464,32 @@ sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shri
 ```
 
 
+check tile calculations
+
+```{r}
+
+# ex.: have 200 tiles in two orchards, 50% were from treatment 1 = 100 tiles from treatment 1 across both orchards, and know that 25% of the tiles from treatment 1 go to orchard 1, so there should be 25 tiles from treatment 1 in orchard 1. Then assume 20% of tiles from treatment 2 go to orchard 1, so there should be 20 tiles from treatment 2 in orchard 1. So there should be a total of 45 tiles in orchard 1
+# 25 + 20 + 75 + 80
+
+# then starting from the total number of tiles in orchard 1, want to calculate the number of these tiles that came from each treatment
+
+# 45 = 200*0.5*0.25 + 200*0.5*0.2 --> need to total number of tiles across both orchards
+
+
+#45*0.5*0.25
+#45*0.5*0.2
+
+# 45*x = 25
+
+200*0.5*0.25
+200*0.5*0.2
+
+# want to calculate the number of tiles from treatment 1 in orchard 1 from the total number of tiles in orchard 1
+
+
+
+```
+
 
 check numbers (note: getting the numbers to match perfectly for the reported embryos collected and recruits outplanted is a matter of picking the in-lab density dependent and independent mortality rates)
 
@@ -495,10 +523,13 @@ reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "ind", n_r
 
 orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
+orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
+
 
 plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Pop'n size", lwd = 2)
 lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
-legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
+#legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
+abline(h = rest_pars$orchard_size, lty = 2)
 
 
 reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
@@ -506,12 +537,18 @@ reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2",
 orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
 
-plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Pop'n size", lwd = 2)
+plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Area", lwd = 2)
 lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
 legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 
 
+plot(x = c(1:years), y = sim1$orchard_tiles[[1]], type = "l")
+abline(h = rest_pars$orchard_size, lty = 2)
+
 ```
+
+number of adults in orchard goes down below max because corals die so it's not possible to keep it 100% full (which seems realistic?), but if you make survival 100% then it does fill up (or even just survival of size classes 1 and 2). 
+
 
 test disturbance
 
