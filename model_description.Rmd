@@ -289,6 +289,8 @@ fec_pars.r[[1]][[3]] <- fec_pars.r[[1]][[1]]
 # orchard parameters: survival
 surv_pars.o <- all_pars$surv_pars.o
 #surv_pars.o <- list(c(1, 1, 1, 1, 1))
+#surv_pars.o[[1]][[1]] <- c(0.88, 0.9, 1, 1, 1)
+#surv_pars.o[[1]][[2]] <- c(0.88, 0.9, 1, 1, 1)
 #surv_pars.o <- list(c(1, 1, 0.9, 0.9, 0.9))
 
 # orchard parameters: growth
@@ -296,6 +298,8 @@ growth_pars.o <- all_pars$growth_pars.o
 
 # orchard parameters: shrinkage
 shrink_pars.o <- all_pars$shrink_pars.o
+#shrink_pars.o[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0,0,0), c(0, 0,0,0))
+#shrink_pars.o[[1]][[2]] <- list(NULL, c(0), c(0, 0), c(0,0,0), c(0, 0,0,0))
 
 # orchard parameters: fragmentation
 frag_pars.o <- all_pars$frag_pars.o
@@ -531,10 +535,16 @@ lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lt
 #legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 abline(h = rest_pars$orchard_size, lty = 2)
 
+plot(x = c(1:years), y = sim1$orchard_tiles[[1]], type = "l")
+lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
+abline(h = rest_pars$orchard_size, lty = 2)
+
 
 reef1_tot <- model_summ(model_sim = sim1, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
-orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+#orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+orch1_tot <- model_summ(model_sim = sim1, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
 
 
 plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Area", lwd = 2)
@@ -542,13 +552,14 @@ lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lt
 legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 
 
-plot(x = c(1:years), y = sim1$orchard_tiles[[1]], type = "l")
-abline(h = rest_pars$orchard_size, lty = 2)
 
 ```
 
-number of adults in orchard goes down below max because corals die so it's not possible to keep it 100% full (which seems realistic?), but if you make survival 100% then it does fill up (or even just survival of size classes 1 and 2). 
+number of adults in orchard goes down below max because corals die so it's not possible to keep it 100% full of adults (which seems realistic?), but if you make survival 100% then it does fill up (or even just survival of size classes 1 and 2). 
 
+also the reason the decline is big is because all the tiles are identical so if one dies on one tile, that means one dies on every tile so it's multiplied by the number of tiles
+
+orchard can be full of substrates but not full of adults because some of the substrates don't have adults on them (or they did and then the adults shrunk). Note if you turn off shrinkage, you bounce back up to max capacity even with default survival. 
 
 test disturbance
 

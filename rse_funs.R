@@ -1217,8 +1217,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     for(ss in 1:s_orchard){
 
      # orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - orchard_tiles[[ss]][i-1]) # number of tiles ss^th orchard has space for
-      orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - max(orchard_tiles[[ss]][i-1], adult_tots[ss])) # number of tiles ss^th orchard has space for
-
+     orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - max(orchard_tiles[[ss]][i-1], adult_tots[ss])) # number of tiles ss^th orchard has space for
+     # orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - adult_tots[ss]) # number of tiles ss^th orchard has space for
+      
     }
     
     
