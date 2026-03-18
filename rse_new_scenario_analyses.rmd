@@ -884,9 +884,9 @@ bump in between 0.6 and 0.8: gained an extra day outplanting to the reef? Then a
 ```{r}
 #rest_pars$lab_max
 
-plot(x = prop_set, y = ceiling(rest_pars$lab_max*prop_set/2000), type = "l", ylim = c(0, 6), las = 1, ylab = "Days spent outplanting", xlab = "Prop. initially outplanted to reef")
+plot(x = prop_set, y = ceiling(rest_pars$lab_max*prop_set/1250), type = "l", ylim = c(0, 6), las = 1, ylab = "Days spent outplanting", xlab = "Prop. initially outplanted to reef")
 lines(x = prop_set, y = ceiling(rest_pars$lab_max*(1-prop_set)/800), col = "dodgerblue")
-lines(x = prop_set, y = ceiling(rest_pars$lab_max*prop_set/2000) + ceiling(rest_pars$lab_max*(1-prop_set)/800), col = "red")
+lines(x = prop_set, y = ceiling(rest_pars$lab_max*prop_set/1250) + ceiling(rest_pars$lab_max*(1-prop_set)/800), col = "red")
 legend("topright", legend = c("reef", "orchard", "total"), col = c("black", "dodgerblue", "red"), lwd = 2, ncol = 3, bty = "n")
 
 ```
@@ -951,6 +951,7 @@ if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line wit
   lines(x = r_in_x, y = sqrt(r_in^2 - r_in_x^2), col = metric_cols[1])
 }
 labs1 <- as.character(round(mean(dt_plot2$reef_cover_mean), 0))
+labs1 <- ifelse(labs1 == "0", as.character(round(mean(dt_plot2$reef_cover_mean), 3)), labs1)
 text(x = 1.3*r_out0*cos((th1 + th2)/2*pi/180), y =1.3*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)~m^2), cex = lab_cex)
 
 #text(x = r_out0, y =1.5*r_out0*sin((th1 + th2)/2*pi/180), as.character(round(mean(dt_plot2$reef_cover_mean), 0)))
@@ -981,6 +982,7 @@ if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line wit
   lines(x = r_in_x, y = sqrt(r_in^2 - r_in_x^2), col = metric_cols[3])
 }
 labs1 <- as.character(round(mean(dt_plot2$reef_ROI_mean), 5))
+labs1 <- ifelse(labs1 == "0", as.character(round(mean(dt_plot2$reef_ROI_mean), 7)), labs1)
 text(x = 1.5*r_out0*cos((th1 + th2)/2*pi/180), y =1.5*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)~m^2*"/$"), cex = lab_cex)
 
 # past 180: need to switch to negative square root
@@ -1091,6 +1093,8 @@ for(i in 1:n_sample1){
 
 
 ```
+
+
 
 
 ```{r}
@@ -1816,6 +1820,134 @@ ohi_fun(dt_plot = orch_exp_50_D1, opt_prop1 = orch_exp_50_D1_pmax)
 dev.off()
 ```
 
+
+
+try plotting reef cover as a proportion of max possible vs. orchard function as a proportion of max possible (just for cases where reef cover is > 0)
+
+```{r}
+# for each parameter set where reef cover is greater than zero, calculate the max value of reef cover, orchard function, reef ROI, and tot ROI. Then rescale everything relative to these maxes. Then get the average rescaled values across parameter sets. So should end up with a data set with proportion outplanted 
+
+
+scaled_50_D0 <- orch_exp_50_D0 %>% filter(is.na(strategy_score) == F) %>% group_by(par_rep) %>% mutate(reef_cover_max = max(reef_cover_mean), orchard_fun_max = max(orch_function_mean), reef_ROI_max = max(reef_ROI_mean), tot_ROI_max = max(tot_ROI_mean)) %>% ungroup() %>% mutate(reef_cover_s = reef_cover_mean/reef_cover_max, orchard_fun_s = orch_function_mean/orchard_fun_max, reef_ROI_s = reef_ROI_mean/reef_ROI_max, tot_ROI_s = tot_ROI_mean/tot_ROI_max) %>% group_by(prop_out) %>% summarize(reef_cover_s = mean(reef_cover_s), orchard_fun_s = mean(orchard_fun_s), reef_ROI_s = mean(reef_ROI_s), tot_ROI_s = mean(tot_ROI_s)) %>% ungroup()
+
+scaled_5_D0 <- orch_exp_5_D0 %>% filter(is.na(strategy_score) == F) %>% group_by(par_rep) %>% mutate(reef_cover_max = max(reef_cover_mean), orchard_fun_max = max(orch_function_mean), reef_ROI_max = max(reef_ROI_mean), tot_ROI_max = max(tot_ROI_mean)) %>% ungroup() %>% mutate(reef_cover_s = reef_cover_mean/reef_cover_max, orchard_fun_s = orch_function_mean/orchard_fun_max, reef_ROI_s = reef_ROI_mean/reef_ROI_max, tot_ROI_s = tot_ROI_mean/tot_ROI_max) %>% group_by(prop_out) %>% summarize(reef_cover_s = mean(reef_cover_s), orchard_fun_s = mean(orchard_fun_s), reef_ROI_s = mean(reef_ROI_s), tot_ROI_s = mean(tot_ROI_s)) %>% ungroup()
+
+# for the with-disturbance cases, need to scale relative to the maxes from the no disturbance case
+scaled_50_D1 <- orch_exp_50_D0 %>% filter(is.na(strategy_score) == F) %>% group_by(par_rep) %>% mutate(reef_cover_max = max(reef_cover_mean), orchard_fun_max = max(orch_function_mean), reef_ROI_max = max(reef_ROI_mean), tot_ROI_max = max(tot_ROI_mean)) %>% ungroup() %>% select(par_rep, prop_out, reef_cover_max, orchard_fun_max, reef_ROI_max, tot_ROI_max) %>% left_join(orch_exp_50_D1, by = c("par_rep","prop_out")) %>% mutate(reef_cover_s = reef_cover_mean/reef_cover_max, orchard_fun_s = orch_function_mean/orchard_fun_max, reef_ROI_s = reef_ROI_mean/reef_ROI_max, tot_ROI_s = tot_ROI_mean/tot_ROI_max) %>% group_by(prop_out) %>% summarize(reef_cover_s = mean(reef_cover_s), orchard_fun_s = mean(orchard_fun_s), reef_ROI_s = mean(reef_ROI_s), tot_ROI_s = mean(tot_ROI_s)) %>% ungroup()
+
+scaled_5_D1 <- orch_exp_5_D0 %>% filter(is.na(strategy_score) == F) %>% group_by(par_rep) %>% mutate(reef_cover_max = max(reef_cover_mean), orchard_fun_max = max(orch_function_mean), reef_ROI_max = max(reef_ROI_mean), tot_ROI_max = max(tot_ROI_mean)) %>% ungroup() %>% select(par_rep, prop_out, reef_cover_max, orchard_fun_max, reef_ROI_max, tot_ROI_max) %>% left_join(orch_exp_5_D1, by = c("par_rep","prop_out")) %>% mutate(reef_cover_s = reef_cover_mean/reef_cover_max, orchard_fun_s = orch_function_mean/orchard_fun_max, reef_ROI_s = reef_ROI_mean/reef_ROI_max, tot_ROI_s = tot_ROI_mean/tot_ROI_max) %>% group_by(prop_out) %>% summarize(reef_cover_s = mean(reef_cover_s), orchard_fun_s = mean(orchard_fun_s), reef_ROI_s = mean(reef_ROI_s), tot_ROI_s = mean(tot_ROI_s)) %>% ungroup()
+
+
+#colnames(orch_exp_5_D0)
+# # reef cover
+# reef_cover_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(reef_cover_mean), cv_val = sd(reef_cover_mean)/mean(reef_cover_mean)) %>% ungroup() %>% filter(reef_cover_mean == max_val)
+ 
+
+
+prop_col <- "darkgreen"
+prop_col2 <- "lightgreen"
+
+
+pdf("TempFigs/scaled_orch_fun_reef_cover.pdf", height = 4, width = 7)
+
+par(mfrow = c(1, 2))
+layout(matrix(c(1, 2), nrow = 1, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 1))
+#layout.show(2)
+par(mar=c(0, 1, 2.5, 0), oma = c(4.5, 2.5, 0.1, 0.1))
+
+
+dt_plot0 <- scaled_5_D0
+dt_plot1 <- scaled_5_D1
+
+plot(x = dt_plot0$reef_cover_s, y = dt_plot0$orchard_fun_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l")
+lines(x = dt_plot1$reef_cover_s, y = dt_plot1$orchard_fun_s, pch = 16, col = prop_col2)
+mtext(side = 1, "Scaled reef cover", line = 2, outer = T)
+mtext(side = 2, "Scaled orchard function", line = 2.5)
+mtext(side = 3, "5 year simulation")
+for(i in 1:nrow(dt_plot)){
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
+}
+legend("topright", legend = c("none", "every 3 years"), col = c(prop_col, prop_col2), lwd =2, title = "Disturbance")
+
+dt_plot0 <- scaled_50_D0
+dt_plot1 <- scaled_50_D1
+
+plot(x = dt_plot0$reef_cover_s, y = dt_plot0$orchard_fun_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l", yaxt = "n")
+axis(side = 2, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+lines(x = dt_plot1$reef_cover_s, y = dt_plot1$orchard_fun_s, pch = 16, col = prop_col2)
+mtext(side = 3, "50 year simulation")
+#mtext(side = 1, "Scaled reef cover", line = 2)
+#mtext(side = 2, "Scaled orchard function", line = 2)
+for(i in 1:nrow(dt_plot)){
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
+}
+
+
+dev.off()
+
+
+pdf("TempFigs/scaled_reef_cover_reef_ROI.pdf", height = 4, width = 7)
+
+par(mfrow = c(1, 2))
+layout(matrix(c(1, 2), nrow = 1, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 1))
+#layout.show(2)
+par(mar=c(0, 1, 2.5, 0), oma = c(4.5, 2.5, 0.1, 0.1))
+
+
+dt_plot0 <- scaled_5_D0
+dt_plot1 <- scaled_5_D1
+
+plot(x = dt_plot0$reef_cover_s, y = dt_plot0$reef_ROI_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l")
+lines(x = dt_plot1$reef_cover_s, y = dt_plot1$reef_ROI_s, pch = 16, col = prop_col2)
+mtext(side = 1, "Scaled reef cover", line = 2, outer = T)
+mtext(side = 2, "Scaled reef ROI", line = 2)
+mtext(side = 3, "5 year simulation")
+for(i in 1:nrow(dt_plot)){
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
+}
+legend("topleft", legend = c("none", "every 3 years"), col = c(prop_col, prop_col2), lwd =2, title = "Disturbance")
+
+dt_plot0 <- scaled_50_D0
+dt_plot1 <- scaled_50_D1
+
+plot(x = dt_plot0$reef_cover_s, y = dt_plot0$reef_ROI_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l", yaxt = "n")
+axis(side = 2, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+lines(x = dt_plot1$reef_cover_s, y = dt_plot1$reef_ROI_s, pch = 16, col = prop_col2)
+mtext(side = 3, "50 year simulation")
+#mtext(side = 1, "Scaled reef cover", line = 2)
+#mtext(side = 2, "Scaled reef ROI", line = 2)
+for(i in 1:nrow(dt_plot)){
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
+}
+
+dev.off()
+
+# plot(x = dt_plot$reef_cover_s, y = dt_plot$reef_ROI_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l")
+# mtext(side = 1, "Scaled reef cover", line = 2)
+# mtext(side = 2, "Scaled reef ROI", line = 2)
+# for(i in 1:nrow(dt_plot)){
+#   points(x = dt_plot$reef_cover_s[i], y = dt_plot$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot$prop_out[i]))
+# }
+# 
+# plot(x = dt_plot$reef_cover_s, y = dt_plot$tot_ROI_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l")
+# mtext(side = 1, "Scaled reef cover", line = 2)
+# mtext(side = 2, "Scaled total ROI", line = 2)
+# for(i in 1:nrow(dt_plot)){
+#   points(x = dt_plot$reef_cover_s[i], y = dt_plot$tot_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot$prop_out[i]))
+# }
+# 
+# plot(x = dt_plot$orchard_fun_s, y = dt_plot$tot_ROI_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l")
+# mtext(side = 1, "Scaled orchard function", line = 2)
+# mtext(side = 2, "Scaled total ROI", line = 2)
+# for(i in 1:nrow(dt_plot)){
+#   points(x = dt_plot$orchard_fun_s[i], y = dt_plot$tot_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot$prop_out[i]))
+# }
+
+```
 
 show all the metrics
 
@@ -2759,7 +2891,7 @@ if(add_h4 == T){
 
 pdf("TempFigs/ts_lambdaR1.pdf", height = 5, width = 6)
 
-ts_plot1(plot_sims = sims_lambdaR1, yrs_p = years, legend2_title = "Reference reef supply", legend2_labs = c("none","default"), par_ltys = c(2, 1), ymaxs = c(60, 6000, rest_pars$lab_max, rest_pars$orchard_size))
+ts_plot1(plot_sims = sims_lambdaR1, yrs_p = years, legend2_title = "Reference reef supply", legend2_labs = c("none","default"), par_ltys = c(2, 1), ymaxs = c(60, 2500, rest_pars$lab_max, rest_pars$orchard_size))
 
 dev.off()
 
@@ -2816,7 +2948,7 @@ sims_lab_max1 <- par_sens_fun1(par_set = lab_max_set, par_name = "lab_max", prop
 
 pdf("TempFigs/ts_lab_max1.pdf", height = 5, width = 6)
 
-ts_plot1(plot_sims = sims_lab_max1, yrs_p = years, legend2_title = "Lab capacity", legend2_labs = c("default", "2x default"), par_ltys = c(1, 2), ymaxs = c(110, 6000, rest_pars$lab_max*2, rest_pars$orchard_size), add_h3 = T)
+ts_plot1(plot_sims = sims_lab_max1, yrs_p = years, legend2_title = "Lab capacity", legend2_labs = c("default", "2x default"), par_ltys = c(1, 2), ymaxs = c(110, 2500, rest_pars$lab_max*2, rest_pars$orchard_size), add_h3 = T)
 
 dev.off()
 
@@ -2838,7 +2970,7 @@ sims_orchard_size1 <- par_sens_fun1(par_set = orchard_size_set, par_name = "orch
 
 pdf("TempFigs/ts_orchard_size1.pdf", height = 5, width = 6)
 
-ts_plot1(plot_sims = sims_orchard_size1, yrs_p = years, legend2_title = "Orchard capacity", legend2_labs = c("default", "2x default"), par_ltys = c(1, 2), ymaxs = c(60, 10000, rest_pars$lab_max, rest_pars$orchard_size*2), add_h4 = T)
+ts_plot1(plot_sims = sims_orchard_size1, yrs_p = years, legend2_title = "Orchard capacity", legend2_labs = c("default", "2x default"), par_ltys = c(1, 2), ymaxs = c(60, 5000, rest_pars$lab_max, rest_pars$orchard_size*2), add_h4 = T)
 
 dev.off()
 
