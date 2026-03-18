@@ -2455,19 +2455,21 @@ Orchard decline doesn't happen if 1) the orchard is huge so it never fills, or 2
 -- lab capacity
 -- orchard capacity
 -- orchard fecundity, orchard fecundity x reference reef supply (i.e., with and without reference reef supply?)
--- fragmentation rates in the orchard?
+-- survival of the smallest size class on the reef (relevant because it has implications for effects of interventions that increase )
 -- orchard survival rates relative to reef (which should also affect how many die from disturbance? Or should that be explored separately?)
 
+-- maybe fragmentation rates in the orchard? (lower priority since there's now a cap on adults)
 
 ```{r}
 
 
 # turn this into a function for making time series with different restoration parameter values
 # par_set = parameter set to iterate over
-# par_name = name of the parameter to iterate over (NOTE: function currently only allows for parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1")
+# par_name = name of the parameter to iterate over (NOTE: function currently only allows for parameters that are in rest_pars list or "lambda_R", "frag_pars.o", fec_pars.o, "surv_pars.o_1", and "surv_pars.r_1")
 # dem_pars = demographic parameters to use
 # prop_set1 = values proportion of substrates to outplant to orchard to iterate over
-par_sens_fun1 <- function(par_set, par_name, prop_set1, dem_pars){
+# dist = whether or not there is a disturbance regime (T or F)
+par_sens_fun1 <- function(par_set, par_name, prop_set1, dem_pars, dist = F){
   
   out_list <- list()
 
@@ -2499,7 +2501,75 @@ frag_pars.o[[1]][[1]][[5]] <- frag_pars.r[[1]][[1]][[5]]*par_set[i]
   if(par_name == "surv_pars.o_1"){
 surv_pars.o[[1]][[1]][1] <- surv_pars.r[[1]][[1]][1]*par_set[i]
 
-    }
+  }
+  
+  if(par_name == "surv_pars.r_1"){
+surv_pars.r[[1]][[1]][1] <- surv_pars.r[[1]][[1]][1]*par_set[i]
+
+  }
+  
+  if(par_name == "fec_pars.o"){
+    fec_pars.o <- list()
+    fec_pars.o[[1]] <- list() # first treatment
+    fec_pars.o[[1]][[1]] <- c(0, 0, rep(1255111/26, 3))*par_set[i]
+  }
+  
+  # set up disturbance
+  if(dist == F){
+    
+    dist_yrs <- NA
+    
+  } else{
+    # update with disturbance effects
+  # disturbance parameters
+dist_yrs <- c(1:max(years))[c(F, F,T)] # years when disturbance occurs: once every 3 years
+
+# effects of disturbance on each reef subpop
+dist_effects.r <- list()
+dist_effects.r[[1]] <- list() 
+dist_effects.r[[1]][[1]] <- list() # effects of disturbances on corals from first source in first reef subpop
+dist_effects.r[[1]][[1]] <- as.list(rep("survival", length(dist_yrs))) # effects of each disturbance on corals from first source in first reef subpop 
+dist_effects.r[[1]][[2]] <- list() # second source
+dist_effects.r[[1]][[2]] <- as.list(rep("survival", length(dist_yrs)))
+
+
+surv_pars.r1 <- list() # first source (external recruits)
+surv_pars.o1 <- list()
+
+for(j in 1:length(dist_yrs)){ # for each year with a disturbance
+  # update the survival parameters
+  surv_pars.r1[[j]] <- surv_pars.r[[1]][[1]]*0.25 # note this is the same as the proportional reduction in reference reef production
+  surv_pars.o1[[j]] <- surv_pars.o[[1]][[1]]*0.4
+
+}
+
+
+# disturbance parameters for each reef subpop (what happens to the population parameters at each disturbance eve)
+dist_pars.r <- list()
+
+# first reef population
+dist_pars.r[[1]] <- list() 
+# first source to second reef subpop
+dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = surv_pars.r1, dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) 
+dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = surv_pars.r1, dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+
+# disturbance effects for each orchard subpop
+dist_effects.o <- list()
+
+dist_effects.o[[1]] <- list() 
+dist_effects.o[[1]][[1]] <- list() # effects of disturbances on corals from first source in first orchard treatment
+dist_effects.o[[1]][[1]] <- as.list(rep("survival", length(dist_yrs))) # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
+
+# disturbance parameters for each orchard subpop
+dist_pars.o <- list()
+
+# first orchard treatment
+dist_pars.o[[1]] <- list() 
+# first source in first orchard treatment
+dist_pars.o[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][[1]], dist_surv0 = surv_pars.o1, dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+  
+  
+  }
   
   # holding list for model simulations with this parameter set
   mod_list <- list()
@@ -2545,7 +2615,7 @@ function for processing the output
 # 1) coral cover on reef, 2) orchard function (loosely defined to include ecological function and reproduction since these are highly correlated in the model, calculate as sum or area covered of all reproductively mature size classes in the orchard), 3) reef ROI (m2 coral on reef per dollar spent), 4) total ROI (m2 coral on reef and orchard per dollar spent), 5) total costs, and 6) number of recruits outplanted to reef?
 
 # function for extracting performance metrics from the orchard expansion simulations
-orch_exp_sens_fun <- function(sim_list, par_set2, L2, L1, max_yr, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA)){
+orch_exp_sens_fun <- function(sim_list, par_set2, prop_set, L2, L1, max_yr, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA)){
   
       # fixed costs
       c_RS <- 84.6*rest_pars$orchard_size/30 + 1200 # reef stars (cost of reef stars plus cost of boat rental for installation)
@@ -3043,8 +3113,10 @@ should look at the sensitivity of max strategy score to different parameters
 -- lab capacity
 -- orchard capacity
 -- orchard fecundity, orchard fecundity x reference reef supply (i.e., with and without reference reef supply?)
--- fragmentation rates in the orchard?
+-- survival of smallest size class on reef (has implications for effectiveness of intervention strategies)
 -- orchard survival rates relative to reef (which should also affect how many die from disturbance? Or should that be explored separately?)
+
+-- maybe fragmentation rates in the orchard? (lower priority bc of cap on adults)
 
 For each of these, start by just using mean parameter combination (or mean and 95% and 5% quantiles?). Can use the same function above and run it three times for each case. 
 
@@ -3065,14 +3137,19 @@ reference reef supply
 
 ```{r}
 
+#prop_setS <- c(0.01, 0.5, 0.99)
+prop_setS <- prop_set
+
 #L1 <- 50
 #prop_set <- seq(from = 0, to = 1, length.out = L1) # proportion tiles outplanted to reef (can be higher than this if orchard gets full though)
 
-L2 <- 25
+#L2 <- 25
+L2 <- 3
 
 lambda_R0 <- 1255111 # default value
 
-lambda_R_setL <- seq(from = 0, to = 1, length.out = L2)*lambda_R0
+#lambda_R_setL <- seq(from = 0, to = 1, length.out = L2)*lambda_R0
+lambda_R_setL <- c(0, 0.5, 1)*lambda_R0
 
 # remember you need to start with a few corals in the orchard for the lambda_R = 0 case
 N0.o[[1]][[1]] <- c(0.1, 0, 0, 0, 0)
@@ -3081,21 +3158,63 @@ N0.o[[1]][[1]] <- c(0.1, 0, 0, 0, 0)
 # dem_pars = demographic parameters to use
 # prop_set1 = values proportion of substrates to outplant to orchard to iterate over
 tic()
-sens_lambda_R2 <- par_sens_fun1(par_set = lambda_R_setL, par_name = "lambda_R", prop_set, dem_pars = all_pars)
+sens_lambda_R2 <- par_sens_fun1(par_set = lambda_R_setL, par_name = "lambda_R", prop_setS, dem_pars = all_pars)
+
+sens_lambda_R2D <- par_sens_fun1(par_set = lambda_R_setL, par_name = "lambda_R", prop_setS, dem_pars = all_pars, dist = T)
+
 N0.o[[1]][[1]] <- rep(0, n) # reset initial conditions in the orchard
 
 toc()
 
 # process the results
-lambda_R2_dt5 <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_R_setL, L2, L1, max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+lambda_R2_dt5 <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
  
-lambda_R2_dt50 <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_R_setL, L2, L1, max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+lambda_R2_dt50 <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+
+
+lambda_R2_dt5D <- orch_exp_sens_fun(sim_list = sens_lambda_R2D, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+ 
+lambda_R2_dt50D <- orch_exp_sens_fun(sim_list = sens_lambda_R2D, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
 
 
 #View(lambda_R2_dt)
 #sens_lambda_R2[[25]][[50]]
 
 
+```
+
+
+```{r}
+
+# now make metric plots; 8 panels (column 1 = 5 years, column 2 = 50 years, red = with disturbance, black = without, shading = prop outplanted). Or color = prop outplanted, solid = no dist, dashed = with disturbance? Or line type = prop outplanted, color = disturbance or not?
+
+#View(lambda_R2_dt5)
+
+
+
+par_set1 <- lambda_R_setL
+
+dt_plot <- lambda_R2_dt5
+dt_plot1 <- dt_plot %>% filter(par_val == par_set1[1])
+
+lty_set <- c(1, 2, 3)
+
+col_set0 <- c("gray90", "gray50", "gray10")
+
+plot(x = dt_plot1$prop_out, y = dt_plot1$reef_cover_mean, type = "l", ylim = c(0, max(dt_plot$reef_cover_mean)), col = col_set0[1], lwd = 2)
+for(j in 2:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1$reef_cover_mean, type = "l", col = col_set0[j], lwd = 2)
+}
+
+```
+
+what you're looking for on these plots is whether the lines cross (which proportion is best changes) as a function of the x-axis parameter value
+
+UPDATE: maybe it's less confusing to just keep proportion outplanted on the x-axis, and have the different lines be for different parameter values
+
+### initial plotting exploration
+```{r}
 # now process the data frame to calculate:
 # 1) proportion outplanted that maximizes strategy score for each par2 value
 # 2) strategy score at the max outplanting proportion
@@ -3135,39 +3254,96 @@ lambda_R2_dt5_mx <- max_fun(lambda_R2_dt5)
 
 lambda_R2_dt50_mx <- max_fun(lambda_R2_dt50)
 
+lambda_R2_dt5D_mx <- max_fun(lambda_R2_dt5D)
+
+lambda_R2_dt50D_mx <- max_fun(lambda_R2_dt50D)
 
 
 ```
 
 
 ```{r}
-dt_plot <- lambda_R2_dt5_mx$reef_cover
-plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
 
-dt_plot <- lambda_R2_dt5_mx$orchard_fun
-plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
-
-dt_plot <- lambda_R2_dt5_mx$reef_ROI
-plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
-
-dt_plot <- lambda_R2_dt5_mx$tot_ROI
-plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
-
-
-#plot(x = dt_plot$par_val/lambda_R, y = dt_plot$max_val, type = "l")
-
-#plot(x = dt_plot$par_val/lambda_R, y = dt_plot$cv_score, type = "l")
-
-
-dt_plot <- lambda_R2_dt50_mx$reef_cover
-
-plot(x = dt_plot$par_val/lambda_R, y = dt_plot$prop_out, type = "l")
+# metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") # coral cover on reef, orchard function, reef ROI, total ROI, total costs, recruits outplanted to reef
+# 
+# dt_list <- lambda_R2_dt5_mx
+# dt_list2 <- lambda_R2_dt5D_mx
+# 
+# def_par <- lambda_R
+# 
+# dt_plot <- dt_list$reef_cover
+# plot(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[1], lwd = 2, ylim = c(0, 1), las = 1)
+# 
+# dt_plot <- dt_list$orchard_fun
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[2], lwd = 2)
+# 
+# dt_plot <- dt_list$reef_ROI
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[3], lwd = 2)
+# 
+# dt_plot <- dt_list$tot_ROI
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[4], lwd = 2)
+# 
+# # add cases with disturbance
+# dt_plot <- dt_list2$reef_cover
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[1], lwd = 2, lty = 2)
+# 
+# dt_plot <- dt_list2$orchard_fun
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[2], lwd = 2, lty = 2)
+# 
+# dt_plot <- dt_list2$reef_ROI
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[3], lwd = 2, lty = 2)
+# 
+# dt_plot <- dt_list2$tot_ROI
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[4], lwd = 2, lty = 2)
+# 
+# legend("right", legend = c("Reef cover", "Orchard function", "Reef ROI", "Total ROI"), col = metric_cols[1:4], lwd = 2, cex = 0.7)
+# 
+# 
+# 
+# # repeat for 50 years
+# 
+# dt_list <- lambda_R2_dt50_mx
+# dt_list2 <- lambda_R2_dt50D_mx
+# 
+# def_par <- lambda_R
+# 
+# dt_plot <- dt_list$reef_cover
+# plot(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[1], lwd = 2, ylim = c(0, 1), las = 1)
+# 
+# dt_plot <- dt_list$orchard_fun
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[2], lwd = 2)
+# 
+# dt_plot <- dt_list$reef_ROI
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[3], lwd = 2)
+# 
+# dt_plot <- dt_list$tot_ROI
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[4], lwd = 2)
+# 
+# # add cases with disturbance
+# dt_plot <- dt_list2$reef_cover
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[1], lwd = 2, lty = 2)
+# 
+# dt_plot <- dt_list2$orchard_fun
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[2], lwd = 2, lty = 2)
+# 
+# dt_plot <- dt_list2$reef_ROI
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[3], lwd = 2, lty = 2)
+# 
+# dt_plot <- dt_list2$tot_ROI
+# lines(x = dt_plot$par_val/def_par, y = dt_plot$prop_out, type = "l", col = metric_cols[4], lwd = 2, lty = 2)
+# 
+# legend("right", legend = c("Reef cover", "Orchard function", "Reef ROI", "Total ROI"), col = metric_cols[1:4], lwd = 2, cex = 0.7)
+# 
 
 
 ```
 
 
-lab capacity
+
+was going to show proportion to outplant that maximizes each metric (sensitivity parameter on x-axis, proportion on y-axis, lines for the four metrics), but this actually isn't that interesting since orchard will always be maximized when everything goes to the orchard. 
+
+
+initial lab capacity
 
 ```{r}
 
@@ -3187,14 +3363,14 @@ sens_lab_max2 <- par_sens_fun1(par_set = lab_max_setL, par_name = "lab_max", pro
 toc()
 
 # process the results
-lab_max2_dt5 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, L2, L1, max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
-
-lab_max2_dt50 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, L2, L1, max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
- 
-
-score_summ_lab_max5 <- lab_max2_dt5 %>% group_by(par_val) %>% mutate(max_score = max(strategy_score), cv_score = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_score)
-
-score_summ_lab_max50 <- lab_max2_dt50 %>% group_by(par_val) %>% mutate(max_score = max(strategy_score), cv_score = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_score)
+# lab_max2_dt5 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, prop_set, L2, L1, max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+# 
+# lab_max2_dt50 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, prop_set, L2, L1, max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+#  
+# 
+# score_summ_lab_max5 <- lab_max2_dt5 %>% group_by(par_val) %>% mutate(max_score = max(strategy_score), cv_score = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_score)
+# 
+# score_summ_lab_max50 <- lab_max2_dt50 %>% group_by(par_val) %>% mutate(max_score = max(strategy_score), cv_score = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_score)
 
 #View(score_summ)
 
@@ -3211,7 +3387,13 @@ plot(x = dt_plot$par_val, y = dt_plot$prop_out, type = "l")
 
 ```
 
-maybe instead of looking at the strategy score, plot the outplanting proportions that maximize each performance metric (with different colors for the different metrics)? Or the main metrics of interest since there's so much correlation: 1) coral cover on reef, 2) orchard function, 3) reef ROI, and 4) total ROI. Can put them all on the same plot since it's just the proportion that maximizes each
+
+
+older thoughts on sensitivity plots
+
+maybe instead of looking at the strategy score, plot the outplanting proportions that maximize each performance metric (with different colors for the different metrics)? Or the main metrics of interest since there's so much correlation: 1) coral cover on reef, 2) orchard function, 3) reef ROI, and 4) total ROI. Can put them all on the same plot since it's just the proportion that maximizes each. But also want to show the actual values...and the shape of the relationship...
+
+
 
 # lab grow-out
 
