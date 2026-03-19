@@ -3186,26 +3186,144 @@ lambda_R2_dt50D <- orch_exp_sens_fun(sim_list = sens_lambda_R2D, par_set2 = lamb
 
 ```{r}
 
-# now make metric plots; 8 panels (column 1 = 5 years, column 2 = 50 years, red = with disturbance, black = without, shading = prop outplanted). Or color = prop outplanted, solid = no dist, dashed = with disturbance? Or line type = prop outplanted, color = disturbance or not?
+# now make metric plots; 8 panels (column 1 = 5 years, column 2 = 50 years, red = with disturbance, black = without, shading = par value). Or color = par value, solid = no dist, dashed = with disturbance? Or line type = par value, color = disturbance or not?
 
 #View(lambda_R2_dt5)
 
+lty_set <- c(1, 2, 3)
+lwd_set <- c(1.5, 2, 2.5)
+#col_set0 <- c("gray90", "gray50", "gray10")
+
+cols0 <- c("black", "red")
+
+
+# reef cover
+met <- "reef_cover_mean"
+cc <- which(colnames(dt_plot)==met)
+
+par_set1 <- lambda_R_setL
+dt_plot <- lambda_R2_dt5
+dt_plot2 <- lambda_R2_dt5D
+
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+for(j in 1:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
+}
 
 
 par_set1 <- lambda_R_setL
+dt_plot <- lambda_R2_dt50
+dt_plot2 <- lambda_R2_dt50D
 
-dt_plot <- lambda_R2_dt5
-dt_plot1 <- dt_plot %>% filter(par_val == par_set1[1])
-
-lty_set <- c(1, 2, 3)
-
-col_set0 <- c("gray90", "gray50", "gray10")
-
-plot(x = dt_plot1$prop_out, y = dt_plot1$reef_cover_mean, type = "l", ylim = c(0, max(dt_plot$reef_cover_mean)), col = col_set0[1], lwd = 2)
-for(j in 2:length(par_set1)){
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+for(j in 1:length(par_set1)){
   dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
-  lines(x = dt_plot1$prop_out, y = dt_plot1$reef_cover_mean, type = "l", col = col_set0[j], lwd = 2)
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
 }
+
+
+# reef ROI
+met <- "reef_ROI_mean"
+cc <- which(colnames(dt_plot)==met)
+
+par_set1 <- lambda_R_setL
+dt_plot <- lambda_R2_dt5
+dt_plot2 <- lambda_R2_dt5D
+
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+for(j in 1:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
+}
+
+
+par_set1 <- lambda_R_setL
+dt_plot <- lambda_R2_dt50
+dt_plot2 <- lambda_R2_dt50D
+
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+for(j in 1:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
+}
+
+# orchard function
+met <- "orch_function_mean"
+cc <- which(colnames(dt_plot)==met)
+
+par_set1 <- lambda_R_setL
+dt_plot <- lambda_R2_dt5
+dt_plot2 <- lambda_R2_dt5D
+
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+for(j in 1:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
+}
+
+
+par_set1 <- lambda_R_setL
+dt_plot <- lambda_R2_dt50
+dt_plot2 <- lambda_R2_dt50D
+
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+for(j in 1:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
+}
+
+
+
+# total ROI
+met <- "tot_ROI_mean"
+cc <- which(colnames(dt_plot)==met)
+
+par_set1 <- lambda_R_setL
+dt_plot <- lambda_R2_dt5
+dt_plot2 <- lambda_R2_dt5D
+
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2))
+for(j in 1:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
+}
+
+
+par_set1 <- lambda_R_setL
+dt_plot <- lambda_R2_dt50
+dt_plot2 <- lambda_R2_dt50D
+
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2))
+for(j in 1:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
+}
+
 
 ```
 
