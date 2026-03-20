@@ -2505,6 +2505,7 @@ surv_pars.o[[1]][[1]][1] <- surv_pars.r[[1]][[1]][1]*par_set[i]
   
   if(par_name == "surv_pars.r_1"){
 surv_pars.r[[1]][[1]][1] <- surv_pars.r[[1]][[1]][1]*par_set[i]
+surv_pars.r[[1]][[2]][1] <- surv_pars.r[[1]][[1]][1]*par_set[i]
 
   }
   
@@ -2536,10 +2537,10 @@ dist_effects.r[[1]][[2]] <- as.list(rep("survival", length(dist_yrs)))
 surv_pars.r1 <- list() # first source (external recruits)
 surv_pars.o1 <- list()
 
-for(j in 1:length(dist_yrs)){ # for each year with a disturbance
+for(jj in 1:length(dist_yrs)){ # for each year with a disturbance
   # update the survival parameters
-  surv_pars.r1[[j]] <- surv_pars.r[[1]][[1]]*0.25 # note this is the same as the proportional reduction in reference reef production
-  surv_pars.o1[[j]] <- surv_pars.o[[1]][[1]]*0.4
+  surv_pars.r1[[jj]] <- surv_pars.r[[1]][[1]]*0.25 # note this is the same as the proportional reduction in reference reef production
+  surv_pars.o1[[jj]] <- surv_pars.o[[1]][[1]]*0.4
 
 }
 
@@ -2570,6 +2571,8 @@ dist_pars.o[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
   
   
   }
+  
+
   
   # holding list for model simulations with this parameter set
   mod_list <- list()
@@ -2777,21 +2780,26 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
     if(is.na(as.vector(dt_D0)[1]) == T){
       dt_iM <- dt_i
     } else{
-      dt_iM <- dt_D0[which(dt_D0$par_rep == i),]
+      if("par_rep" %in% colnames(dt_D0)){ # bad messy way of dealing with inconsistent naming...
+        dt_iM <- dt_D0[which(dt_D0$par_rep == i),]
+      } else{
+        dt_iM <- dt_D0[which(dt_D0$par_val == par_set2[i]),]
+      }
+      
     }
   
-    reef_cover_max_i <- max(dt_iM$reef_cover_mean)
+    reef_cover_max_i <- max(dt_iM$reef_cover_mean, na.rm = T)
    # reef_cover_max_i <- ifelse(reef_cover_max_i == 0, 1, reef_cover_max_i)
-    orch_fun_max_i <- max(dt_iM$orch_function_mean)
+    orch_fun_max_i <- max(dt_iM$orch_function_mean, na.rm = T)
    # orch_fun_max_i <- ifelse(orch_fun_max_i == 0, 1, orch_fun_max_i)
-    reef_ROI_max_i <- max(dt_iM$reef_ROI_mean)
+    reef_ROI_max_i <- max(dt_iM$reef_ROI_mean, na.rm = T)
    # reef_ROI_max_i <- ifelse(reef_ROI_max_i == 0, 1, reef_ROI_max_i)
-    tot_ROI_max_i <- max(dt_iM$tot_ROI_mean)
+    tot_ROI_max_i <- max(dt_iM$tot_ROI_mean, na.rm = T)
    # tot_ROI_max_i <- ifelse(tot_ROI_max_i == 0, 1, tot_ROI_max_i)
    # tot_costs_min_i <- min(dt_iM$tot_costs) # want to minimize total costs
-    tot_costs_max_i <- max(dt_iM$tot_costs)
+    tot_costs_max_i <- max(dt_iM$tot_costs, na.rm = T)
     tot_saved_max_i <- tot_costs_max_i - min(dt_iM$tot_costs)
-    reef_recruits_out_tot_max_i <- max(dt_iM$reef_recruits_out_tot)
+    reef_recruits_out_tot_max_i <- max(dt_iM$reef_recruits_out_tot, na.rm = T)
   #  reef_recruits_out_tot_max_i <- ifelse(reef_recruits_out_tot_max_i == 0, 1, reef_recruits_out_tot_max_i)
     
   
@@ -3172,9 +3180,9 @@ lambda_R2_dt5 <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_
 lambda_R2_dt50 <- orch_exp_sens_fun(sim_list = sens_lambda_R2, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
 
 
-lambda_R2_dt5D <- orch_exp_sens_fun(sim_list = sens_lambda_R2D, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+lambda_R2_dt5D <- orch_exp_sens_fun(sim_list = sens_lambda_R2D, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = lambda_R2_dt5)
  
-lambda_R2_dt50D <- orch_exp_sens_fun(sim_list = sens_lambda_R2D, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+lambda_R2_dt50D <- orch_exp_sens_fun(sim_list = sens_lambda_R2D, par_set2 = lambda_R_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = lambda_R2_dt50)
 
 
 #View(lambda_R2_dt)
@@ -3184,28 +3192,54 @@ lambda_R2_dt50D <- orch_exp_sens_fun(sim_list = sens_lambda_R2D, par_set2 = lamb
 ```
 
 
+
 ```{r}
+# check legend placements
+plot(x = c(1:10), y = c(1:10), type = "l")
+legend("topleft", legend = c("line"), lwd = 1, title = "Legend", bty = "n", x.intersp = 0, y.intersp = 0.5, title.adj = 1)
+
+
+```
+
+
+```{r}
+
 
 # now make metric plots; 8 panels (column 1 = 5 years, column 2 = 50 years, red = with disturbance, black = without, shading = par value). Or color = par value, solid = no dist, dashed = with disturbance? Or line type = par value, color = disturbance or not?
 
 #View(lambda_R2_dt5)
 
-lty_set <- c(1, 2, 3)
-lwd_set <- c(1.5, 2, 2.5)
+
 #col_set0 <- c("gray90", "gray50", "gray10")
 
 cols0 <- c("black", "red")
+
+ax_cex <- 0.9
+leg_cex <- 0.85
+
+
+full_sens_plot <- function(par_set_p, dt5, dt5D, dt50, dt50D){
+  
+
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8), nrow = 4, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 4))
+#layout.show(2)
+par(mar=c(0, 2, 1, 3), oma = c(4.5, 6, 2, 0))
 
 
 # reef cover
 met <- "reef_cover_mean"
 cc <- which(colnames(dt_plot)==met)
 
-par_set1 <- lambda_R_setL
-dt_plot <- lambda_R2_dt5
-dt_plot2 <- lambda_R2_dt5D
+par_set1 <- par_set_p
+dt_plot <- dt5
+dt_plot2 <- dt5D
 
 plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+mtext(side = 1, "Proportion initially outplanted to reef", outer = T, cex = ax_cex, line = 2.5)
+mtext(side = 3, "5 year simulation")
+mtext(side = 2, "Reef coral", line = 4, cex = ax_cex)
+mtext(side = 2, expression("cover ("*m^2*")"), line = 2.5, cex = ax_cex)
 axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
 for(j in 1:length(par_set1)){
   dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
@@ -3213,13 +3247,18 @@ for(j in 1:length(par_set1)){
   dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
   lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
 }
+legend("topleft", legend = leg_vals, title = leg_title, lty = lty_set, lwd = lwd_setL, bty = "n", cex = leg_cex, inset = c(0, -0.01), ncol = 2)
+
+#legend("topleft", legend = leg_vals, title = leg_title, lty = lty_set, lwd = lwd_setL, bty = "n", cex = leg_cex, inset = c(-0.1, -0.01), ncol = 2) # , title.adj = 1
+
+legend("left", legend = c("N", "Y"), title = "Disturbance", lwd = 2, col = cols0, bty = "n", cex = leg_cex)
 
 
-par_set1 <- lambda_R_setL
-dt_plot <- lambda_R2_dt50
-dt_plot2 <- lambda_R2_dt50D
+dt_plot <- dt50
+dt_plot2 <- dt50D
 
 plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+mtext(side = 3, "50 year simulation")
 axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
 for(j in 1:length(par_set1)){
   dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
@@ -3233,11 +3272,12 @@ for(j in 1:length(par_set1)){
 met <- "reef_ROI_mean"
 cc <- which(colnames(dt_plot)==met)
 
-par_set1 <- lambda_R_setL
-dt_plot <- lambda_R2_dt5
-dt_plot2 <- lambda_R2_dt5D
+dt_plot <- dt5
+dt_plot2 <- dt5D
 
 plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+mtext(side = 2, "Reef ROI", line = 5.75, cex = ax_cex)
+mtext(side = 2, expression("("*m^2~"coral/$)"), line = 4.25, cex = ax_cex)
 axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
 for(j in 1:length(par_set1)){
   dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
@@ -3247,9 +3287,8 @@ for(j in 1:length(par_set1)){
 }
 
 
-par_set1 <- lambda_R_setL
-dt_plot <- lambda_R2_dt50
-dt_plot2 <- lambda_R2_dt50D
+dt_plot <- dt50
+dt_plot2 <- dt50D
 
 plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
 axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
@@ -3264,11 +3303,12 @@ for(j in 1:length(par_set1)){
 met <- "orch_function_mean"
 cc <- which(colnames(dt_plot)==met)
 
-par_set1 <- lambda_R_setL
-dt_plot <- lambda_R2_dt5
-dt_plot2 <- lambda_R2_dt5D
+dt_plot <- dt5
+dt_plot2 <- dt5D
 
 plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+mtext(side = 2, "Orchard function", line = 3.75, cex = ax_cex)
+mtext(side = 2, expression("("*m^2~"adult corals)"), line = 2.25, cex = ax_cex)
 axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
 for(j in 1:length(par_set1)){
   dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
@@ -3278,9 +3318,8 @@ for(j in 1:length(par_set1)){
 }
 
 
-par_set1 <- lambda_R_setL
-dt_plot <- lambda_R2_dt50
-dt_plot2 <- lambda_R2_dt50D
+dt_plot <- dt50
+dt_plot2 <- dt50D
 
 plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
 axis(side = 1, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
@@ -3297,9 +3336,23 @@ for(j in 1:length(par_set1)){
 met <- "tot_ROI_mean"
 cc <- which(colnames(dt_plot)==met)
 
-par_set1 <- lambda_R_setL
-dt_plot <- lambda_R2_dt5
-dt_plot2 <- lambda_R2_dt5D
+dt_plot <- dt5
+dt_plot2 <- dt5D
+
+plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+mtext(side = 2, "Total ROI", line = 5.5, cex = ax_cex)
+mtext(side = 2, expression("("*m^2~"coral/$)"), line = 4, cex = ax_cex)
+axis(side = 1, at = seq(from = 0, to = 1, by = 0.2))
+for(j in 1:length(par_set1)){
+  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
+  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
+  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
+}
+
+
+dt_plot <- dt50
+dt_plot2 <- dt50D
 
 plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
 axis(side = 1, at = seq(from = 0, to = 1, by = 0.2))
@@ -3311,25 +3364,302 @@ for(j in 1:length(par_set1)){
 }
 
 
-par_set1 <- lambda_R_setL
-dt_plot <- lambda_R2_dt50
-dt_plot2 <- lambda_R2_dt50D
-
-plot(x = dt_plot$prop_out[1], y = dt_plot[1,cc], type = "l", ylim = c(0,max(dt_plot[,cc])),xlim = c(0,1), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
-axis(side = 1, at = seq(from = 0, to = 1, by = 0.2))
-for(j in 1:length(par_set1)){
-  dt_plot1 <- dt_plot %>% filter(par_val == par_set1[j])
-  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], col = cols0[1], lwd = lwd_set[j])
-  dt_plot1 <- dt_plot2 %>% filter(par_val == par_set1[j])
-  lines(x = dt_plot1$prop_out, y = dt_plot1[,cc], type = "l", lty = lty_set[j], lwd = lwd_set[j], col = cols0[2])
 }
+
+```
+
+
+```{r}
+
+
+
+leg_title <- "Ref. reef recruits (x default)"
+leg_vals <- as.character(c(0, 0.5, 1))
+lty_set <- rev(c(1, 2, 3))
+lwd_set <- rev(c(1.5, 2, 2.5))
+
+lwd_setL <- c(2, 1.5, 2) # for legend
+
+pdf("TempFigs/full_lambdaR1.pdf", height = 6, width = 5)
+
+full_sens_plot(par_set_p = lambda_R_setL, dt5 = lambda_R2_dt5, dt5D = lambda_R2_dt5D, dt50 = lambda_R2_dt50, dt50D = lambda_R2_dt50D)
+
+dev.off()
+
+```
+
+what you're looking for on these plots is whether the lines cross (which proportion is best changes) 
+
+
+-- lab capacity
+
+
+```{r}
+lab_max0 <- 3100 # default value
+
+lab_max_setL <- c(1, 1.5, 2)*lab_max0
+
+# par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
+# dem_pars = demographic parameters to use
+# prop_set1 = values proportion of substrates to outplant to orchard to iterate over
+tic()
+sens_lab_max2 <- par_sens_fun1(par_set = lab_max_setL, par_name = "lab_max", prop_setS, dem_pars = all_pars)
+
+sens_lab_max2D <- par_sens_fun1(par_set = lab_max_setL, par_name = "lab_max", prop_setS, dem_pars = all_pars, dist = T)
+
+toc()
+
+# process the results
+lab_max2_dt5 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+ 
+lab_max2_dt50 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+
+
+lab_max2_dt5D <- orch_exp_sens_fun(sim_list = sens_lab_max2D, par_set2 = lab_max_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = lab_max2_dt5)
+ 
+lab_max2_dt50D <- orch_exp_sens_fun(sim_list = sens_lab_max2D, par_set2 = lab_max_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = lab_max2_dt50)
+
+
+leg_title <- "Lab capacity (x default)"
+leg_vals <- as.character(c(1, 1.5, 2))
+lty_set <- c(1, 2, 3)
+lwd_set <- c(1.5, 2, 2.5)
+
+pdf("TempFigs/full_lab_max.pdf", height = 6, width = 5)
+
+full_sens_plot(par_set_p = lab_max_setL, dt5 = lab_max2_dt5, dt5D = lab_max2_dt5D, dt50 = lab_max2_dt50, dt50D = lab_max2_dt50D)
+
+dev.off()
 
 
 ```
 
-what you're looking for on these plots is whether the lines cross (which proportion is best changes) as a function of the x-axis parameter value
 
-UPDATE: maybe it's less confusing to just keep proportion outplanted on the x-axis, and have the different lines be for different parameter values
+-- orchard capacity
+
+```{r}
+orchard_size0 <- 15000 # default value
+
+orchard_size_setL <- c(1, 1.5, 2)*orchard_size0
+
+# par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
+# dem_pars = demographic parameters to use
+# prop_set1 = values proportion of substrates to outplant to orchard to iterate over
+tic()
+sens_orchard_size2 <- par_sens_fun1(par_set = orchard_size_setL, par_name = "orchard_size", prop_setS, dem_pars = all_pars)
+
+sens_orchard_size2D <- par_sens_fun1(par_set = orchard_size_setL, par_name = "orchard_size", prop_setS, dem_pars = all_pars, dist = T)
+
+toc()
+
+# process the results
+orchard_size2_dt5 <- orch_exp_sens_fun(sim_list = sens_orchard_size2, par_set2 = orchard_size_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+ 
+orchard_size2_dt50 <- orch_exp_sens_fun(sim_list = sens_orchard_size2, par_set2 = orchard_size_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+
+
+orchard_size2_dt5D <- orch_exp_sens_fun(sim_list = sens_orchard_size2D, par_set2 = orchard_size_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = orchard_size2_dt5)
+ 
+orchard_size2_dt50D <- orch_exp_sens_fun(sim_list = sens_orchard_size2D, par_set2 = orchard_size_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = orchard_size2_dt50)
+
+
+leg_title <- "Orchard capacity (x default)"
+leg_vals <- as.character(c(1, 1.5, 2))
+lty_set <- c(1, 2, 3)
+lwd_set <- c(1.5, 2, 2.5)
+
+pdf("TempFigs/full_orchard_size.pdf", height = 6, width = 5)
+
+full_sens_plot(par_set_p = orchard_size_setL, dt5 = orchard_size2_dt5, dt5D = orchard_size2_dt5D, dt50 = orchard_size2_dt50, dt50D = orchard_size2_dt50D)
+
+dev.off()
+
+
+```
+
+
+
+
+-- orchard fecundity, orchard fecundity x reference reef supply (i.e., with and without reference reef supply?)
+
+
+```{r}
+#orchard_fec0 <- 48273.5 # default value
+
+orchard_fec_setL <- c(0, 1, 2)
+
+# par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
+# dem_pars = demographic parameters to use
+# prop_set1 = values proportion of substrates to outplant to orchard to iterate over
+tic()
+sens_orchard_fec2 <- par_sens_fun1(par_set = orchard_fec_setL, par_name = "fec_pars.o", prop_setS, dem_pars = all_pars)
+
+sens_orchard_fec2D <- par_sens_fun1(par_set = orchard_fec_setL, par_name = "fec_pars.o", prop_setS, dem_pars = all_pars, dist = T)
+
+toc()
+
+# process the results
+orchard_fec2_dt5 <- orch_exp_sens_fun(sim_list = sens_orchard_fec2, par_set2 = orchard_fec_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+ 
+orchard_fec2_dt50 <- orch_exp_sens_fun(sim_list = sens_orchard_fec2, par_set2 = orchard_fec_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+
+
+orchard_fec2_dt5D <- orch_exp_sens_fun(sim_list = sens_orchard_fec2D, par_set2 = orchard_fec_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = orchard_fec2_dt5)
+ 
+orchard_fec2_dt50D <- orch_exp_sens_fun(sim_list = sens_orchard_fec2D, par_set2 = orchard_fec_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = orchard_fec2_dt50)
+
+
+leg_title <- "Orchard fecundity (x default)"
+leg_vals <- as.character(c(0, 1, 2))
+lty_set <- c(2, 1, 3)
+lwd_set <- c(1.5, 2, 2.5)
+# lwd_setL <- c(2, 1.5, 2) 
+lwd_setL <- c(1.5, 2, 2) 
+
+pdf("TempFigs/full_orchard_fecundity.pdf", height = 6, width = 5)
+
+full_sens_plot(par_set_p = orchard_fec_setL, dt5 = orchard_fec2_dt5, dt5D = orchard_fec2_dt5D, dt50 = orchard_fec2_dt50, dt50D = orchard_fec2_dt50D)
+
+dev.off()
+
+
+```
+
+
+```{r}
+# repeat orchard fecundity without reference reef supply
+
+lambda_R <- 0
+N0.o[[1]][[1]] <- c(0.1, 0, 0, 0, 0)
+
+sens_orchard_fec3 <- par_sens_fun1(par_set = orchard_fec_setL, par_name = "fec_pars.o", prop_setS, dem_pars = all_pars)
+
+sens_orchard_fec3D <- par_sens_fun1(par_set = orchard_fec_setL, par_name = "fec_pars.o", prop_setS, dem_pars = all_pars, dist = T)
+
+# reset to default
+lambda_R <- 1255111
+N0.o[[1]][[1]] <- rep(0, n) # reset initial conditions in the orchard
+
+# process the results
+orchard_fec3_dt5 <- orch_exp_sens_fun(sim_list = sens_orchard_fec3, par_set2 = orchard_fec_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+ 
+orchard_fec3_dt50 <- orch_exp_sens_fun(sim_list = sens_orchard_fec3, par_set2 = orchard_fec_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+
+
+orchard_fec3_dt5D <- orch_exp_sens_fun(sim_list = sens_orchard_fec3D, par_set2 = orchard_fec_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = orchard_fec3_dt5)
+ 
+orchard_fec3_dt50D <- orch_exp_sens_fun(sim_list = sens_orchard_fec3D, par_set2 = orchard_fec_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = orchard_fec3_dt50)
+
+
+leg_title <- "Orch. fec. (x default)"
+leg_vals <- as.character(c(0, 1, 2))
+lty_set <- c(2, 1, 3)
+lwd_set <- c(1.5, 2, 2.5)
+# lwd_setL <- c(2, 1.5, 2) 
+lwd_setL <- c(1.5, 2, 2) 
+
+pdf("TempFigs/full_orchard_fecundity_noR.pdf", height = 6, width = 5)
+
+full_sens_plot(par_set_p = orchard_fec_setL, dt5 = orchard_fec3_dt5, dt5D = orchard_fec3_dt5D, dt50 = orchard_fec3_dt50, dt50D = orchard_fec3_dt50D)
+
+dev.off()
+
+```
+
+
+
+-- survival of smallest size class on reef (has implications for effectiveness of intervention strategies)
+
+```{r}
+#surv_pars.r[[1]][[1]][1]
+
+reef_surv_setL <- c(1, 5, 10)
+
+# par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
+# dem_pars = demographic parameters to use
+# prop_set1 = values proportion of substrates to outplant to orchard to iterate over
+tic()
+sens_reef_surv2 <- par_sens_fun1(par_set = reef_surv_setL, par_name = "surv_pars.r_1", prop_setS, dem_pars = all_pars)
+
+sens_reef_surv2D <- par_sens_fun1(par_set = reef_surv_setL, par_name = "surv_pars.r_1", prop_setS, dem_pars = all_pars, dist = T)
+
+toc()
+
+# process the results
+reef_surv2_dt5 <- orch_exp_sens_fun(sim_list = sens_reef_surv2, par_set2 = reef_surv_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+ 
+reef_surv2_dt50 <- orch_exp_sens_fun(sim_list = sens_reef_surv2, par_set2 = reef_surv_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+
+
+reef_surv2_dt5D <- orch_exp_sens_fun(sim_list = sens_reef_surv2D, par_set2 = reef_surv_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = reef_surv2_dt5)
+ 
+reef_surv2_dt50D <- orch_exp_sens_fun(sim_list = sens_reef_surv2D, par_set2 = reef_surv_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = reef_surv2_dt50)
+
+
+leg_title <- "Reef survival (x default)"
+leg_vals <- as.character(c(1, 5, 10))
+lty_set <- c(1, 2, 3)
+lwd_set <- c(2, 1.5, 2.5)
+# lwd_setL <- c(2, 1.5, 2) 
+lwd_setL <- c(2,1.5, 2) 
+
+pdf("TempFigs/full_reef_surv.pdf", height = 6, width = 5)
+
+full_sens_plot(par_set_p = reef_surv_setL, dt5 = reef_surv2_dt5, dt5D = reef_surv2_dt5D, dt50 = reef_surv2_dt50, dt50D = reef_surv2_dt50D)
+
+dev.off()
+
+
+```
+
+
+
+
+-- orchard survival rates relative to reef (which should also affect how many die from disturbance? Or should that be explored separately?). Repeat with and without reference reef supply?
+
+```{r}
+
+
+#surv_pars.o[[1]][[1]][1]/surv_pars.r[[1]][[1]][1]
+
+orch_surv_setL <- c(1, 30, 60) # orchard survival is this value multiplied by REEF survival; default is about 60
+
+# par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
+# dem_pars = demographic parameters to use
+# prop_set1 = values proportion of substrates to outplant to orchard to iterate over
+tic()
+sens_orch_surv2 <- par_sens_fun1(par_set = orch_surv_setL, par_name = "surv_pars.o_1", prop_setS, dem_pars = all_pars)
+
+sens_orch_surv2D <- par_sens_fun1(par_set = orch_surv_setL, par_name = "surv_pars.o_1", prop_setS, dem_pars = all_pars, dist = T)
+
+toc()
+
+# process the results
+orch_surv2_dt5 <- orch_exp_sens_fun(sim_list = sens_orch_surv2, par_set2 = orch_surv_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+ 
+orch_surv2_dt50 <- orch_exp_sens_fun(sim_list = sens_orch_surv2, par_set2 = orch_surv_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
+
+
+orch_surv2_dt5D <- orch_exp_sens_fun(sim_list = sens_orch_surv2D, par_set2 = orch_surv_setL, prop_setS, L2, length(prop_setS), max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = orch_surv2_dt5)
+ 
+orch_surv2_dt50D <- orch_exp_sens_fun(sim_list = sens_orch_surv2D, par_set2 = orch_surv_setL, prop_setS, L2, length(prop_setS), max_yr = 50, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = orch_surv2_dt50)
+
+
+leg_title <- "Orch surv (x reef surv)"
+leg_vals <- as.character(c(1, 30, 60))
+lty_set <- rev(c(1, 2, 3))
+lwd_set <- rev(c(2, 1.5, 2.5))
+# lwd_setL <- c(2, 1.5, 2) 
+lwd_setL <- c(2,1.5, 2) 
+
+pdf("TempFigs/full_orch_surv.pdf", height = 6, width = 5)
+
+full_sens_plot(par_set_p = orch_surv_setL, dt5 = orch_surv2_dt5, dt5D = orch_surv2_dt5D, dt50 = orch_surv2_dt50, dt50D = orch_surv2_dt50D)
+
+dev.off()
+
+
+```
 
 ### initial plotting exploration
 ```{r}
