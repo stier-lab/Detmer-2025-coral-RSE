@@ -491,11 +491,15 @@ process results
 # function for extracting performance metrics from the orchard expansion simulations
 orch_exp_metric_fun <- function(sim_list, n_sample1, L1, max_yr, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 1, recruits_out = 1), dt_D0 = data.frame(NA)){
   
+      r_inf <- 0.056 # inflation rate
       # fixed costs
-      c_RS <- 84.6*rest_pars$orchard_size/30 + 1200 # reef stars (cost of reef stars plus cost of boat rental for installation)
-      c_perm <- 400*length(2:max_yr) # permits for collecting babies (400 per year)
-      c_boat <- 1200*4*length(2:max_yr) # boat maintenance (1200 every 3 months/4x per year)
-      c_log <- 500*12*length(2:max_yr) # logistics/personnel (500 per month/12x per year)
+      c_RS <- 84.6*rest_pars$orchard_size/30 + 1200 # reef stars (cost of reef stars plus cost of boat rental for installation); no inflation because assume this is only an initial cost
+      
+      # fixed costs that are per year (need to account for inflation)
+      # c_perm <- 400*length(2:max_yr)
+      c_perm <- sum(400*(1 + r_inf)^(2:max_yr)) # permits for collecting babies (400 per year)
+      c_boat <- sum(1200*4*(1 + r_inf)^(2:max_yr)) # boat maintenance (1200 every 3 months/4x per year)
+      c_log <- sum(500*12*(1 + r_inf)^(2:max_yr)) # logistics/personnel (500 per month/12x per year)
       
       c_fixed <- c_RS + c_perm + c_boat + c_log
   
@@ -515,6 +519,7 @@ orch_exp_metric_fun <- function(sim_list, n_sample1, L1, max_yr, weights = list(
   reef_ROI_mean = rep(NA, L1), # average coral cover on reef per dollar spent, averaged over max_yr years
   tot_ROI_mean = rep(NA, L1), # average total ROI (total area covered by corals on reef and orchard per dollar spent)
   orch_function_mean = rep(NA, L1), # avg area covered by large/reproductive (size classes 3-5) corals in orchard
+  orch_full = rep(NA, L1), # first time point when the orchard is full
  tot_costs = rep(NA, L1), # total amount spent over length of simulation
  costs_saved = rep(NA, L1), # amount saved relative to most expensive strategy
  c_fixed = rep(NA, L1), # fixed costs
@@ -562,6 +567,9 @@ strategy_score = rep(NA, L1), # weighted sum of top metrics relative to their ma
       # orchard function
 orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
 
+ # orchard adults (for recording time to full orchard)
+orch_ad_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
+
       dt_i$prop_out[j] <- prop_set[j]
       dt_i$reef_cover_mean[j] <- mean(reef_cover_ij[2:max_yr], na.rm = T)
       dt_i$reef_function_mean[j] <- mean(reef_fun_ij[2:max_yr], na.rm = T)
@@ -572,11 +580,15 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       #dt_i$orch_rep_cost[j] <- mean(orch_rep_ij[2:max_yr], na.rm = T)/orch_rep_max
       dt_i$orch_function_mean[j] <- mean(orch_fun_ij[2:max_yr], na.rm = T)
       
+      # threshold value for full orchard
+      orch_thresh <- rest_pars$orchard_size*1
+      
+      dt_i$orch_full[j] <- ifelse(max(orch_ad_ij) >= orch_thresh, min(which(orch_ad_ij >= orch_thresh)), NA)
     
       
       # variable costs
       # substrate costs
-      c_subs <- sum((sim_ij$reef_tiles_out[2:max_yr] + sim_ij$orchard_tiles_out[2:max_yr]) *(0.5*1 + 0.5*7))
+      c_subs <- sum((sim_ij$reef_tiles_out[2:max_yr] + sim_ij$orchard_tiles_out[2:max_yr]) *(0.5*1 + 0.5*7)*(1 + r_inf)^(2:max_yr))
       
       
     # outplanting and orchard maintenance costs
@@ -590,8 +602,11 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
  # outplanting costs (assuming you can outplant ~1,250 substrates per day to the reef and 800 per day to the orchard)
         c_reef[ii-1] <- 300*ceiling(sim_ij$reef_tiles_out[ii]/1250) + 200*sim_ij$reef_tiles_out[ii]/1250 + 380/2000*sim_ij$reef_tiles_out[ii]
         
+        c_reef[ii-1] <- c_reef[ii-1]*(1 + r_inf)^(ii)
+        
        c_orch[ii-1] <- 300*ceiling(sim_ij$orchard_tiles_out[ii]/800) + 200*sim_ij$orchard_tiles_out[ii]/800 + 250/2000 * sim_ij$orchard_tiles_out[ii]
        
+       c_orch[ii-1] <- c_orch[ii-1]*(1 + r_inf)^(ii)
         
         # currently occupied reef stars in the orchard:
         RS_ii <- rep(NA, length(orchard_treatments))
@@ -602,7 +617,7 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
         RS_ii <- sum(RS_ii) # filled reef stars in orchard this year
         
         c_maint[ii-1] <- ifelse(RS_ii == 0, 0, (1.5*530-530)/(2*123-123)*RS_ii + 265) 
-        c_maint[ii-1] <- c_maint[ii-1]*2 # assume maintenance is performed 2x per year
+        c_maint[ii-1] <- c_maint[ii-1]*2*(1 + r_inf)^(ii) # assume maintenance is performed 2x per year, also add inflation
         
       } # end of loop over 2:max_yr
       
@@ -610,7 +625,8 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       c_maint <- sum(c_maint)
  
       # lab costs
-      c_lab <- (432*7 + 200*7)*length(2:max_yr) # assume all tiles are only kept in the lab for two weeks
+     # c_lab <- (432*7 + 200*7)*length(2:max_yr) # assume all tiles are only kept in the lab for two weeks
+      c_lab <- sum((432*7 + 200*7)*(1 + r_inf)^(2:max_yr))
     
       
   
@@ -618,6 +634,7 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       c_spawn <- rep(NA, length(2:max_yr))
       for(ii in 2:max_yr){
         c_spawn[ii-1] <- ifelse(sim_ij$reef_babies_used[ii] > 0, 6500, 0) + ifelse(sim_ij$orchard_babies_used[ii] > 0, 3250, 0)
+        c_spawn[ii-1] <- c_spawn[ii-1]*(1 + r_inf)^(ii)
         
       }
     
@@ -1064,6 +1081,9 @@ dev.off()
 
 
 ```{r}
+
+metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") # coral cover on reef, orchard function, reef ROI, total ROI, total costs, recruits outplanted to reef
+
 # make a legend
 pdf("TempFigs/OHI_legend.pdf", height = 7, width = 7)
 plot(x = 1, y = 1, col = NA, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n", bty = "n")#, bty = "n"
@@ -1339,83 +1359,83 @@ dev.off()
 testing the ocean health index plots
 
 ```{r}
-# y = sqrt(r^r - x^2)
-
-test_x <- seq(from = -1, to = 1, length.out = 100)
-
-par(pty = "s")
-plot(x = 1, y = 1, col = NA, xlim = c(-2, 2), ylim = c(-2, 2), asp = 1, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
-#lines(x = test_x, y = sqrt(1 - test_x^2))
-#lines(x = test_x, y = -1*sqrt(1 - test_x^2))
-polygon(x = c(test_x, rev(test_x)), y = c(sqrt(1 - test_x^2), rev(-1*sqrt(1 - test_x^2)))) # , col = "gray"
-# inner segment: r = 
-
-# r^2 = x^2 + y^2
-
-# polar coordinates:
-# x = r*cos(theta)
-# y = r*sin(theta)
-
-# want inner and outer segments, each are 60 degrees
-# from 0 to 60: x1 = r*cos(0), x2 = r*cos(60*pi/180)
-r_in <- 0.5
-th1 <- 0 # starting angle (in degrees)
-th2 <- 60 # ending angle (in degrees)
-r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
-#lines(x = r_in_x, y = sqrt(r_in^2 - r_in_x^2), col = "red")
-
-r_out <- 1
-r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
-#lines(x = r_out_x, y = sqrt(r_out^2 - r_out_x^2), col = "red")
-
-polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = "red")
-
-r_in <- 0.5
-r_out <- 1
-th1 <- 60 # starting angle (in degrees)
-th2 <- 120 # ending angle (in degrees)
-r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
-r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
-polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = "blue")
-
-r_in <- 0.5
-r_out <- 1
-th1 <- 120 # starting angle (in degrees)
-th2 <- 180 # ending angle (in degrees)
-r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
-r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
-polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = "orange")
-
-# past 180: need to switch to negative square root
-r_in <- 0.5
-r_out <- 1
-th1 <- 180 # starting angle (in degrees)
-th2 <- 240 # ending angle (in degrees)
-r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
-r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
-polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = "orchid")
-
-r_in <- 0.5
-r_out <- 1
-th1 <- 240 # starting angle (in degrees)
-th2 <- 300 # ending angle (in degrees)
-r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
-r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
-polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = "forestgreen")
-
-r_in <- 0.5
-r_out <- 1
-th1 <- 300 # starting angle (in degrees)
-th2 <- 360 # ending angle (in degrees)
-r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
-r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
-polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = "dodgerblue")
-
-# cos(90*pi/180)
-# sin(90*pi/180)
-# cos(0)
-# sin(0)
-# 180* = pi radians --> x* = pi/180 radians
+# # y = sqrt(r^r - x^2)
+# 
+# test_x <- seq(from = -1, to = 1, length.out = 100)
+# 
+# par(pty = "s")
+# plot(x = 1, y = 1, col = NA, xlim = c(-2, 2), ylim = c(-2, 2), asp = 1, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
+# #lines(x = test_x, y = sqrt(1 - test_x^2))
+# #lines(x = test_x, y = -1*sqrt(1 - test_x^2))
+# polygon(x = c(test_x, rev(test_x)), y = c(sqrt(1 - test_x^2), rev(-1*sqrt(1 - test_x^2)))) # , col = "gray"
+# # inner segment: r = 
+# 
+# # r^2 = x^2 + y^2
+# 
+# # polar coordinates:
+# # x = r*cos(theta)
+# # y = r*sin(theta)
+# 
+# # want inner and outer segments, each are 60 degrees
+# # from 0 to 60: x1 = r*cos(0), x2 = r*cos(60*pi/180)
+# r_in <- 0.5
+# th1 <- 0 # starting angle (in degrees)
+# th2 <- 60 # ending angle (in degrees)
+# r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+# #lines(x = r_in_x, y = sqrt(r_in^2 - r_in_x^2), col = "red")
+# 
+# r_out <- 1
+# r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+# #lines(x = r_out_x, y = sqrt(r_out^2 - r_out_x^2), col = "red")
+# 
+# polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = "red")
+# 
+# r_in <- 0.5
+# r_out <- 1
+# th1 <- 60 # starting angle (in degrees)
+# th2 <- 120 # ending angle (in degrees)
+# r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+# r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+# polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = "blue")
+# 
+# r_in <- 0.5
+# r_out <- 1
+# th1 <- 120 # starting angle (in degrees)
+# th2 <- 180 # ending angle (in degrees)
+# r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+# r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+# polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = "orange")
+# 
+# # past 180: need to switch to negative square root
+# r_in <- 0.5
+# r_out <- 1
+# th1 <- 180 # starting angle (in degrees)
+# th2 <- 240 # ending angle (in degrees)
+# r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+# r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+# polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = "orchid")
+# 
+# r_in <- 0.5
+# r_out <- 1
+# th1 <- 240 # starting angle (in degrees)
+# th2 <- 300 # ending angle (in degrees)
+# r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+# r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+# polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = "forestgreen")
+# 
+# r_in <- 0.5
+# r_out <- 1
+# th1 <- 300 # starting angle (in degrees)
+# th2 <- 360 # ending angle (in degrees)
+# r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+# r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+# polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = "dodgerblue")
+# 
+# # cos(90*pi/180)
+# # sin(90*pi/180)
+# # cos(0)
+# # sin(0)
+# # 180* = pi radians --> x* = pi/180 radians
 
 
 ```
@@ -1538,18 +1558,30 @@ toc()
 ```{r}
 # check that this worked
 
-reef1_tot <- model_summ(model_sim = orch_exp_list_D1[[4]][[L1]], location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+# reef1_tot <- model_summ(model_sim = orch_exp_list_D1[[4]][[L1]], location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+# 
+# orch1_tot <- model_summ(model_sim = orch_exp_list_D1[[4]][[L1]], location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+# 
+# 
+# plot(x = c(1:years), y = orch1_tot, type = "l", las = 1, ylim = c(0, max(orch1_tot)), xlab = "year", ylab = "Area covered", lwd = 2)
+# 
+# 
+# plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(reef1_tot)), xlab = "year", ylab = "Area covered", lwd = 2)
+# 
+# plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Area covered", lwd = 2)
+# lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
+# legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 
-orch1_tot <- model_summ(model_sim = orch_exp_list_D1[[4]][[L1]], location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+orch1_tot <- model_summ(model_sim = orch_exp_list_D1[[10]][[13]], location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
+
+orch1_tot2 <- model_summ(model_sim = orch_exp_list_D1[[10]][[12]], location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
 
 
-plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(reef1_tot)), xlab = "year", ylab = "Area covered", lwd = 2)
+plot(x = c(1:years), y = orch1_tot, type = "l", las = 1, ylim = c(0, max(orch1_tot)), xlab = "year", ylab = "Adults", lwd = 2, col = "dodgerblue")
+abline(h = rest_pars$orchard_size)
+lines(x = c(1:years), y = orch1_tot2, lty = 2, col = "dodgerblue")
 
-
-plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(max(reef1_tot), max(orch1_tot))), xlab = "year", ylab = "Area covered", lwd = 2)
-lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lty = 2)
-legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
-
+# is the weirdness because of density dependence? Why should there be more if there are fewer tiles being put on the orchard?
 
 ```
 
@@ -1864,7 +1896,7 @@ lines(x = dt_plot1$reef_cover_s, y = dt_plot1$orchard_fun_s, pch = 16, col = pro
 mtext(side = 1, "Scaled reef cover", line = 2, outer = T)
 mtext(side = 2, "Scaled orchard function", line = 2.5)
 mtext(side = 3, "5 year simulation")
-for(i in 1:nrow(dt_plot)){
+for(i in 1:nrow(dt_plot0)){
   points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
   points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
 }
@@ -1879,7 +1911,7 @@ lines(x = dt_plot1$reef_cover_s, y = dt_plot1$orchard_fun_s, pch = 16, col = pro
 mtext(side = 3, "50 year simulation")
 #mtext(side = 1, "Scaled reef cover", line = 2)
 #mtext(side = 2, "Scaled orchard function", line = 2)
-for(i in 1:nrow(dt_plot)){
+for(i in 1:nrow(dt_plot0)){
   points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
   points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
 }
@@ -1904,7 +1936,7 @@ lines(x = dt_plot1$reef_cover_s, y = dt_plot1$reef_ROI_s, pch = 16, col = prop_c
 mtext(side = 1, "Scaled reef cover", line = 2, outer = T)
 mtext(side = 2, "Scaled reef ROI", line = 2)
 mtext(side = 3, "5 year simulation")
-for(i in 1:nrow(dt_plot)){
+for(i in 1:nrow(dt_plot0)){
   points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
   points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
 }
@@ -1919,7 +1951,7 @@ lines(x = dt_plot1$reef_cover_s, y = dt_plot1$reef_ROI_s, pch = 16, col = prop_c
 mtext(side = 3, "50 year simulation")
 #mtext(side = 1, "Scaled reef cover", line = 2)
 #mtext(side = 2, "Scaled reef ROI", line = 2)
-for(i in 1:nrow(dt_plot)){
+for(i in 1:nrow(dt_plot0)){
   points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
   points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
 }
@@ -2261,6 +2293,44 @@ dt_mean <- dt_plot1 %>% group_by(prop_out) %>% summarize(mean_val = mean(tot_ROI
 lines(x = dt_mean$prop_out, y = dt_mean$mean_val, col = Dcols[2], lwd = 2.5, lty = lty.mn)
 
 dev.off()
+
+```
+
+
+
+
+```{r}
+# show time to full orchard
+
+dt_plot0 <- orch_exp_50_D0
+dt_plot1 <- orch_exp_50_D1
+
+xlab1 <- NA
+ylab1 <- "Year filled"
+plotlab <- "Time to orchard capacity"
+
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(c(dt_plot0$orch_full, dt_plot1$orch_full), na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.75, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot0[which(dt_plot0$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[1], alpha.f = alpha1))
+}
+# dt_mean <- dt_plot0 %>% group_by(prop_out) %>% summarize(mean_val = mean(orch_full, na.rm = T))
+# lines(x = dt_mean$prop_out, y = dt_mean$mean_val, col = Dcols[1], lwd = 2.5, lty = lty.mn)
+for(i in 1:n_sample1){
+ # i <- 10
+  dt_sub <- dt_plot1[which(dt_plot1$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[2], alpha.f = alpha1))
+}
+# dt_mean <- dt_plot1 %>% group_by(prop_out) %>% summarize(mean_val = mean(orch_full, na.rm = T))
+# lines(x = dt_mean$prop_out, y = dt_mean$mean_val, col = Dcols[2], lwd = 2.5, lty = lty.mn)
+# add polygons over regions where it didn't fill up
+#polygon()
+
+
+# maybe instead could show proportion of simulations where orchard is filled by year x?
 
 ```
 
@@ -2620,11 +2690,15 @@ function for processing the output
 # function for extracting performance metrics from the orchard expansion simulations
 orch_exp_sens_fun <- function(sim_list, par_set2, prop_set, L2, L1, max_yr, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA)){
   
+      r_inf <- 0.056 # inflation rate
       # fixed costs
-      c_RS <- 84.6*rest_pars$orchard_size/30 + 1200 # reef stars (cost of reef stars plus cost of boat rental for installation)
-      c_perm <- 400*length(2:max_yr) # permits for collecting babies (400 per year)
-      c_boat <- 1200*4*length(2:max_yr) # boat maintenance (1200 every 3 months/4x per year)
-      c_log <- 500*12*length(2:max_yr) # logistics/personnel (500 per month/12x per year)
+      c_RS <- 84.6*rest_pars$orchard_size/30 + 1200 # reef stars (cost of reef stars plus cost of boat rental for installation); no inflation because assume this is only an initial cost
+      
+      # fixed costs that are per year (need to account for inflation)
+      # c_perm <- 400*length(2:max_yr)
+      c_perm <- sum(400*(1 + r_inf)^(2:max_yr)) # permits for collecting babies (400 per year)
+      c_boat <- sum(1200*4*(1 + r_inf)^(2:max_yr)) # boat maintenance (1200 every 3 months/4x per year)
+      c_log <- sum(500*12*(1 + r_inf)^(2:max_yr)) # logistics/personnel (500 per month/12x per year)
       
       c_fixed <- c_RS + c_perm + c_boat + c_log
   
@@ -2703,9 +2777,9 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       
     
       
-      # variable costs
+       # variable costs
       # substrate costs
-      c_subs <- sum((sim_ij$reef_tiles_out[2:max_yr] + sim_ij$orchard_tiles_out[2:max_yr]) *(0.5*1 + 0.5*7))
+      c_subs <- sum((sim_ij$reef_tiles_out[2:max_yr] + sim_ij$orchard_tiles_out[2:max_yr]) *(0.5*1 + 0.5*7)*(1 + r_inf)^(2:max_yr))
       
       
     # outplanting and orchard maintenance costs
@@ -2716,12 +2790,14 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       for(ii in 2:max_yr){
         #print(ii)
         
-        
- # update so the ceiling (per day costs) only apply to the boat costs
+ # outplanting costs (assuming you can outplant ~1,250 substrates per day to the reef and 800 per day to the orchard)
         c_reef[ii-1] <- 300*ceiling(sim_ij$reef_tiles_out[ii]/1250) + 200*sim_ij$reef_tiles_out[ii]/1250 + 380/2000*sim_ij$reef_tiles_out[ii]
+        
+        c_reef[ii-1] <- c_reef[ii-1]*(1 + r_inf)^(ii)
         
        c_orch[ii-1] <- 300*ceiling(sim_ij$orchard_tiles_out[ii]/800) + 200*sim_ij$orchard_tiles_out[ii]/800 + 250/2000 * sim_ij$orchard_tiles_out[ii]
        
+       c_orch[ii-1] <- c_orch[ii-1]*(1 + r_inf)^(ii)
         
         # currently occupied reef stars in the orchard:
         RS_ii <- rep(NA, length(orchard_treatments))
@@ -2732,7 +2808,7 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
         RS_ii <- sum(RS_ii) # filled reef stars in orchard this year
         
         c_maint[ii-1] <- ifelse(RS_ii == 0, 0, (1.5*530-530)/(2*123-123)*RS_ii + 265) 
-        c_maint[ii-1] <- c_maint[ii-1]*2 # assume maintenance is performed 2x per year
+        c_maint[ii-1] <- c_maint[ii-1]*2*(1 + r_inf)^(ii) # assume maintenance is performed 2x per year, also add inflation
         
       } # end of loop over 2:max_yr
       
@@ -2740,7 +2816,8 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       c_maint <- sum(c_maint)
  
       # lab costs
-      c_lab <- (432*7 + 200*7)*length(2:max_yr) # assume all tiles are only kept in the lab for two weeks
+     # c_lab <- (432*7 + 200*7)*length(2:max_yr) # assume all tiles are only kept in the lab for two weeks
+      c_lab <- sum((432*7 + 200*7)*(1 + r_inf)^(2:max_yr))
     
       
   
@@ -2748,6 +2825,7 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       c_spawn <- rep(NA, length(2:max_yr))
       for(ii in 2:max_yr){
         c_spawn[ii-1] <- ifelse(sim_ij$reef_babies_used[ii] > 0, 6500, 0) + ifelse(sim_ij$orchard_babies_used[ii] > 0, 3250, 0)
+        c_spawn[ii-1] <- c_spawn[ii-1]*(1 + r_inf)^(ii)
         
       }
     
@@ -3067,7 +3145,7 @@ sims_orchard_frag1 <- par_sens_fun1(par_set = c(0, 1), par_name = "frag_pars.o",
 
 pdf("TempFigs/ts_orchard_frag1.pdf", height = 5, width = 6)
 
-ts_plot1(plot_sims = sims_orchard_frag1, yrs_p = years, legend2_title = "Orchard fragmentation", legend2_labs = c("none", "equal to reef"), par_ltys = c(1, 2), ymaxs = c(60, 6000, rest_pars$lab_max, rest_pars$orchard_size))
+ts_plot1(plot_sims = sims_orchard_frag1, yrs_p = years, legend2_title = "Orchard fragmentation", legend2_labs = c("none", "equal to reef"), par_ltys = c(1, 2), ymaxs = c(60, 3000, rest_pars$lab_max, rest_pars$orchard_size))
 
 dev.off()
 
@@ -3675,37 +3753,37 @@ dev.off()
 
 # make a function for returning data frames with the proportions to outplant that maximize a given metric
 
-max_fun <- function(dt){
-  
-  # strategy score
- strategy_score_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(strategy_score), cv_val = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_val)
- 
- # reef cover
- reef_cover_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(reef_cover_mean), cv_val = sd(reef_cover_mean)/mean(reef_cover_mean)) %>% ungroup() %>% filter(reef_cover_mean == max_val)
- 
- # orchard function
- orchard_fun_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(orch_function_mean), cv_val = sd(orch_function_mean)/mean(orch_function_mean)) %>% ungroup() %>% filter(orch_function_mean == max_val)
- 
- # reef ROI
- reef_ROI_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(reef_ROI_mean), cv_val = sd(reef_ROI_mean)/mean(reef_ROI_mean)) %>% ungroup() %>% filter(reef_ROI_mean == max_val)
- 
- # total ROI
- tot_ROI_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(tot_ROI_mean), cv_val = sd(tot_ROI_mean)/mean(tot_ROI_mean)) %>% ungroup() %>% filter(tot_ROI_mean == max_val)
- 
- 
- return(list(reef_cover = reef_cover_mx, orchard_fun = orchard_fun_mx, reef_ROI = reef_ROI_mx, tot_ROI = tot_ROI_mx, strategy_score = strategy_score_mx))
-  
-}
-
-
-lambda_R2_dt5_mx <- max_fun(lambda_R2_dt5)
-
-lambda_R2_dt50_mx <- max_fun(lambda_R2_dt50)
-
-lambda_R2_dt5D_mx <- max_fun(lambda_R2_dt5D)
-
-lambda_R2_dt50D_mx <- max_fun(lambda_R2_dt50D)
-
+# max_fun <- function(dt){
+#   
+#   # strategy score
+#  strategy_score_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(strategy_score), cv_val = sd(strategy_score)/mean(strategy_score)) %>% ungroup() %>% filter(strategy_score == max_val)
+#  
+#  # reef cover
+#  reef_cover_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(reef_cover_mean), cv_val = sd(reef_cover_mean)/mean(reef_cover_mean)) %>% ungroup() %>% filter(reef_cover_mean == max_val)
+#  
+#  # orchard function
+#  orchard_fun_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(orch_function_mean), cv_val = sd(orch_function_mean)/mean(orch_function_mean)) %>% ungroup() %>% filter(orch_function_mean == max_val)
+#  
+#  # reef ROI
+#  reef_ROI_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(reef_ROI_mean), cv_val = sd(reef_ROI_mean)/mean(reef_ROI_mean)) %>% ungroup() %>% filter(reef_ROI_mean == max_val)
+#  
+#  # total ROI
+#  tot_ROI_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(tot_ROI_mean), cv_val = sd(tot_ROI_mean)/mean(tot_ROI_mean)) %>% ungroup() %>% filter(tot_ROI_mean == max_val)
+#  
+#  
+#  return(list(reef_cover = reef_cover_mx, orchard_fun = orchard_fun_mx, reef_ROI = reef_ROI_mx, tot_ROI = tot_ROI_mx, strategy_score = strategy_score_mx))
+#   
+# }
+# 
+# 
+# lambda_R2_dt5_mx <- max_fun(lambda_R2_dt5)
+# 
+# lambda_R2_dt50_mx <- max_fun(lambda_R2_dt50)
+# 
+# lambda_R2_dt5D_mx <- max_fun(lambda_R2_dt5D)
+# 
+# lambda_R2_dt50D_mx <- max_fun(lambda_R2_dt50D)
+# 
 
 ```
 
@@ -3798,17 +3876,17 @@ initial lab capacity
 #L1 <- 50
 #prop_set <- seq(from = 0, to = 1, length.out = L1) # proportion tiles outplanted to reef (can be higher than this if orchard gets full though)
 
-lab_max0 <- 3100 # default value
-
-lab_max_setL <- seq(from = 1, to = 2, length.out = L2)*lab_max0
-
-# par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
-# dem_pars = demographic parameters to use
-# prop_set1 = values proportion of substrates to outplant to orchard to iterate over
-tic()
-sens_lab_max2 <- par_sens_fun1(par_set = lab_max_setL, par_name = "lab_max", prop_set, dem_pars = all_pars)
-
-toc()
+# lab_max0 <- 3100 # default value
+# 
+# lab_max_setL <- seq(from = 1, to = 2, length.out = L2)*lab_max0
+# 
+# # par_name can be either parameters that are in rest_pars list or "lambda_R", "frag_pars.o", and "surv_pars.o_1"
+# # dem_pars = demographic parameters to use
+# # prop_set1 = values proportion of substrates to outplant to orchard to iterate over
+# tic()
+# sens_lab_max2 <- par_sens_fun1(par_set = lab_max_setL, par_name = "lab_max", prop_set, dem_pars = all_pars)
+# 
+# toc()
 
 # process the results
 # lab_max2_dt5 <- orch_exp_sens_fun(sim_list = sens_lab_max2, par_set2 = lab_max_setL, prop_set, L2, L1, max_yr = 5, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA))
@@ -3822,19 +3900,15 @@ toc()
 
 #View(score_summ)
 
-```
+# dt_plot <- score_summ_lab_max5
+# plot(x = dt_plot$par_val, y = dt_plot$prop_out, type = "l")
+# 
+# 
+# dt_plot <- score_summ_lab_max50
+# plot(x = dt_plot$par_val, y = dt_plot$prop_out, type = "l")
 
-
-```{r}
-dt_plot <- score_summ_lab_max5
-plot(x = dt_plot$par_val, y = dt_plot$prop_out, type = "l")
-
-
-dt_plot <- score_summ_lab_max50
-plot(x = dt_plot$par_val, y = dt_plot$prop_out, type = "l")
 
 ```
-
 
 
 older thoughts on sensitivity plots
