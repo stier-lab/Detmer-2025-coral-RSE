@@ -581,7 +581,7 @@ orch_ad_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ind
       dt_i$orch_function_mean[j] <- mean(orch_fun_ij[2:max_yr], na.rm = T)
       
       # threshold value for full orchard
-      orch_thresh <- rest_pars$orchard_size*1
+      orch_thresh <- rest_pars$orchard_size*0.75
       
       dt_i$orch_full[j] <- ifelse(max(orch_ad_ij) >= orch_thresh, min(which(orch_ad_ij >= orch_thresh)), NA)
     
@@ -1585,7 +1585,7 @@ lines(x = c(1:years), y = orch1_tot2, lty = 2, col = "dodgerblue")
 
 ```
 
-
+basic orchard dynamics are it reaches full adults (time point depends on proportion outplanted), then declines a little from there (full of substrates but some adults die/shrink). But when you have disturbance, the point where capacity is reached can get interrupted, so you can get weird relationships between proportion outplanted and time to full orchard depending on interaction btw disturbance years and year when undisturbed orchard would reach capacity. So instead maybe just look at year when orchard is 50% or 75% full, justification is that orchard doesn't stay full anyway
 
 process results
 
@@ -1875,9 +1875,21 @@ scaled_5_D1 <- orch_exp_5_D0 %>% filter(is.na(strategy_score) == F) %>% group_by
 # reef_cover_mx <- dt %>% group_by(par_val) %>% mutate(max_val = max(reef_cover_mean), cv_val = sd(reef_cover_mean)/mean(reef_cover_mean)) %>% ungroup() %>% filter(reef_cover_mean == max_val)
  
 
+# make color palettes for with and without disturbance cases
+nHalf <- length(unique(scaled_50_D0$prop_out))
+Max <- 1
+Min <- 0
+rc1 <- colorRampPalette(colors = c("gray90", "black"), space = "Lab")(nHalf)
+rampcols1 <- c(rc1) # all the colors
 
-prop_col <- "darkgreen"
-prop_col2 <- "lightgreen"
+rc2 <- colorRampPalette(colors = c("#FF4747", "#660202"), space = "Lab")(nHalf)
+rampcols1 <- c(rc2) # all the colors
+# get the color breaks
+#rb1 <- seq(Min, Max, length.out = nHalf + 1)
+#rampbreaks1 <- c(rb1)
+
+prop_col <- "black"
+prop_col2 <- rc2[10]
 
 
 pdf("TempFigs/scaled_orch_fun_reef_cover.pdf", height = 4, width = 7)
@@ -1897,10 +1909,10 @@ mtext(side = 1, "Scaled reef cover", line = 2, outer = T)
 mtext(side = 2, "Scaled orchard function", line = 2.5)
 mtext(side = 3, "5 year simulation")
 for(i in 1:nrow(dt_plot0)){
-  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
-  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$orchard_fun_s[i], pch = 16, col = rc1[i]) # col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i])
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$orchard_fun_s[i], pch = 16, col = rc2[i])
 }
-legend("topright", legend = c("none", "every 3 years"), col = c(prop_col, prop_col2), lwd =2, title = "Disturbance")
+legend("topright", legend = c("none", "every 3 years"), col = c(prop_col, prop_col2), lwd =3, title = "Disturbance")
 
 dt_plot0 <- scaled_50_D0
 dt_plot1 <- scaled_50_D1
@@ -1912,8 +1924,8 @@ mtext(side = 3, "50 year simulation")
 #mtext(side = 1, "Scaled reef cover", line = 2)
 #mtext(side = 2, "Scaled orchard function", line = 2)
 for(i in 1:nrow(dt_plot0)){
-  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
-  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$orchard_fun_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$orchard_fun_s[i], pch = 16, col = rc1[i])
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$orchard_fun_s[i], pch = 16, col = rc2[i])
 }
 
 
@@ -1937,10 +1949,10 @@ mtext(side = 1, "Scaled reef cover", line = 2, outer = T)
 mtext(side = 2, "Scaled reef ROI", line = 2)
 mtext(side = 3, "5 year simulation")
 for(i in 1:nrow(dt_plot0)){
-  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
-  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$reef_ROI_s[i], pch = 16, col = rc1[i])
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$reef_ROI_s[i], pch = 16, col = rc2[i])
 }
-legend("topleft", legend = c("none", "every 3 years"), col = c(prop_col, prop_col2), lwd =2, title = "Disturbance")
+legend("topleft", legend = c("none", "every 3 years"), col = c(prop_col, prop_col2), lwd =3, title = "Disturbance")
 
 dt_plot0 <- scaled_50_D0
 dt_plot1 <- scaled_50_D1
@@ -1952,8 +1964,8 @@ mtext(side = 3, "50 year simulation")
 #mtext(side = 1, "Scaled reef cover", line = 2)
 #mtext(side = 2, "Scaled reef ROI", line = 2)
 for(i in 1:nrow(dt_plot0)){
-  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col, alpha.f = dt_plot0$prop_out[i]))
-  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$reef_ROI_s[i], pch = 16, col = adjustcolor(prop_col2, alpha.f = dt_plot1$prop_out[i]))
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$reef_ROI_s[i], pch = 16, col = rc1[i])
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$reef_ROI_s[i], pch = 16, col = rc2[i])
 }
 
 dev.off()
@@ -2305,25 +2317,27 @@ dev.off()
 dt_plot0 <- orch_exp_50_D0
 dt_plot1 <- orch_exp_50_D1
 
-xlab1 <- NA
-ylab1 <- "Year filled"
-plotlab <- "Time to orchard capacity"
+xlab1 <- "Proportion initially outplanted to reef"
+ylab1 <- "Year"
+plotlab <- "Year when orchard reaches 75% capacity"
 
-plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(c(dt_plot0$orch_full, dt_plot1$orch_full), na.rm = T)), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
-mtext(side = 2, ylab1, line = 2.75, cex = lab_cx)
+plot(x = prop_set, y = rep(0, length(prop_set)), type = "l", col = NA, ylim = c(0, max(c(dt_plot0$orch_full, dt_plot1$orch_full), na.rm = T)), las = 1, xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(from = 0, to = 50, by = 10), labels = seq(from = 0, to = 50, by = 10) + 2025, las = 1)
+mtext(side = 1, xlab1, line = 2.5, cex = 1)
+mtext(side = 2, ylab1, line = 3, cex = 1)
 mtext(side = 3, plotlab, adj = 0)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot0[which(dt_plot0$par_rep==i),]
-  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[1], alpha.f = alpha1))
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[1], alpha.f = alpha1), lwd = 2)
 }
 # dt_mean <- dt_plot0 %>% group_by(prop_out) %>% summarize(mean_val = mean(orch_full, na.rm = T))
 # lines(x = dt_mean$prop_out, y = dt_mean$mean_val, col = Dcols[1], lwd = 2.5, lty = lty.mn)
 for(i in 1:n_sample1){
  # i <- 10
   dt_sub <- dt_plot1[which(dt_plot1$par_rep==i),]
-  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[2], alpha.f = alpha1))
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[2], alpha.f = alpha1), lwd = 2)
 }
+legend("topleft", legend = c("none", "every 3 years"), col = Dcols, lwd = 2, title = "Disturbance", bty = "n", cex = 0.9)
 # dt_mean <- dt_plot1 %>% group_by(prop_out) %>% summarize(mean_val = mean(orch_full, na.rm = T))
 # lines(x = dt_mean$prop_out, y = dt_mean$mean_val, col = Dcols[2], lwd = 2.5, lty = lty.mn)
 # add polygons over regions where it didn't fill up
