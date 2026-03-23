@@ -1330,10 +1330,14 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     for(ss in 1:s_reef){
       
         for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
+          if(substr(lab_treatments[rr-1], start = 1, stop = 1)=="0"){
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
+          }
           
           # add the recruits from the previous year
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
+          if(substr(lab_treatments[rr-1], start = 1, stop = 1)=="1"){
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props1[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
+          }
           
           # store the numbers being outplanted
           reef_out[[ss]][[rr]][i] <- reef_outplants[rr-1,ss] + reef_outplants1[rr-1,ss]
@@ -1386,9 +1390,14 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     for(ss in 1:s_orchard){
       
       for(rr in 1:source_orchard){ # for each lab source
-        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*exp(-dd_pars.o[,rr]*dens_out[rr])*lab_pars$size_props[rr,]
         
-        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*exp(-dd_pars.o[,rr]*dens_out[rr])*lab_pars$size_props[rr,]
+        if(substr(lab_treatments[rr], start = 1, stop = 1)=="0"){
+        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants[rr,ss]*exp(-dd_pars.o[,rr]*dens_out[rr])*lab_pars$size_props[rr,]
+        }
+        
+        if(substr(lab_treatments[rr], start = 1, stop = 1)=="1"){
+        orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] + orchard_outplants1[rr,ss]*exp(-dd_pars.o[,rr]*dens_out[rr])*lab_pars$size_props1[rr,]
+        }
         
         # store the numbers being outplanted
         orchard_out[[ss]][[rr]][i] <- orchard_outplants[rr,ss] + orchard_outplants1[rr,ss]

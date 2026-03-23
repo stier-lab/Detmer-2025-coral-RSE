@@ -408,10 +408,13 @@ s1[,2] <- rep(0.7, years)
 m0 <- c(0.02, 0.02) # density dependent mortality rate of larvae in each lab treatment that get outplanted immediately
 m1 <- c(0.02, 0.02) # density dependent mortality rate of larvae in each lab treatment that get outplanted after 1 year
 sett_props <- list(T1 = 0.15, T2 = 0.15) # proportion of larvae that settle on each tile type
-size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of immediately outplanted recruits in each size class at the end of their time in the lab
 size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment (0_T1)
 size_props[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment (0_T2)
-lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props)
+size_props1 <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their time in the lab
+size_props1[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment (0_T1)
+size_props1[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment (0_T2)
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props, size_props1 = size_props1)
 
 # restoration strategy parameters
 tile_props <- list(T1 = 0.25, T2 = 0.75) # proportion of tiles that are each type
