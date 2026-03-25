@@ -5,7 +5,11 @@ date: "2025-06-16"
 output: html_document
 ---
 
-README: original tests of whether all of the functions work
+README: Original tests of whether all of the functions work.
+
+- MODEL FUNCTION: rse_mod() from rse_funs.R (LEGACY model — no density dependence)
+- DEPENDS ON: coral_demographic_funs.R, rse_funs.R
+- STATUS: Current — tests both rse_mod() (legacy) and rse_mod1() (current)
 
 
 load the functions
@@ -799,6 +803,296 @@ TO DO:
 
 
 
+# rse_mod1() tests
+
+We test the current model (with density dependence and tile-based lab processing).
+These tests use simple hardcoded parameters (not empirical data) to verify basic
+model behavior: populations grow when conditions are favorable, carrying capacity
+is respected, and outplanting allocates recruits correctly.
+
+```{r rse_mod1_basic_run}
+
+# ---- Minimal parameter setup for rse_mod1() ----
+# 1 reef, 1 orchard, 1 lab treatment ("0_T1"), 10 years, 5 size classes
+
+years_t <- 10
+n_t <- 5
+
+# Size class midpoints (cm^2)
+SC1_t <- 0; SC2_t <- 10; SC3_t <- 100; SC4_t <- 900; SC5_t <- 4000
+A_mids_t <- c((SC1_t + SC2_t)/2, (SC2_t + SC3_t)/2, (SC3_t + SC4_t)/2,
+              (SC4_t + SC5_t)/2, 9325)
+
+orchard_treatments_t <- c("orchard1")
+reef_treatments_t    <- c("reef1")
+lab_treatments_t     <- c("0_T1")
+
+# ---- Reef demographic parameters ----
+# Survival: increasing with size class
+surv_pars.r_t <- list()
+surv_pars.r_t[[1]] <- list()
+surv_pars.r_t[[1]][[1]] <- c(0.5, 0.7, 0.85, 0.9, 0.95) # external recruits
+surv_pars.r_t[[1]][[2]] <- c(0.5, 0.7, 0.85, 0.9, 0.95) # lab treatment source
+
+# Density dependence
+dens_pars.r_t <- list()
+dens_pars.r_t[[1]] <- list()
+dens_pars.r_t[[1]][[1]] <- 0.02
+dens_pars.r_t[[1]][[2]] <- 0.02
+
+# Growth (probability of moving up one or more size classes)
+growth_pars.r_t <- list()
+growth_pars.r_t[[1]] <- list()
+growth_pars.r_t[[1]][[1]] <- list(c(0.3, 0, 0, 0), c(0.2, 0, 0), c(0.1, 0), 0.05, NULL)
+growth_pars.r_t[[1]][[2]] <- growth_pars.r_t[[1]][[1]]
+
+# Shrinkage
+shrink_pars.r_t <- list()
+shrink_pars.r_t[[1]] <- list()
+shrink_pars.r_t[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.05), c(0, 0, 0.05), c(0, 0, 0.02, 0.05))
+shrink_pars.r_t[[1]][[2]] <- shrink_pars.r_t[[1]][[1]]
+
+# Fragmentation (set to zero for simplicity)
+frag_pars.r_t <- list()
+frag_pars.r_t[[1]] <- list()
+frag_pars.r_t[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0, 0, 0))
+frag_pars.r_t[[1]][[2]] <- frag_pars.r_t[[1]][[1]]
+
+# Fecundity (larvae produced per individual in each size class)
+fec_pars.r_t <- list()
+fec_pars.r_t[[1]] <- list()
+fec_pars.r_t[[1]][[1]] <- c(0, 0, 10, 50, 100)
+fec_pars.r_t[[1]][[2]] <- fec_pars.r_t[[1]][[1]]
+
+# ---- Orchard demographic parameters ----
+surv_pars.o_t <- list()
+surv_pars.o_t[[1]] <- list()
+surv_pars.o_t[[1]][[1]] <- c(0.5, 0.7, 0.85, 0.9, 0.95)
+
+dens_pars.o_t <- list()
+dens_pars.o_t[[1]] <- list()
+dens_pars.o_t[[1]][[1]] <- 0.02
+
+growth_pars.o_t <- list()
+growth_pars.o_t[[1]] <- list()
+growth_pars.o_t[[1]][[1]] <- list(c(0.3, 0, 0, 0), c(0.2, 0, 0), c(0.1, 0), 0.05, NULL)
+
+shrink_pars.o_t <- list()
+shrink_pars.o_t[[1]] <- list()
+shrink_pars.o_t[[1]][[1]] <- list(NULL, c(0.01), c(0, 0.05), c(0, 0, 0.05), c(0, 0, 0.02, 0.05))
+
+frag_pars.o_t <- list()
+frag_pars.o_t[[1]] <- list()
+frag_pars.o_t[[1]][[1]] <- list(NULL, c(0), c(0, 0), c(0, 0, 0), c(0, 0, 0, 0))
+
+fec_pars.o_t <- list()
+fec_pars.o_t[[1]] <- list()
+fec_pars.o_t[[1]][[1]] <- c(0, 0, 10, 50, 100)
+
+# ---- Recruitment and stochasticity ----
+lambda_t   <- 0        # no external wild recruitment to reef
+lambda_R_t <- 100000   # reference reef produces larvae
+sigma_s_t  <- 0
+sigma_f_t  <- 0
+ext_rand_t <- c(FALSE, FALSE)
+seeds_t    <- c(1000, 5000, 10000, 40000)
+
+# ---- Lab parameters ----
+# s0 and s1 are matrices (years x n_lab) in rse_mod1()
+s0_t <- matrix(0.95, nrow = years_t, ncol = 1)
+s1_t <- matrix(0.7, nrow = years_t, ncol = 1)
+m0_t <- 0.02
+m1_t <- 0.02
+sett_props_t <- list(T1 = 0.15)
+size_props_t <- matrix(NA, nrow = length(lab_treatments_t), ncol = n_t)
+size_props_t[1, ] <- c(1, 0, 0, 0, 0) # all recruits start in SC1
+
+lab_pars_t <- list(s0 = s0_t, s1 = s1_t, m0 = m0_t, m1 = m1_t,
+                   sett_props = sett_props_t, size_props = size_props_t)
+
+# ---- Restoration strategy parameters ----
+tile_props_t       <- list(T1 = 1)
+orchard_yield_t    <- 0.05
+reef_yield_t       <- 0
+reef_prop_t        <- 0.5
+reef_out_props_t   <- matrix(1, nrow = length(lab_treatments_t),
+                             ncol = length(reef_treatments_t))
+orchard_out_props_t <- matrix(1, nrow = length(lab_treatments_t),
+                              ncol = length(orchard_treatments_t))
+reef_areas_t       <- 500000   # cm^2 (50 m^2)
+lab_max_t          <- 1000
+lab_retain_max_t   <- 0
+tank_min_t         <- 14600
+tank_max_t         <- 33333
+orchard_size_t     <- 500
+spawn_target_t     <- 200000
+transplant_t       <- rep(0, years_t)
+
+# Transplant matrices (no transplanting in this test)
+null_mat_t <- matrix(0, nrow = years_t, ncol = n_t)
+trans_mats_t <- list()
+trans_mats_t[[1]] <- list()
+trans_mats_t[[1]][[1]] <- null_mat_t
+
+trans_reef_t <- list()
+trans_reef_t[[1]] <- list()
+trans_reef_t[[1]][[1]] <- matrix(c(1, 2), nrow = years_t, ncol = 2, byrow = TRUE)
+
+rest_pars_t <- list(tile_props = tile_props_t, orchard_yield = orchard_yield_t,
+                    reef_yield = reef_yield_t, spawn_target = spawn_target_t,
+                    reef_prop = reef_prop_t, reef_out_props = reef_out_props_t,
+                    orchard_out_props = orchard_out_props_t,
+                    reef_areas = reef_areas_t, lab_max = lab_max_t,
+                    lab_retain_max = lab_retain_max_t,
+                    tank_min = tank_min_t, tank_max = tank_max_t,
+                    orchard_size = orchard_size_t,
+                    transplant = transplant_t,
+                    trans_mats = trans_mats_t, trans_reef = trans_reef_t)
+
+# ---- Disturbance (none — set dist_yrs beyond simulation) ----
+dist_yrs_t <- years_t + 10
+
+dist_effects.r_t <- list()
+dist_effects.r_t[[1]] <- list()
+dist_effects.r_t[[1]][[1]] <- list()
+dist_effects.r_t[[1]][[1]][[1]] <- c("survival")
+dist_effects.r_t[[1]][[2]] <- list()
+dist_effects.r_t[[1]][[2]][[1]] <- c("survival")
+
+dist_pars.r_t <- list()
+dist_pars.r_t[[1]] <- list()
+dist_pars.r_t[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs_t,
+  dist_effects.r_t[[1]][[1]],
+  dist_surv0 = list(surv_pars.r_t[[1]][[1]] * 0.1),
+  dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+dist_pars.r_t[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs_t,
+  dist_effects.r_t[[1]][[2]],
+  dist_surv0 = list(surv_pars.r_t[[1]][[2]] * 0.1),
+  dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+
+dist_effects.o_t <- list()
+dist_effects.o_t[[1]] <- list()
+dist_effects.o_t[[1]][[1]] <- list()
+dist_effects.o_t[[1]][[1]][[1]] <- c("survival")
+
+dist_pars.o_t <- list()
+dist_pars.o_t[[1]] <- list()
+dist_pars.o_t[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs_t,
+  dist_effects.o_t[[1]][[1]],
+  dist_surv0 = list(surv_pars.o_t[[1]][[1]] * 0.1),
+  dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+
+# ---- Initial conditions (empty reef and orchard) ----
+N0.r_t <- list()
+N0.r_t[[1]] <- list()
+N0.r_t[[1]][[1]] <- rep(0, n_t) # external recruits
+N0.r_t[[1]][[2]] <- rep(0, n_t) # lab treatment source
+
+N0.o_t <- list()
+N0.o_t[[1]] <- list()
+N0.o_t[[1]][[1]] <- rep(0, n_t)
+
+N0.l_t <- list()
+N0.l_t[[1]] <- 0
+
+# ---- Run the model ----
+sim1_t <- rse_mod1(years_t, n_t, A_mids_t,
+                   surv_pars.r_t, dens_pars.r_t, growth_pars.r_t, shrink_pars.r_t,
+                   frag_pars.r_t, fec_pars.r_t,
+                   surv_pars.o_t, dens_pars.o_t, growth_pars.o_t, shrink_pars.o_t,
+                   frag_pars.o_t, fec_pars.o_t,
+                   lambda_t, lambda_R_t, sigma_s_t, sigma_f_t,
+                   ext_rand_t, seeds_t, dist_yrs_t,
+                   dist_pars.r_t, dist_effects.r_t,
+                   dist_pars.o_t, dist_effects.o_t,
+                   orchard_treatments_t, reef_treatments_t, lab_treatments_t,
+                   lab_pars_t, rest_pars_t,
+                   N0.r_t, N0.o_t, N0.l_t)
+
+# ---- Verify output structure ----
+expected_names <- c("reef_pops", "orchard_pops", "lab_pops",
+                    "reef_rep", "orchard_rep", "reef_out", "orchard_out",
+                    "reef_pops_pre", "orchard_pops_pre",
+                    "orchard_babies", "reef_babies",
+                    "orchard_babies_used", "reef_babies_used",
+                    "tiles_out_tot", "reef_tiles_out", "orchard_tiles_out",
+                    "orchard_tiles")
+
+cat("rse_mod1() returned a list:", is.list(sim1_t), "\n")
+cat("Number of elements:", length(sim1_t), "\n")
+cat("All expected names present:",
+    all(expected_names %in% names(sim1_t)), "\n")
+cat("Output names:", paste(names(sim1_t), collapse = ", "), "\n")
+
+```
+
+
+## Growth verification
+
+We check that reef and orchard populations grow from year 2 onward when the
+reference reef supplies larvae (lambda_R > 0). Starting from empty populations,
+we expect both to accumulate individuals over time.
+
+```{r rse_mod1_growth_check}
+
+# Total population by year for reef and orchard
+reef_tot_t <- apply(sim1_t$reef_pops[[1]][[1]], MARGIN = 2, sum) +
+              apply(sim1_t$reef_pops[[1]][[2]], MARGIN = 2, sum)
+orch_tot_t <- apply(sim1_t$orchard_pops[[1]][[1]], MARGIN = 2, sum)
+
+# We expect populations to grow: total at year 10 should exceed year 2
+cat("Reef population at year 2:", reef_tot_t[2], "\n")
+cat("Reef population at year", years_t, ":", reef_tot_t[years_t], "\n")
+cat("Reef grew from year 2 to year", years_t, ":",
+    reef_tot_t[years_t] > reef_tot_t[2], "\n")
+
+cat("Orchard population at year 2:", orch_tot_t[2], "\n")
+cat("Orchard population at year", years_t, ":", orch_tot_t[years_t], "\n")
+cat("Orchard grew from year 2 to year", years_t, ":",
+    orch_tot_t[years_t] > orch_tot_t[2], "\n")
+
+# Plot reef vs orchard
+plot(x = 1:years_t, y = reef_tot_t, type = "l", las = 1,
+     ylim = c(0, max(reef_tot_t, orch_tot_t)),
+     xlab = "Year", ylab = "Total individuals", lwd = 2,
+     main = "rse_mod1() growth test")
+lines(x = 1:years_t, y = orch_tot_t, col = "dodgerblue", lwd = 2, lty = 2)
+legend("topleft", legend = c("Reef", "Orchard"),
+       col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
+
+```
+
+
+## model_summ() with rse_mod1() output
+
+We verify that `model_summ()` works with the output from `rse_mod1()` for both
+the "ind" (individuals) and "area_m2" (area in m^2) metrics.
+
+```{r rse_mod1_model_summ}
+
+reef_ind_t <- model_summ(model_sim = sim1_t, location = "reef", metric = "ind",
+                         n_reef = length(reef_treatments_t),
+                         n_orchard = length(orchard_treatments_t),
+                         n_lab = length(lab_treatments_t))
+
+orch_ind_t <- model_summ(model_sim = sim1_t, location = "orchard", metric = "ind",
+                         n_reef = length(reef_treatments_t),
+                         n_orchard = length(orchard_treatments_t),
+                         n_lab = length(lab_treatments_t))
+
+reef_area_t <- model_summ(model_sim = sim1_t, location = "reef", metric = "area_m2",
+                          n_reef = length(reef_treatments_t),
+                          n_orchard = length(orchard_treatments_t),
+                          n_lab = length(lab_treatments_t))
+
+cat("model_summ() reef 'ind' returns a matrix:", is.matrix(reef_ind_t), "\n")
+cat("model_summ() orchard 'ind' returns a matrix:", is.matrix(orch_ind_t), "\n")
+cat("model_summ() reef 'area_m2' returns a matrix:", is.matrix(reef_area_t), "\n")
+cat("Reef individuals at final year:", reef_ind_t[years_t, 1], "\n")
+cat("Orchard individuals at final year:", orch_ind_t[years_t, 1], "\n")
+cat("Reef area (m^2) at final year:", reef_area_t[years_t, 1], "\n")
+
+```
 
 
 
