@@ -4971,10 +4971,6 @@ ROI_grow5 <- ROI_thresh_fun(dt = lab_grow_5_D0$dtG, ROI_thresh, lab_retain_set, 
 
 plotting the ROI and reef cover, with dashed lines/gray lines for default case. UPDATE: plot them relative to default ROI for each parameter set? (so > 1 means ROI increased, < 1 means ROI decreased)... except a lot of the ROIs had zeros so would have to ignore those ones
 
-Then make plots where x-axis is number of tiles kept in the lab and y-axis is min survival needed for different ROI thresholds? With lines connecting parameter combinations to show when the thresholds become NA?
-
-then look at disturbances in and outside of lab
-
 
 ```{r}
 
@@ -4983,6 +4979,10 @@ then look at disturbances in and outside of lab
 #View(lab_grow_5_D0$dtS)
 
 dt_plot <- lab_grow_5_D0$dtS
+dt_plot0 <- lab_grow_base5
+
+#dt_plot <- lab_grow_50_D0$dtS
+#dt_plot0 <- lab_grow_base50
 
 lab_cx <- 0.85
 
@@ -4997,7 +4997,7 @@ lab_cx <- 0.85
 # mean reef cover
 xlab1 <- NA
 ylab1 <- expression("Mean coral cover ("*m^2*")")
-plotlab <- "a) Coral cover on reef"
+plotlab <- "Coral cover on reef"
 plot(x = lab_surv_out, y = rep(0, length(lab_surv_out)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_cover_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
 mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
 mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
@@ -5013,7 +5013,7 @@ for(i in 1:n_sample1){
 # reef ROI
 xlab1 <- "Post-outplanting survival of retained substrates"
 ylab1 <- expression("Reef ROI ("*m^2~"coral/$)")
-plotlab <- "c) Reef return on investment"
+plotlab <- "Reef return on investment"
 plot(x = lab_surv_out, y = rep(0, length(lab_surv_out)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_ROI_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
 mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
@@ -5026,11 +5026,59 @@ for(i in 1:n_sample1){
 
 
 
+dt_plot0 <- lab_grow_base5 %>% filter(reef_cover_mean > 0)
+dt_plot <- lab_grow_5_D0$dtS %>% filter(par_rep %in% dt_plot0$par_rep)
+
+#dt_plot0 <- lab_grow_base50 %>% filter(reef_cover_mean > 0)
+#dt_plot <- lab_grow_50_D0$dtS %>% filter(par_rep %in% dt_plot0$par_rep)
+
+
+# relative to defaults
+xlab1 <- NA
+ylab1 <- "x default"#expression("Mean coral cover ("*m^2*")")
+plotlab <- "Relative coral cover on reef"
+plot(x = lab_surv_out, y = rep(0, length(lab_surv_out)), type = "l", col = NA, ylim = c(0, 10), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+mtext(side = 3, "5 year simulation, no disturbance", outer = T, line = -1)
+for(i in unique(dt_plot$par_rep)){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  dt_sub0 <- dt_plot0[which(dt_plot0$par_rep==i),]
+  lines(x = dt_sub$lab_surv_out, y = dt_sub$reef_cover_mean/dt_sub0$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+
+
+
+# reef ROI
+xlab1 <- "Post-outplanting survival of retained substrates"
+ylab1 <- "x default" #expression("Reef ROI ("*m^2~"coral/$)")
+plotlab <- "Relative reef return on investment"
+plot(x = lab_surv_out, y = rep(0, length(lab_surv_out)), type = "l", col = NA, ylim = c(0, 6), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in unique(dt_plot$par_rep)){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  dt_sub0 <- dt_plot0[which(dt_plot0$par_rep==i),]
+  lines(x = dt_sub$lab_surv_out, y = dt_sub$reef_ROI_mean/dt_sub0$reef_ROI_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+abline(h = 1, lty = 2)
+
+
 #dev.off()
 
 
 ```
 
+
+need to repeat for growth case, also 50 years
+
+Then make plots where x-axis is number of tiles kept in the lab and y-axis is min survival needed for different ROI thresholds? With lines connecting parameter combinations to show when the thresholds become NA?
+
+then add disturbances in and outside of lab
+
+then 
 
 ## older code (ignore)
 
