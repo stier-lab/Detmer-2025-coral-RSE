@@ -173,7 +173,30 @@ dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 
 #' @param summ_metric Column name indicating which summarized value to use ("mean", "Q05", "Q95")
 #' @param full_df data frame (or list of dataframes) with all available estimates of parameter values
 #' @param n_sample number of samples from the full data frame to take (if sample_dt == T)
-#' 
+#' @return Depends on \code{par_type}:
+#'   \describe{
+#'     \item{If \code{par_type = "survival"}}{List with one element:
+#'       \code{$surv_pars}. If \code{sample_dt = FALSE}: numeric vector (length 5).
+#'       If \code{sample_dt = TRUE}: matrix (n_sample x 5), one row per random draw.}
+#'     \item{If \code{par_type = "growth"}}{List with two elements:
+#'       \code{$growth_pars} and \code{$shrink_pars}. If \code{sample_dt = FALSE}:
+#'       each is a list of 5 vectors (growth[k] = transitions FROM size class k to
+#'       larger classes; shrink[k] = transitions from k to smaller classes).
+#'       If \code{sample_dt = TRUE}: list of n_sample elements, each containing
+#'       the 5-vector list structure described above.}
+#'     \item{If \code{par_type = "fragmentation"}}{List with one element:
+#'       \code{$frag_pars}. Structure: list of 5 elements where SC1-SC3 = NULL or
+#'       zero vectors (small colonies do not fragment), SC4 and SC5 = vectors of
+#'       fragment production rates to each smaller size class.
+#'       If \code{sample_dt = TRUE}: list of n_sample such lists.}
+#'   }
+#' @details The growth/shrinkage indexing follows the transition matrix convention:
+#'   \code{growth_pars[[k]]} contains transition probabilities FROM size class k
+#'   TO all larger classes. For example, \code{growth_pars[[1]]} has 4 elements
+#'   (SC1 -> SC2, SC1 -> SC3, SC1 -> SC4, SC1 -> SC5), while
+#'   \code{growth_pars[[5]]} is NULL (SC5 cannot grow larger). Shrinkage is the
+#'   reverse: \code{shrink_pars[[5]]} has 4 elements (SC5 -> SC4, ..., SC5 -> SC1).
+#' @export
 par_list_fun <- function(par_type, sample_dt, summ_df, summ_metric, full_df, n_sample){
   
   
