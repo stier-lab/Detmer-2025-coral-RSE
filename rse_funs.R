@@ -286,6 +286,10 @@ if(par_type == "survival"){ # survival data
     if(sample_dt == F){ # if using summarized data
       # list(NULL, c(0, 0), c(0, 0, 0), c(F4_SC1, F4_SC2, F4_SC3, F4_SC4), c(F5_SC1, F5_SC2, F5_SC3, F5_SC4, F5_SC5)) 
       
+      # WHY: Only size classes 4 and 5 (>900 cm^2) produce fragments in A. palmata.
+      # Smaller colonies lack the branching architecture for storm-driven breakage to
+      # generate viable fragments. SC1-3 produce zero fragments by construction.
+      # "F4_SC1" = fragments from SC4 colonies that land in SC1, etc.
       frag_pars <- list(NULL, c(0, 0), c(0, 0, 0),
       c(summ_df[which(summ_df$frag_type == "F4_SC1") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC2") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC3") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC4") ,summ_metric]),
       c(summ_df[which(summ_df$frag_type == "F5_SC1") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC2") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC3") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC4") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC5") ,summ_metric]))
@@ -389,8 +393,9 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
   growth_pars2 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = nurs_growth$summ_list, summ_metric = summ_metric_list$nurs_growth, full_df = NA, n_sample = NA)$growth_pars
   shrink_pars2 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = nurs_growth$summ_list, summ_metric = summ_metric_list$nurs_shrink, full_df = NA, n_sample = NA)$shrink_pars
   
-  # assuming no fragmentation in orchard
-  frag_pars2 <- list(NULL, c(0, 0), c(0, 0, 0), c(0, 0, 0, 0), c(0, 0, 0, 0, 0)) 
+  # No fragmentation in orchards: managed nursery substrates are not subject to
+  # storm-driven breakage. We set all fragment production to zero.
+  frag_pars2 <- list(NULL, c(0, 0), c(0, 0, 0), c(0, 0, 0, 0), c(0, 0, 0, 0, 0))
   
 
   for(i in 1:n_orchard){ # for each orchard
@@ -1222,8 +1227,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
     }
     
-    # Safety cap: total larvae cannot exceed tank_max (embryos/tank) x lab_max (tiles)
-    # / 100 (tiles/tank). Prevents unrealistic densities in the lab.
+    # TILES_PER_TANK = 100. Fundemar's standard tank setup holds ~100 settlement tiles.
+    # Safety cap: total larvae cannot exceed (max_embryos/tank) * (total_tiles) / (tiles/tank).
+    # This prevents unrealistically high embryo densities in the lab.
     tot_babies <- min(tot_babies, rest_pars$tank_max*rest_pars$lab_max/100)
     
     
@@ -1270,6 +1276,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # prop_use = fraction of lab capacity actually used this year (0 to 1).
     # Formula: (total_larvae / min_embryos_per_tank * 100_tiles_per_tank) / total_tiles
     # If larvae supply is less than lab capacity, we use fewer tiles.
+    # The magic number 100 = tiles per tank (same constant as the safety cap above).
     prop_use <- min(1, (tot_babies/rest_pars$tank_min*100)/rest_pars$lab_max)
     
     
