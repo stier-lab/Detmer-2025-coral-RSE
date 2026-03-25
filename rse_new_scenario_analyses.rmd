@@ -4896,15 +4896,21 @@ ROI_thresh_fun <- function(dt, ROI_thresh, lab_retain_set, sim_type){
     
     dt_sub0 <- dt %>% filter(par_rep == i)
     
+    if(length(ROI_thresh)>1){ # if there is a different threshold value for each parameter value
+      ROI_thresh_i <- ROI_thresh[i]
+    } else{
+      ROI_thresh_i <- ROI_thresh
+    }
+    
     for(j in 1:Lin){
       
       dt_i$lab_retain_max[j] <- lab_retain_set[j]
       
       dt_sub <- dt_sub0 %>% filter(lab_retain_max == lab_retain_set[j])
       
-      if(max(dt_sub$reef_ROI_mean) >= ROI_thresh){
+      if(max(dt_sub$reef_ROI_mean) >= ROI_thresh_i){
         
-       rchoice <- min(which(dt_sub$reef_ROI_mean >= ROI_thresh))
+       rchoice <- min(which(dt_sub$reef_ROI_mean >= ROI_thresh_i))
        
        dt_i$ROI_val[j] <- dt_sub$reef_ROI_mean[rchoice]
        dt_i$reef_cover[j] <- dt_sub$reef_cover_mean[rchoice]
@@ -4984,14 +4990,14 @@ dt_plot0 <- lab_grow_base5
 #dt_plot <- lab_grow_50_D0$dtS
 #dt_plot0 <- lab_grow_base50
 
-lab_cx <- 0.85
+lab_cx <- 0.95
 
-#pdf("TempFigs/metrics_grow_5_D0.pdf", height = 7)
+pdf("TempFigs/metrics_growS_5_D0.pdf", height = 7, width = 5)
 
-# par(mfrow = c(3, 2))
-# layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 2))
-# #layout.show(2)
-# par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+par(mfrow = c(2, 1))
+layout(matrix(c(1, 2), nrow = 2, ncol = 1, byrow = F), widths = rep(1, 1), heights = rep(1, 2))
+ #layout.show(2)
+par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
 
 
 # mean reef cover
@@ -5002,12 +5008,16 @@ plot(x = lab_surv_out, y = rep(0, length(lab_surv_out)), type = "l", col = NA, y
 mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
 mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
 mtext(side = 3, plotlab, adj = 0)
-mtext(side = 3, "5 year simulation, no disturbance", outer = T, line = -1)
+#mtext(side = 3, "5 year simulation, no disturbance", outer = T, line = -1)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
-  lines(x = dt_sub$lab_surv_out, y = dt_sub$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+  lines(x = dt_sub$lab_surv_out, y = dt_sub$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.1))
 }
-
+dt_mean <- dt_plot %>% group_by(lab_surv_out) %>% summarize(mean_val = mean(reef_cover_mean, na.rm = T))
+lines(x = dt_mean$lab_surv_out, y = dt_mean$mean_val, col = "black", lwd = 2.5, lty = 2)
+dt_mean <- dt_plot0 %>% summarize(mean_val = mean(reef_cover_mean, na.rm = T))
+lines(x = lab_surv_out, y = rep(dt_mean$mean_val, length(lab_surv_out)), col = "black", lwd = 2.5, lty = 3)
+legend("topleft", legend = c("mean", "reference"), lty = c(2, 3), lwd = 2, bty = "n")
 
 
 # reef ROI
@@ -5016,16 +5026,77 @@ ylab1 <- expression("Reef ROI ("*m^2~"coral/$)")
 plotlab <- "Reef return on investment"
 plot(x = lab_surv_out, y = rep(0, length(lab_surv_out)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_ROI_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 4, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$lab_surv_out, y = dt_sub$reef_ROI_mean, col = adjustcolor(col = "black", alpha.f = 0.1))
+}
+dt_mean <- dt_plot %>% group_by(lab_surv_out) %>% summarize(mean_val = mean(reef_ROI_mean, na.rm = T))
+lines(x = dt_mean$lab_surv_out, y = dt_mean$mean_val, col = "black", lwd = 2.5, lty = 2)
+dt_mean <- dt_plot0 %>% summarize(mean_val = mean(reef_ROI_mean, na.rm = T))
+lines(x = lab_surv_out, y = rep(dt_mean$mean_val, length(lab_surv_out)), col = "black", lwd = 2.5, lty = 3)
+
+
+dev.off()
+
+
+# repeat for growth
+
+dt_plot <- lab_grow_5_D0$dtG
+dt_plot0 <- lab_grow_base5
+
+
+pdf("TempFigs/metrics_growG_5_D0.pdf", height = 7, width = 5)
+
+par(mfrow = c(2, 1))
+layout(matrix(c(1, 2), nrow = 2, ncol = 1, byrow = F), widths = rep(1, 1), heights = rep(1, 2))
+ #layout.show(2)
+par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+
+# mean reef cover
+xlab1 <- NA
+ylab1 <- expression("Mean coral cover ("*m^2*")")
+plotlab <- "Coral cover on reef"
+plot(x = lab_surv_out, y = rep(0, length(lab_surv_out)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_cover_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+#mtext(side = 3, "5 year simulation, no disturbance", outer = T, line = -1)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  lines(x = dt_sub$lab_growth, y = dt_sub$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.1))
+}
+dt_mean <- dt_plot %>% group_by(lab_growth) %>% summarize(mean_val = mean(reef_cover_mean, na.rm = T))
+lines(x = dt_mean$lab_growth, y = dt_mean$mean_val, col = "black", lwd = 2.5, lty = 2)
+dt_mean <- dt_plot0 %>% summarize(mean_val = mean(reef_cover_mean, na.rm = T))
+lines(x = lab_growth, y = rep(dt_mean$mean_val, length(lab_growth)), col = "black", lwd = 2.5, lty = 3)
+
+
+# reef ROI
+xlab1 <- "Growth in lab (prop. that reach size class 2)"
+ylab1 <- expression("Reef ROI ("*m^2~"coral/$)")
+plotlab <- "Reef return on investment"
+plot(x = lab_growth, y = rep(0, length(lab_growth)), type = "l", col = NA, ylim = c(0, max(dt_plot$reef_ROI_mean, na.rm = T)), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
 mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
 mtext(side = 3, plotlab, adj = 0)
 for(i in 1:n_sample1){
   dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
-  lines(x = dt_sub$lab_surv_out, y = dt_sub$reef_ROI_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+  lines(x = dt_sub$lab_growth, y = dt_sub$reef_ROI_mean, col = adjustcolor(col = "black", alpha.f = 0.1))
 }
+dt_mean <- dt_plot %>% group_by(lab_growth) %>% summarize(mean_val = mean(reef_ROI_mean, na.rm = T))
+lines(x = dt_mean$lab_growth, y = dt_mean$mean_val, col = "black", lwd = 2.5, lty = 2)
+dt_mean <- dt_plot0 %>% summarize(mean_val = mean(reef_ROI_mean, na.rm = T))
+lines(x = lab_growth, y = rep(dt_mean$mean_val, length(lab_growth)), col = "black", lwd = 2.5, lty = 3)
+
+dev.off()
+
+```
 
 
 
-
+```{r}
 dt_plot0 <- lab_grow_base5 %>% filter(reef_cover_mean > 0)
 dt_plot <- lab_grow_5_D0$dtS %>% filter(par_rep %in% dt_plot0$par_rep)
 
@@ -5047,7 +5118,7 @@ for(i in unique(dt_plot$par_rep)){
   dt_sub0 <- dt_plot0[which(dt_plot0$par_rep==i),]
   lines(x = dt_sub$lab_surv_out, y = dt_sub$reef_cover_mean/dt_sub0$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
 }
-
+abline(h = 1, lty = 2)
 
 
 # reef ROI
@@ -5066,19 +5137,275 @@ for(i in unique(dt_plot$par_rep)){
 abline(h = 1, lty = 2)
 
 
+
+# repeat for growth case
+dt_plot0 <- lab_grow_base5 %>% filter(reef_cover_mean > 0)
+dt_plot <- lab_grow_5_D0$dtG %>% filter(par_rep %in% dt_plot0$par_rep)
+
+# relative to defaults
+xlab1 <- NA
+ylab1 <- "x default"#expression("Mean coral cover ("*m^2*")")
+plotlab <- "Relative coral cover on reef"
+plot(x = lab_growth, y = rep(0, length(lab_growth)), type = "l", col = NA, ylim = c(0, 50), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+mtext(side = 3, "5 year simulation, no disturbance", outer = T, line = -1)
+for(i in unique(dt_plot$par_rep)){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  dt_sub0 <- dt_plot0[which(dt_plot0$par_rep==i),]
+  lines(x = dt_sub$lab_growth, y = dt_sub$reef_cover_mean/dt_sub0$reef_cover_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+abline(h = 1, lty = 2)
+
+
+# reef ROI
+xlab1 <- "Post-outplanting survival of retained substrates"
+ylab1 <- "x default" #expression("Reef ROI ("*m^2~"coral/$)")
+plotlab <- "Relative reef return on investment"
+plot(x = lab_growth, y = rep(0, length(lab_growth)), type = "l", col = NA, ylim = c(0, 30), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+for(i in unique(dt_plot$par_rep)){
+  dt_sub <- dt_plot[which(dt_plot$par_rep==i),]
+  dt_sub0 <- dt_plot0[which(dt_plot0$par_rep==i),]
+  lines(x = dt_sub$lab_growth, y = dt_sub$reef_ROI_mean/dt_sub0$reef_ROI_mean, col = adjustcolor(col = "black", alpha.f = 0.2))
+}
+abline(h = 1, lty = 2)
+
+
 #dev.off()
 
 
 ```
 
 
-need to repeat for growth case, also 50 years
+make plots where x-axis is number of tiles kept in the lab and y-axis is min survival needed for different ROI thresholds? With lines connecting parameter combinations to show when the thresholds become NA?
 
-Then make plots where x-axis is number of tiles kept in the lab and y-axis is min survival needed for different ROI thresholds? With lines connecting parameter combinations to show when the thresholds become NA?
+
+```{r}
+# need to iterate over 1) parameter values, 2) post-outplanting survival or growth of recruits kept in lab, and 3) number of weeks to keep in the lab (which matters if there's disturbance and for cost calculations)
+#months_in <- seq(from = 0, to = 12, by = 1) # number of months to keep substrates in lab
+#lab_retain_set <- c(3100/2)
+#lab_retain_set <- seq(from = 0, to = 3100, by = 3100/4)
+lab_retain_set <- seq(from = 3100/4, to = 3100, by = 3100/4)
+
+months_in <- 12 # number of months to keep substrates in lab
+
+#L1 <- 10
+lab_surv_out <- seq(from = 0, to = 1, length.out = 50) # post-outplanting survival of recruits kept in lab
+#lab_surv_out <- c(0.01, 0.1, 0.25)
+
+lab_growth <- seq(from = 0, to = 1, length.out = 50) # proportion of substrates kept in lab that grew into second size class
+#lab_growth <- c(0.01, 0.1, 0.25)
+
+lab_growG_listL <- list() # holding list for simulations where growth is varied
+lab_growS_listL <- list() # holding list for simulations where post-outplanting survival is varied
+
+# outer loop = demographic parameter values
+# middle loop = number of months to keep in lab
+# inner loop = post-outplanting survival or in-lab growth of lab recruits
+
+tic()
+
+for(i in 1:n_sample1){ # for each parameter set
+  
+  # set up the parameters
+  
+  surv_pars.r <- all_pars_R2$surv_pars_L.r[[i]] 
+  growth_pars.r <- all_pars_R2$growth_pars_L.r[[i]]
+  shrink_pars.r <- all_pars_R2$shrink_pars_L.r[[i]] 
+  frag_pars.r <- all_pars_R2$frag_pars_L.r[[i]]
+  surv_pars.o <- all_pars_R2$surv_pars_L.o[[i]] 
+  growth_pars.o <- all_pars_R2$growth_pars_L.o[[i]]
+  shrink_pars.o <- all_pars_R2$shrink_pars_L.o[[i]]
+  frag_pars.o <- all_pars_R2$frag_pars_L.o[[i]]
+  
+  
+  # holding lists for model simulations with this parameter set
+  mod_listG <- list() # growth
+  mod_listS <- list() # survival
+  
+  for(j in 1:length(lab_retain_set)){ # for each lab_retain_max value
+    
+    rest_pars_ij <- rest_pars
+    rest_pars_ij$lab_retain_max <- lab_retain_set[j]
+    
+    mod_listG2 <- list()
+    mod_listS2 <- list()
+    
+    
+    for(k in 1:length(lab_surv_out)){
+      
+      # survival simulation
+      
+      # update field survival of the grow-out tiles (smallest size class only for now)
+      surv_pars.r_k <- surv_pars.r
+      surv_pars.r_k[[1]][[3]][1] <- lab_surv_out[k]
+
+      # run the model
+    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r_k, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars_ij, N0.r, N0.o, N0.l)
+      
+      
+      # save the output
+    mod_listS2[[k]] <- sim_ij
+    
+    }
+    
+    for(k in 1:length(lab_growth)){
+      
+      # growth simulation
+    lab_pars_k <- lab_pars
+    lab_pars_k$size_props1[2, ] <- c(1-lab_growth[k], lab_growth[k], 0, 0,0)
+      
+       # run the model
+    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars = lab_pars_k, rest_pars_ij, N0.r, N0.o, N0.l)
+    
+    
+    # save the output
+    mod_listG2[[k]] <- sim_ij
+      
+    }
+   
+    
+  mod_listG[[j]] <-  mod_listG2 # growth
+  mod_listS[[j]] <- mod_listS2 # survival
+    
+  } # end of iterations over weeks kept in lab
+  
+  
+  lab_growG_listL[[i]] <- mod_listG
+  lab_growS_listL[[i]] <- mod_listS
+  
+} # end of iterations over parameter sets
+
+toc()
+
+
+```
+
+
+```{r}
+# process the results
+lab_grow_5_D0L <- lab_grow_metric_fun(sim_listG = lab_growG_listL, sim_listS = lab_growS_listL, n_sample1, lab_retain_set, lab_surv_out, lab_growth, max_yr = 6)
+
+
+```
+
+
+396.995 sec elapsed
+
+
+```{r}
+# calculate the threshold values
+
+
+#ROI_thresh <- 0.0001
+
+
+#View(lab_grow_base5)
+ROI_thresh <-lab_grow_base5$reef_ROI_mean
+
+#hist(lab_grow_5_D0[[1]]$reef_ROI_mean)
+#hist(lab_grow_5_D0[[2]]$reef_ROI_mean)
+
+
+ROI_surv5_base <- ROI_thresh_fun(dt = lab_grow_5_D0L$dtS, ROI_thresh = lab_grow_base5$reef_ROI_mean, lab_retain_set, sim_type = "survival") %>% filter(lab_retain_max > 0)
+
+ROI_grow5_base <- ROI_thresh_fun(dt = lab_grow_5_D0L$dtG, ROI_thresh, lab_retain_set, sim_type = "growth") %>% filter(lab_retain_max > 0)
+
+
+
+# repeat with a higher threshold
+# ROI of 0.0001m2/$: 0.0001x10000 = 1 m2 per $10000 spent
+
+ROI_surv5_0001 <- ROI_thresh_fun(dt = lab_grow_5_D0L$dtS, ROI_thresh = 0.0001, lab_retain_set, sim_type = "survival") %>% filter(lab_retain_max > 0)
+
+ROI_grow5_0001 <- ROI_thresh_fun(dt = lab_grow_5_D0L$dtG, ROI_thresh = 0.0001, lab_retain_set, sim_type = "growth") %>% filter(lab_retain_max > 0)
+
+
+```
+
+
+```{r}
+# plot results: x-axis = number of substrates kept in lab, y-axis = min surv or growth needed, different colors for different target ROIs 
+
+
+#View(ROI_surv5_base)
+
+
+pdf("TempFigs/metrics_growG_thresh_5D0.pdf", height = 5, width = 5)
+
+par(mfrow = c(2, 1))
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 2))
+ #layout.show(2)
+par(mar=c(0, 1, 2, 0.1), oma = c(4.5, 4.5, 1, 2))
+
+
+dt_plot <- ROI_surv5_base
+
+plot(x = lab_retain_set, y = lab_retain_set, col = NA, ylim = c(0, 1), las = 1, xaxt = "n")
+axis(side = 1, at = lab_retain_set, labels = NA)
+mtext(side = 2, "Min. post-outplanting \nsurvival needed", line = 2.5)
+mtext(side = 3, "Target ROI = greater \nthan default")
+for(i in 1:n_sample1){
+  
+  dt_sub <- dt_plot %>% filter(par_rep==i)
+  lines(x = lab_retain_set, y = dt_sub$thresh_val, type = "l", col = adjustcolor("black", alpha.f = 0.3))
+}
+
+
+
+dt_plot <- ROI_surv5_0001
+
+plot(x = lab_retain_set, y = lab_retain_set, col = NA, ylim = c(0, 1), las = 1, xaxt = "n", yaxt = "n")
+axis(side = 1, at = lab_retain_set, labels = NA)
+axis(side = 2, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+mtext(side = 3, expression("Target ROI = 0.0001"~m^2~"coral/$"))
+for(i in 1:n_sample1){
+  
+  dt_sub <- dt_plot %>% filter(par_rep==i)
+  lines(x = lab_retain_set, y = dt_sub$thresh_val, type = "l", col = adjustcolor("black", alpha.f = 0.3))
+}
+
+
+
+dt_plot <- ROI_grow5_base
+
+plot(x = lab_retain_set, y = lab_retain_set, col = NA, ylim = c(0, 1), las = 1, xaxt = "n")
+axis(side = 1, at = lab_retain_set)
+mtext(side = 2, "Min. in-lab \ngrowth needed", line = 2.5)
+for(i in 1:n_sample1){
+  
+  dt_sub <- dt_plot %>% filter(par_rep==i)
+  lines(x = lab_retain_set, y = dt_sub$thresh_val, type = "l", col = adjustcolor("black", alpha.f = 0.3))
+}
+
+
+
+dt_plot <- ROI_grow5_0001
+
+plot(x = lab_retain_set, y = lab_retain_set, col = NA, ylim = c(0, 1), las = 1, xaxt = "n", yaxt = "n")
+axis(side = 1, at = lab_retain_set)
+axis(side = 2, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+mtext(side = 1, "Substrates retained in lab", outer = T, line = 2.5)
+for(i in 1:n_sample1){
+  
+  dt_sub <- dt_plot %>% filter(par_rep==i)
+  lines(x = lab_retain_set, y = dt_sub$thresh_val, type = "l", col = adjustcolor("black", alpha.f = 0.3))
+}
+
+
+dev.off()
+
+
+```
+
 
 then add disturbances in and outside of lab
 
-then 
+then do sensitivity analyses using mean parameters
 
 ## older code (ignore)
 
