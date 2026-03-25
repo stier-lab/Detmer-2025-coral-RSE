@@ -1,4 +1,37 @@
-# README: functions for simulating the RSE (Restoration Strategy Evaluation) coral population model
+# =============================================================================
+# RSE MODEL FUNCTIONS
+# =============================================================================
+# Restoration Strategy Evaluation (RSE) model for Acropora palmata (Elkhorn
+# Coral). Simulates coral populations across three locations — reefs, orchards
+# (nurseries), and labs — to evaluate restoration strategies.
+#
+# The model tracks corals by (location) x (source), where source = lab
+# treatment origin or external (wild) recruits. Each year the simulation:
+#   1. Updates demographics (survival, growth, fragmentation) on reefs & orchards
+#   2. Collects larvae from orchards and reference reefs
+#   3. Processes larvae through the lab (settlement, survival)
+#   4. Allocates and outplants tiles to orchards and reefs
+#   5. Optionally transplants mature colonies from orchards to reefs
+#
+# Core demographic equation (per subpopulation, per source):
+#   N(t) = (T_mat + F_mat) %*% (S_i * N(t-1)) + outplants + external_recruits
+#   where S_i = survival, T_mat = transition (growth/shrink/stay),
+#         F_mat = fragmentation (asexual reproduction)
+#
+# DEPENDS ON: coral_demographic_funs.R (Surv_fun, G_fun, Rep_fun, Ext_fun)
+#
+# FUNCTION INDEX:
+#   mat_pars_fun      (line ~25)   Assemble demographic parameters for each year
+#   dist_pars_fun     (line ~69)   Create disturbance parameter lists
+#   par_list_fun      (line ~129)  Sample parameters from empirical data
+#   default_pars_fun  (line ~307)  Build default parameter sets for all subpops
+#   rand_pars_fun     (line ~385)  Generate random parameter ensembles
+#   rse_mod1          (line ~571)  *** MAIN MODEL (current, with density dep.) ***
+#   pop_lambda_fun    (line ~1464) Calculate asymptotic population growth rate
+#   model_summ        (line ~1493) Summarize model output (individuals, area, reproduction)
+#   rse_mod           (line ~1707) Legacy model (no density dep., area-based constraints)
+#   popvi_mod         (line ~2478) Simplified population viability model
+# =============================================================================
 
 
 #' @title Matrix Parameters Function
@@ -25,18 +58,20 @@
 mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_pars, fec_pars,
                          sigma_s, sigma_f, seeds, dist_yrs, dist_pars, dist_effects){
 
-  # survival parameters
+  # survival parameters — SEE: coral_demographic_funs.R::Surv_fun()
   S_list <- Surv_fun(years, n, surv_pars, sigma_s, seed1 = seeds[1])
 
-  # growth/shrinkage and fragmentation matrices
+  # growth/shrinkage and fragmentation matrices — SEE: coral_demographic_funs.R::G_fun()
   all_mats <- G_fun(years, n, growth_pars, shrink_pars, frag_pars)
   G_list <- all_mats$G_list
   Fr_list <- all_mats$Fr_list
 
-  # fecundity parameters
+  # fecundity parameters — SEE: coral_demographic_funs.R::Rep_fun()
   F_list <- Rep_fun(years, n, fec_pars, sigma_f, seed1 = seeds[2])
 
-  # update with disturbance effects
+  # WHY: Disturbances override stochastic parameters for specific years, allowing
+  # sudden events (e.g., hurricanes, bleaching) to be modeled as deterministic
+  # parameter replacements in the affected year(s).
   if(is.na(dist_yrs[1])==F){
 
     for(i in dist_yrs){ # for each disturbance year
@@ -138,7 +173,30 @@ dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 
 #' @param summ_metric Column name indicating which summarized value to use ("mean", "Q05", "Q95")
 #' @param full_df data frame (or list of dataframes) with all available estimates of parameter values
 #' @param n_sample number of samples from the full data frame to take (if sample_dt == T)
-#' 
+#' @return Depends on \code{par_type}:
+#'   \describe{
+#'     \item{If \code{par_type = "survival"}}{List with one element:
+#'       \code{$surv_pars}. If \code{sample_dt = FALSE}: numeric vector (length 5).
+#'       If \code{sample_dt = TRUE}: matrix (n_sample x 5), one row per random draw.}
+#'     \item{If \code{par_type = "growth"}}{List with two elements:
+#'       \code{$growth_pars} and \code{$shrink_pars}. If \code{sample_dt = FALSE}:
+#'       each is a list of 5 vectors (growth[k] = transitions FROM size class k to
+#'       larger classes; shrink[k] = transitions from k to smaller classes).
+#'       If \code{sample_dt = TRUE}: list of n_sample elements, each containing
+#'       the 5-vector list structure described above.}
+#'     \item{If \code{par_type = "fragmentation"}}{List with one element:
+#'       \code{$frag_pars}. Structure: list of 5 elements where SC1-SC3 = NULL or
+#'       zero vectors (small colonies do not fragment), SC4 and SC5 = vectors of
+#'       fragment production rates to each smaller size class.
+#'       If \code{sample_dt = TRUE}: list of n_sample such lists.}
+#'   }
+#' @details The growth/shrinkage indexing follows the transition matrix convention:
+#'   \code{growth_pars[[k]]} contains transition probabilities FROM size class k
+#'   TO all larger classes. For example, \code{growth_pars[[1]]} has 4 elements
+#'   (SC1 -> SC2, SC1 -> SC3, SC1 -> SC4, SC1 -> SC5), while
+#'   \code{growth_pars[[5]]} is NULL (SC5 cannot grow larger). Shrinkage is the
+#'   reverse: \code{shrink_pars[[5]]} has 4 elements (SC5 -> SC4, ..., SC5 -> SC1).
+#' @export
 par_list_fun <- function(par_type, sample_dt, summ_df, summ_metric, full_df, n_sample){
   
   
@@ -251,6 +309,10 @@ if(par_type == "survival"){ # survival data
     if(sample_dt == F){ # if using summarized data
       # list(NULL, c(0, 0), c(0, 0, 0), c(F4_SC1, F4_SC2, F4_SC3, F4_SC4), c(F5_SC1, F5_SC2, F5_SC3, F5_SC4, F5_SC5)) 
       
+      # WHY: Only size classes 4 and 5 (>900 cm^2) produce fragments in A. palmata.
+      # Smaller colonies lack the branching architecture for storm-driven breakage to
+      # generate viable fragments. SC1-3 produce zero fragments by construction.
+      # "F4_SC1" = fragments from SC4 colonies that land in SC1, etc.
       frag_pars <- list(NULL, c(0, 0), c(0, 0, 0),
       c(summ_df[which(summ_df$frag_type == "F4_SC1") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC2") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC3") ,summ_metric], summ_df[which(summ_df$frag_type == "F4_SC4") ,summ_metric]),
       c(summ_df[which(summ_df$frag_type == "F5_SC1") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC2") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC3") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC4") ,summ_metric], summ_df[which(summ_df$frag_type == "F5_SC5") ,summ_metric]))
@@ -305,13 +367,47 @@ if(par_type == "survival"){ # survival data
 } # end of function
 
 
-# function for setting up reef and orchard survival, growth/shrinkage, and fragmentation parameter values using summarized data
-# assumes all reefs have same parameters, all orchards have same parameters, and all lab treatments have same parameters
-#' @param n_reef number of intervention reefs
-#' @param n_orchard number of orchards
-#' @param n_lab number of lab treatments
-#' @param summ_metric_list named list specifying the summary metrics (mean, Q05, or Q95) to use for each type of parameter (field_surv, field_growth, field_shrink, field_frag, nurs_surv, nurs_growth, nurs_shrink)
-
+#' @title Default Parameter Assembly
+#' @description Assembles demographic parameter sets for all reefs and orchards using
+#'   summarized (mean or quantile) values from the empirical data. We assume all reefs
+#'   share one set of field-derived parameters, all orchards share one set of nursery-derived
+#'   parameters, and all lab treatment sources within a location share the same demographics.
+#'   This function is the deterministic counterpart to \code{rand_pars_fun()}.
+#' @param n_reef Integer. Number of intervention reefs.
+#' @param n_orchard Integer. Number of nursery orchards.
+#' @param n_lab Integer. Number of lab treatments (determines how many source subpopulations
+#'   each reef tracks: n_lab + 1, where +1 = external/wild recruits).
+#' @param summ_metric_list Named list specifying which summary statistic to use for each
+#'   parameter type. Names: \code{field_surv}, \code{field_growth}, \code{field_shrink},
+#'   \code{field_frag}, \code{nurs_surv}, \code{nurs_growth}, \code{nurs_shrink}. Values:
+#'   column names from the summary data frames (typically "mean", "Q05", or "Q95").
+#' @param field_surv Field survival data object from the parameters repo
+#'   (\code{field_surv_pars.rds}). Must contain \code{$SC_surv_summ_df} (summary by size class).
+#' @param field_growth Field growth data object (\code{field_growth_pars.rds}).
+#'   Must contain \code{$summ_list} (list of 5 transition summary data frames, one per size class).
+#' @param nurs_surv Nursery survival data object (\code{nurs_surv_pars.rds}).
+#'   Same structure as \code{field_surv}. Covers only SC1–SC2; caller must fill in SC3–SC5
+#'   from field data before passing.
+#' @param nurs_growth Nursery growth data object (\code{nurs_growth_pars.rds}).
+#'   Same structure as \code{field_growth}. SC3–SC5 must be filled from field data.
+#' @param apal_frag_summ Data frame of fragmentation summary statistics
+#'   (\code{apal_fragmentation_summ.csv}). Columns include \code{frag_type} (e.g., "F4_SC1")
+#'   and summary columns (mean, Q05, Q95).
+#' @return Named list with 8 elements, each a nested list:
+#'   \code{[[location]][[source]]} = parameter vector or list.
+#'   \describe{
+#'     \item{surv_pars.r}{\code{[[reef]][[source]]} -> numeric vector (length 5), survival per SC}
+#'     \item{growth_pars.r}{\code{[[reef]][[source]]} -> list of growth transition vectors}
+#'     \item{shrink_pars.r}{\code{[[reef]][[source]]} -> list of shrinkage vectors}
+#'     \item{frag_pars.r}{\code{[[reef]][[source]]} -> list of fragmentation vectors (SC4-5 only)}
+#'     \item{surv_pars.o}{\code{[[orchard]][[source]]} -> same as reef survival}
+#'     \item{growth_pars.o}{\code{[[orchard]][[source]]} -> same as reef growth}
+#'     \item{shrink_pars.o}{\code{[[orchard]][[source]]} -> same as reef shrinkage}
+#'     \item{frag_pars.o}{\code{[[orchard]][[source]]} -> all zeros (no fragmentation in orchards)}
+#'   }
+#' @seealso \code{\link{rand_pars_fun}} for stochastic parameter sampling,
+#'   \code{\link{par_list_fun}} for the underlying parameter extraction.
+#' @export
 default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_surv, field_growth, nurs_surv, nurs_growth, apal_frag_summ){
   
   # reef
@@ -354,8 +450,9 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
   growth_pars2 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = nurs_growth$summ_list, summ_metric = summ_metric_list$nurs_growth, full_df = NA, n_sample = NA)$growth_pars
   shrink_pars2 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = nurs_growth$summ_list, summ_metric = summ_metric_list$nurs_shrink, full_df = NA, n_sample = NA)$shrink_pars
   
-  # assuming no fragmentation in orchard
-  frag_pars2 <- list(NULL, c(0, 0), c(0, 0, 0), c(0, 0, 0, 0), c(0, 0, 0, 0, 0)) 
+  # No fragmentation in orchards: managed nursery substrates are not subject to
+  # storm-driven breakage. We set all fragment production to zero.
+  frag_pars2 <- list(NULL, c(0, 0), c(0, 0, 0), c(0, 0, 0, 0), c(0, 0, 0, 0, 0))
   
 
   for(i in 1:n_orchard){ # for each orchard
@@ -382,11 +479,44 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
   
 }
 
-#function for setting up reef and orchard survival, growth/shrinkage, and fragmentation parameter values that vary randomly
-# assumes same parameters for all sources (all lab treatments plus external recruits), but parameters can differ across reefs and across orchards
-#' @param n_reef number of intervention reefs
-#' @param n_orchard number of orchards
-#' @param n_lab number of lab treatments
+#' @title Random Parameter Assembly
+#' @description Assembles demographic parameter sets by randomly sampling from empirical
+#'   distributions. We draw \code{n_sample} independent parameter sets, enabling Monte Carlo
+#'   uncertainty analysis. Each draw samples a complete row from the empirical data (preserving
+#'   correlations across size classes within a study). All sources within a reef share the same
+#'   draw; different reefs can receive different draws.
+#' @param n_reef Integer. Number of intervention reefs.
+#' @param n_orchard Integer. Number of nursery orchards.
+#' @param n_lab Integer. Number of lab treatments.
+#' @param n_sample Integer. Number of random parameter sets to generate. Each produces
+#'   an independent realization suitable for one model run.
+#' @param field_surv Field survival data object. Must contain \code{$SC_surv_df}
+#'   (individual-level survival data frame with columns \code{size_class} and
+#'   \code{prop_survived}).
+#' @param field_growth Field growth data object. Must contain \code{$mat_list}
+#'   (list of 5 transition probability data frames, one per size class).
+#' @param nurs_surv Nursery survival data object. Same structure as \code{field_surv}.
+#'   Caller must fill SC3–SC5 from field data before passing.
+#' @param nurs_growth Nursery growth data object. Same structure as \code{field_growth}.
+#'   SC3–SC5 must be filled from field data.
+#' @param apal_frag Fragmentation data frame (\code{apal_fragmentation.csv}). Each row
+#'   is one empirical observation with columns \code{F4_SC1}, \code{F4_SC2}, etc.
+#' @return Named list with 8 elements, each a nested list with an outer iteration dimension:
+#'   \code{[[iteration]][[location]][[source]]} = parameter vector or list.
+#'   \describe{
+#'     \item{surv_pars_L.r}{\code{[[iter]][[reef]][[source]]} -> numeric vector (length 5)}
+#'     \item{growth_pars_L.r}{\code{[[iter]][[reef]][[source]]} -> list of growth vectors}
+#'     \item{shrink_pars_L.r}{\code{[[iter]][[reef]][[source]]} -> list of shrinkage vectors}
+#'     \item{frag_pars_L.r}{\code{[[iter]][[reef]][[source]]} -> list of fragmentation vectors}
+#'     \item{surv_pars_L.o}{\code{[[iter]][[orchard]][[source]]} -> same as reef}
+#'     \item{growth_pars_L.o}{\code{[[iter]][[orchard]][[source]]} -> same as reef}
+#'     \item{shrink_pars_L.o}{\code{[[iter]][[orchard]][[source]]} -> same as reef}
+#'     \item{frag_pars_L.o}{\code{[[iter]][[orchard]][[source]]} -> all zeros}
+#'   }
+#'   To use iteration \code{nn}: pass \code{surv_pars_L.r[[nn]]} as \code{surv_pars.r}
+#'   to \code{rse_mod1()}, and likewise for all 8 elements.
+#' @seealso \code{\link{default_pars_fun}} for deterministic parameter assembly.
+#' @export
 rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_growth, nurs_surv, nurs_growth, apal_frag){
 
   
@@ -539,11 +669,23 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
 #' @param n number of size classes
 #' @param A_mids areas at the midpoint of each size class
 #' @param surv_pars.r list with mean survival probabilities in each size class for each reef treatment
+#' @param dens_pars.r Post-outplanting density-dependent survival coefficients for reefs.
+#'   Nested list: \code{[[reef]][[source]]} = numeric scalar. Applied at outplanting time
+#'   as Ricker-type survival: \code{surviving = outplants * exp(-dens_par * tile_density) *
+#'   size_props}, where \code{tile_density} = settlers per tile on outplanting day. Higher
+#'   density on each tile reduces post-outplanting survival, reflecting competition and
+#'   post-settlement mortality on crowded substrates.
+#'   NOTE: An earlier version applied DD to SC1 survival based on total reef population
+#'   (see commented-out code at ~line 938); the current implementation operates on per-tile
+#'   density at the moment of outplanting.
 #' @param growth_pars.r list with transition probabilities for each size class for each reef treatment
 #' @param shrink_pars.r list with shrinkage probabilities for each size class for each reef treatment
 #' @param frag_pars.r list with fragmentation probabilities for each size class for each reef treatment
 #' @param fec_pars.r list with mean fecundities of each size class for each reef treatment
 #' @param surv_pars.o list with mean survival probabilities in each size class for each orchard treatment
+#' @param dens_pars.o Post-outplanting density-dependent survival coefficients for orchards.
+#'   Same structure and mechanism as \code{dens_pars.r} but indexed as
+#'   \code{[[orchard]][[source]]}.
 #' @param growth_pars.o list with transition probabilities for each size class for each orchard treatment
 #' @param shrink_pars.o list with shrinkage probabilities for each size class for each orchard treatment
 #' @param frag_pars.o list with fragmentation probabilities for each size class for each orchard treatment
@@ -562,8 +704,71 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
 #' @param orchard_treatments named list with all orchard treatments (including "none" for no treatment)
 #' @param reef_treatments named list with all the intervention reef treatments 
 #' @param lab_treatments named list with all lab treatments (including "none" for no treatment)
-#' @param lab_pars parameters with lab yields for the different lab treatments
-#' @param rest_pars restoration strategy parameters for determining how many recruits go to each treatment lab, reef, and orchard
+#' @param lab_pars Named list defining lab settlement and survival. Controls how larvae
+#'   become outplantable recruits. Elements:
+#'   \describe{
+#'     \item{sett_props}{Named list (e.g., \code{list(T1 = 0.15)}). Fraction of larvae
+#'       that successfully settle on each tile type. Estimated from Fundemar's 2025 spawning
+#'       data (~15\% for cement tiles; see \code{rest_pars.rmd}).}
+#'     \item{s0}{Matrix (years x n_lab). Annual survival probability of settled larvae from
+#'       settlement to immediate outplanting, for each lab treatment. Allows year-specific
+#'       values (e.g., to model lab disturbance events).}
+#'     \item{s1}{Matrix (years x n_lab). Annual survival of retained settlers (1-year
+#'       grow-out treatments). Typically lower than \code{s0} because colonies are held longer.}
+#'     \item{m0}{Numeric vector (length = n_lab). Density-dependent mortality coefficient for
+#'       immediate-outplant treatments. Applied as Ricker-type survival:
+#'       \code{survivors = settlers * s0 * exp(-m0 * density)}.}
+#'     \item{m1}{Numeric vector (length = n_lab). Same as \code{m0} but for 1-year retained
+#'       treatments.}
+#'     \item{size_props}{Matrix (n_lab x n_size_classes). Size class distribution of recruits
+#'       at the time of immediate outplanting. Row i defines where lab treatment i's recruits
+#'       land in the size distribution (typically all in SC1).}
+#'     \item{size_props1}{Matrix (n_lab x n_size_classes). Same as \code{size_props} but for
+#'       1-year retained recruits (may have grown to SC2 during lab retention).}
+#'   }
+#' @param rest_pars Named list defining the restoration strategy. Controls how larvae
+#'   are allocated across labs, orchards, and reefs each year. Elements:
+#'   \describe{
+#'     \item{tile_props}{Named list (e.g., \code{list(T1 = 0.25, T2 = 0.75)}). Fraction
+#'       of lab tile capacity devoted to each tile type. Names must match tile types in
+#'       \code{lab_treatments}. Sums to 1.}
+#'     \item{orchard_yield}{Numeric 0–1. Fraction of orchard larvae successfully collected
+#'       each spawning season. Set to 0 if the orchard does not contribute larvae to the lab.}
+#'     \item{reef_yield}{Numeric 0–1. Fraction of reference reef larvae successfully collected
+#'       and fertilized. Represents field collection efficiency.}
+#'     \item{spawn_target}{Numeric. Target number of embryos to collect from the orchard each
+#'       year. If the orchard cannot meet this target, the shortfall is supplemented from the
+#'       reference reef (up to \code{reef_yield * lambda_R}). Set to 0 for no lab settlers.}
+#'     \item{reef_prop}{Numeric vector (length = number of lab treatments), each value 0–1.
+#'       Fraction of tiles from each lab treatment that go to the reef (remainder goes to orchards).}
+#'     \item{reef_out_props}{Matrix (n_lab x n_reef). Row i, column j = fraction of reef-bound
+#'       tiles from lab treatment i allocated to reef j. Rows sum to 1.}
+#'     \item{orchard_out_props}{Matrix (n_lab x n_orchard). Same logic for orchard allocation.}
+#'     \item{reef_areas}{Numeric vector (length = n_reef). Available substrate area for each
+#'       reef in cm^2. Determines carrying capacity — once occupied area reaches this limit,
+#'       no new recruits or fragments establish.}
+#'     \item{lab_max}{Integer. Total tile capacity of the lab (tiles that can be processed
+#'       in a single spawning season). We assume 100 tiles per tank.}
+#'     \item{lab_retain_max}{Integer. Maximum tiles that can be held in the lab for 1-year
+#'       grow-out. Must be <= \code{lab_max}. If > 0, at least one lab treatment must use the
+#'       "1_TX" (retained) naming convention.}
+#'     \item{tank_min}{Numeric. Minimum embryos per tank. If larval supply falls below
+#'       \code{tank_min * lab_max / 100}, we reduce the number of tanks used rather than
+#'       spreading larvae too thin (avoids unrealistically low settlement densities).}
+#'     \item{tank_max}{Numeric. Maximum embryos per tank. Caps larval loading to prevent
+#'       unrealistically high densities. We chose the default (33,333) to produce ~50 embryos
+#'       per tile assuming 15\% settlement and 100 tiles per tank.}
+#'     \item{orchard_size}{Numeric vector (length = n_orchard). Maximum tiles each orchard
+#'       can accommodate. Surplus tiles are redirected to reefs.}
+#'     \item{transplant}{Integer vector (length = years). 1 in years when mature colonies are
+#'       transplanted from orchards to reefs, 0 otherwise.}
+#'     \item{trans_mats}{Nested list: \code{[[orchard]][[source]]} = matrix (years x n size
+#'       classes). Maximum colonies of each size class to transplant per year from that
+#'       orchard-source combination.}
+#'     \item{trans_reef}{Nested list: \code{[[orchard]][[source]]} = matrix (years x 2).
+#'       Column 1 = destination reef index, column 2 = destination source index within
+#'       that reef.}
+#'   }
 #' @param N0.r initial population sizes in each reef subpopulation
 #' @param N0.o initial population sizes in each orchard subpopulation
 #' @param N0.l initial population sizes in each lab subpopulation
@@ -575,9 +780,49 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
                      dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, 
                      rest_pars, N0.r, N0.o, N0.l){
   
-  # reef subpops = length(lab_treatments)*length(reef_treatments)
-  # lab subpops = length(lab_treatments)
-  
+  # ========================================================================
+  # ALGORITHMIC OVERVIEW
+  # ========================================================================
+  # This function simulates coral population dynamics across reefs, orchards,
+  # and labs over multiple years. Each year proceeds in this order:
+  #
+  #   STEP 1 — REEF DYNAMICS: Apply survival (element-wise), then growth/
+  #            shrinkage/fragmentation (matrix multiplication), add external
+  #            wild recruits to smallest size class.
+  #   STEP 2 — ORCHARD DYNAMICS: Same demographic update as reef, plus a
+  #            one-adult-per-tile cap (managed nursery substrate constraint).
+  #   STEP 3 — LARVAL COLLECTION: Collect larvae from orchards first; if the
+  #            spawn target isn't met, supplement from the reference reef.
+  #   STEP 4 — LAB PROCESSING: Distribute larvae across tile treatments,
+  #            apply settlement, lab survival, and density-dependent mortality.
+  #   STEP 5 — TILE ALLOCATION: Decide tile distribution to orchards vs. reefs
+  #            based on reef_prop; handle orchard capacity overflow → redirect
+  #            surplus tiles to reefs.
+  #   STEP 6 — OUTPLANTING: Add surviving recruits to reef and orchard
+  #            populations with post-outplanting density-dependent survival.
+  #   STEP 7 — COLONY TRANSPLANTING (if scheduled): Move mature colonies
+  #            from orchards to reefs.
+  #
+  # INDEX KEY for main data structures:
+  #   reef_pops[[ss]][[rr]][nn, i]
+  #     ss = reef subpopulation (1..s_reef)
+  #     rr = recruit source (1 = external/wild, 2..s_lab+1 = lab treatments)
+  #     nn = size class (1..5: 1=recruits <10cm², 2=small, 3=medium,
+  #          4=large, 5=very large >4000cm²)
+  #     i  = year (1..years, where year 1 = initial conditions)
+  #
+  #   orchard_pops[[ss]][[rr]][nn, i] — same structure, but:
+  #     ss = orchard subpopulation (1..s_orchard)
+  #     rr = lab treatment source (1..s_lab; no external recruit source)
+  #
+  #   lab_pops[[ss]][i] — ss = lab treatment, i = year
+  #
+  # Lab treatment naming convention: "X_TY"
+  #   X = retention time: "0" = outplanted same year, "1" = retained 1 year
+  #   TY = tile type: "T1" = cement, "T2" = ceramic, etc.
+  #   Example: "0_T1" = cement tile, outplanted immediately
+  # ========================================================================
+
   # orchard subpopulations:
   s_orchard <- length(orchard_treatments)
   
@@ -596,17 +841,17 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   }
   
   # larvae collected from reference reef each year
+  # SEE: coral_demographic_funs.R::Ext_fun() — lambda_R = mean annual embryo production
   ref_babies <- Ext_fun(years, lambda_R, rand = ext_rand[2], seed1 = seeds[4])
-  
-  # update with disturbance effects
+
+  # WHY: When a disturbance reduces reef survival, it also reduces reference reef
+  # larval production proportionally. The ratio (disturbed_survival / baseline_survival)
+  # for reproductive size classes [3:5] = SC3-SC5 gives the proportional reduction.
+  # Uses reef 1, source 1 disturbance params as representative of the reference reef.
   if(is.na(dist_yrs[1])==F){
   for(i in dist_yrs){
-    
-    if("survival" %in% dist_effects.r[[1]][[1]][[which(dist_yrs==i)]]){ # if the ith disturbance affected survival on the reefs
-      # assume that reproduction in the reference reef was decreased proportional to the average proportion survival of reproductive size classes (classes 3-5)
-      #ref_babies[i] <- ref_babies[i]*mean(dist_pars.r[[1]][[1]]$dist_surv[[which(dist_yrs==i)]][3:5])
-      # update: assume reproduction is decreased by the same amount as the average proportional reduction in survival of reproductive size classes
-      # (e.g., if disturbance reduced survival to 20% of default value, then reduce reference reef production to 20% of default)
+
+    if("survival" %in% dist_effects.r[[1]][[1]][[which(dist_yrs==i)]]){
       ref_babies[i] <- ref_babies[i]*mean(dist_pars.r[[1]][[1]]$dist_surv[[which(dist_yrs==i)]][3:5]/surv_pars.r[[1]][[1]][3:5], na.rm = T)
     }
   }
@@ -658,16 +903,23 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   orchard_tiles_out[1] <- 0 # tiles outplanted to orchard each year
   
   
-  # sources of new recruits
-  source_reef <- 1 + s_lab # number of possible sources of reef recruits (+1 is for external recruits)
-  source_orchard <- s_lab # number of possible sources of orchard recruits
-  
-  # set up holding lists
-  reef_pops <- list() # holding list for population sizes of each reef subpopulation
-  reef_rep <- list() # holding list for total reproductive output from each reef subpopulation
-  reef_mat_pars <- list() # list with data frames with the transition matrix parameters for each reef subpop
-  reef_out <- list() # number of recruits outplanted to reef
-  reef_pops_pre <- list() # reef population sizes before outplanting
+  # WHY +1 for reef: Reef populations track individuals from each lab treatment
+  # PLUS external (wild) recruits. Source rr=1 = external, rr=2..s_lab+1 = lab treatments.
+  # Orchards only receive lab-sourced recruits (no wild settlement in managed nurseries).
+  source_reef <- 1 + s_lab
+  source_orchard <- s_lab
+
+  # ========================================================================
+  # INITIALIZATION: Set up tracking structures for all subpopulations
+  # ========================================================================
+  # Each list is nested: outer = subpopulation, inner = recruit source.
+  # Holding matrices have rows = size classes (1..n), columns = years (1..years).
+
+  reef_pops <- list()     # population sizes [[ss]][[rr]][nn, i]
+  reef_rep <- list()      # reproductive output [[ss]][[rr]][i]
+  reef_mat_pars <- list() # demographic parameters [[ss]][[rr]]$survival/growth/fragmentation/fecundity
+  reef_out <- list()      # number outplanted [[ss]][[rr]][i]
+  reef_pops_pre <- list() # population sizes BEFORE outplanting (for measuring natural dynamics)
   
   for(ss in 1:s_reef){
     
@@ -794,14 +1046,16 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   
   
   
-  # get the density dependent mortality parameters 
-  
-  # reef
+  # Density-dependent mortality coefficients for post-outplanting survival.
+  # Used in STEP 6 as: surviving_outplants = outplants * exp(-dd_pars * density)
+  # This is a Ricker-type density-dependent survival on the outplanting tiles.
+  # WHY rr+1 offset: dens_pars.r[[ss]] includes external recruits at position 1,
+  # but dd_pars.r only indexes lab sources, so lab treatment j = dens_pars position j+1.
   dd_pars.r <- matrix(NA, nrow = s_reef, ncol = s_lab)
   for(ss in 1:s_reef){
-    
-    for(rr in 1:s_lab){ # for each lab source (rr = 1 is for external recruits)
-      
+
+    for(rr in 1:s_lab){
+
       dd_pars.r[ss, rr] <- dens_pars.r[[ss]][[rr + 1]]
     }
     
@@ -818,22 +1072,20 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     
   }
   
+  # ========================================================================
+  # SIMULATION LOOP: Year-by-year population dynamics (year 2..years)
+  # ========================================================================
+  # Year 1 = initial conditions (set above). Each subsequent year applies
+  # Steps 1-7 as described in the algorithmic overview.
+
   for(i in 2:years){
-    
-    
-    # steps:
-    # 1) corals from previous year grow/die and external recruits settle on the reefs
-    # 2) corals reproduce and orchard babies are collected and go to lab
-    # 3) add lab recruits from same year and/or previous year 
-    
-    # restoration model: determines how many recruits/corals go in each treatment
-    # should also keep track of the costs of each treatment (doesn't yet)
-    # possible feedbacks (currently none) = numbers going in to each treatment depends on population sizes, env., etc.
-    
-    # reef dynamics
-    
-    # update the population size using the transition matrix:
-    
+
+    # --- STEP 1: REEF POPULATION UPDATE ---
+    # Apply survival, then growth/shrinkage/fragmentation via matrix projection.
+    # WHY survival is element-wise before matrix mult: Mortality occurs in the
+    # individual's current size class before it transitions. This is a
+    # pre-breeding census formulation where S acts on N(t-1) first.
+
     for(ss in 1:s_reef){ # for each reef subpopulation
         
         for(rr in 1:source_reef){ # for each source of recruits to this reef
@@ -864,19 +1116,19 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
           # # now update survival based on the total population size on this reef
           # S_i[1] <- S_i[1]*exp(-dens_pars.r[[ss]][[rr]]*sum(N_all))
           
-          N_mat <- reef_pops[[ss]][[rr]][,i-1] # population sizes in each size class at last time point
-          N_mat <- N_mat*S_i # fractions surviving to current time point
-          
-          # now update the population sizes
-          reef_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1) # new population sizes
-          
-          # record this as the pre-outplant population size (population size before lab settlers are outplanted)
+          # Core demographic update: N(t) = (T + F) %*% (S * N(t-1))
+          N_mat <- reef_pops[[ss]][[rr]][,i-1] # N(t-1): population by size class
+          N_mat <- N_mat*S_i                   # apply survival element-wise
+
+          reef_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1)
+
+          # snapshot before outplanting (used to measure natural dynamics separately)
           reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
-          
-          # amount of new larvae produced by this reef population at the i^th time point:
+
+          # reproductive output this year (larvae produced)
           reef_rep[[ss]][[rr]][i] <- sum(reef_pops[[ss]][[rr]][ ,i]*reef_mat_pars[[ss]][[rr]]$fecundity[[i]])
-          
-          if(rr ==1){ # if this is the first source (external recruits)
+
+          if(rr ==1){ # WHY only rr==1: only external/wild recruits settle naturally
             # add the external recruits if they fit
             # tot_area1 <- rest_pars$reef_areas[ss] # total area devoted to the ss^th reef treatment
             # occupied_area1 <- sum(reef_pops[[ss]][[rr]][ ,i]*A_mids) # total area currently occupied
@@ -908,16 +1160,18 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
     } # end of iterations over each reef subpop
     
-    # calculate total number of tiles in orchard (needed for density dependence calculations below)
+    # --- STEP 2: ORCHARD POPULATION UPDATE ---
+    # Same demographic update as reef, plus a one-adult-per-tile cap.
+    # Orchards are managed nurseries with limited physical substrate.
+
+    # Total tiles across all orchards (needed for density calculations below)
     tot_tiles1 <- rep(NA, s_orchard)
     for(ss in 1:s_orchard){
       tot_tiles1[ss] <- orchard_tiles[[ss]][i-1]
     }
-    
     tot_tiles1 <- sum(tot_tiles1)
-    
-    # orchard dynamics
-    for(ss in 1:s_orchard){ # for each orchard 
+
+    for(ss in 1:s_orchard){ # for each orchard
       
       # calculate total number of colonies in this orchard across all sources
       # ind_tots_ss <- rep(NA, source_orchard)
@@ -961,12 +1215,16 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         orchard_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1)
         
         
-        # UPDATE: add a cap to make sure only one juvenile per tile can mature to the adult stage and assume the extras die
-        
-        # need to calculate the total number of tiles in ss^th orchard from rr^th lab source
-        # first get the total number of tiles in the orchard
-        
-        # tiles in ss^th orchard from rr^th lab treatment = proportion of tiles that are treatment rr x proportion from rr^th treatment that went to ss^ orchard
+        # ONE-ADULT-PER-TILE CAP
+        # WHY: In physical orchards, each tile/reef star can support at most one
+        # mature colony. If the matrix projection predicts more adults (SC3-SC5,
+        # indices [3:5]) than tiles, the excess die. We remove from the smallest
+        # adult class first (SC3), then SC4 if needed. SC5 is never reduced
+        # (assumes large established colonies persist). This mimics competitive
+        # exclusion on limited managed substrate.
+        #
+        # tiles from rr-th lab treatment in ss-th orchard =
+        #   total_tiles x tile_type_proportion x orchard_allocation_proportion
         tot_tiles_rr <- tot_tiles1*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[rr])]]*rest_pars$orchard_out_props[rr,ss] #*(1-rest_pars$reef_prop[rr])
         
         if(tot_tiles_rr > 0){ # if there were tiles in this orchard
@@ -1013,9 +1271,12 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     } # end of iterations over each orchard treatment
     
     
-    # calculate total new orchard babies collected
-    # holding matrix for new orchard babies from colonies originating from each source in each orchard
-    new_babies.o <- matrix(NA, nrow = s_orchard, ncol = source_orchard) # rows = number of orchard treatments, col = number of sources to the orchard
+    # --- STEP 3: LARVAL COLLECTION FROM ORCHARDS AND REFERENCE REEFS ---
+    # WHY orchard-first priority: Orchard larvae come from genetically diverse
+    # managed stock. Reference reef larvae are only collected to make up any
+    # shortfall below spawn_target, minimizing impact on wild populations.
+
+    new_babies.o <- matrix(NA, nrow = s_orchard, ncol = source_orchard)
     
     for(ss in 1:s_orchard){ # for each orchard
       for(rr in 1:source_orchard){ # for each source of colonies to that orchard
@@ -1056,18 +1317,26 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
     }
     
-    # make sure total per tank doesn't exceed max reasonable amount (just to make sure 10 billion don't get put in a tank and cause high dens dep mortality)
-    tot_babies <- min(tot_babies, rest_pars$tank_max*rest_pars$lab_max/100) # max per tank x number of tanks (assuming 100 tiles per tank, from Fundemar's data)
+    # TILES_PER_TANK = 100. Fundemar's standard tank setup holds ~100 settlement tiles.
+    # Safety cap: total larvae cannot exceed (max_embryos/tank) * (total_tiles) / (tiles/tank).
+    # This prevents unrealistically high embryo densities in the lab.
+    tot_babies <- min(tot_babies, rest_pars$tank_max*rest_pars$lab_max/100)
     
     
     # make sure these don't exceed max lab capacity (assumed lab capacity is proportional to number of tiles)
     #tot_babies <- min(tot_babies, rest_pars$lab_max)
     
     
+    # --- STEP 4: LAB SETTLEMENT AND SURVIVAL ---
+    # Split larvae into two streams:
+    #   tot_settlers0 = larvae for IMMEDIATE outplanting ("0_TX" treatments)
+    #   tot_settlers1 = larvae RETAINED in lab for 1 year ("1_TX" treatments)
+    # The split is proportional to lab_retain_max / lab_max.
+
     if(s_lab1==0){ # if none of the lab treatments keep the recruits for a year
-      
-      tot_settlers0 <- tot_babies # all the babies will be outplanted this year
-      tot_settlers1 <- 0 # no babies will be kept for a year
+
+      tot_settlers0 <- tot_babies
+      tot_settlers1 <- 0
       
       # calculate total densities
      # tot_dens0 <- tot_settlers0/rest_pars$lab_max
@@ -1094,8 +1363,10 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     out_settlers <- rep(0, s_lab)
     lab_tiles <- rep(NA, s_lab) # number of tiles
     
-    # calculate proportion of max capacity to use this year (depends on total number of babies)
-   # prop_use <- min(1, (tot_babies/14600*100)/rest_pars$lab_max) # from Fundemar's data: # min of ~ 14600 embryos per tank, 100 substrates per tank 
+    # prop_use = fraction of lab capacity actually used this year (0 to 1).
+    # Formula: (total_larvae / min_embryos_per_tank * 100_tiles_per_tank) / total_tiles
+    # If larvae supply is less than lab capacity, we use fewer tiles.
+    # The magic number 100 = tiles per tank (same constant as the safety cap above).
     prop_use <- min(1, (tot_babies/rest_pars$tank_min*100)/rest_pars$lab_max)
     
     
@@ -1109,12 +1380,13 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     reef_babies_used[i] <- prop_use*reef_babies_used[i]
     
     
-    # put the new babies into each lab treatment and determine how many survive
-    # also record number of tiles in each lab treatment
+    # For each lab treatment, calculate settlers and apply survival.
+    # Settlement chain: total_larvae x settlement_rate x tile_type_proportion
+    # Survival: Ricker-type density-dependent: survivors = settlers * s0 * exp(-m0 * density)
     for(ss in 1:s_lab){ # for each lab treatment
-      
-      if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){ # if settlers in ss^th lab treatment are outplanted immediately
-        # settlers from this treatment being outplanted this year = total being outplanted this year x prop. of larvae that settle on this treatment when offered it x proportion of lab space devoted to this treatment
+
+      if(substr(lab_treatments[ss], start = 1, stop = 1)=="0"){ # immediate outplanting
+        # settlers = total_larvae x sett_prop_for_tile_type x lab_space_fraction_for_tile_type
         out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # number of tiles
@@ -1155,15 +1427,11 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     
     tiles_out_tot[i] <- tiles_out0[i] + tiles_out1[i-1]
     
-    # restoration actions: update all the population sizes based on restoration strategy
-    # feedbacks on restoration actions (currently none): could mean updating the proportions of babies
-    # and recruits going to different locations/treatments (lab_props, reef_prop, reef_out_props, orchard_out_props)
-    
-    # figure out numbers of tiles going to each orchard and lab treatment
-    # steps: 
-    # 1) calculate total number of tiles going to each orchard from each lab source
-    # 2) determine whether there is room on the orchards, if not take the surplus and put on the reef instead
-    # 3) then calculate the numbers of outplants going to reef and orchard (based on numbers of tiles, densities, and density dependent mortalities) 
+    # --- STEP 5: TILE ALLOCATION (orchards vs. reefs) ---
+    # Three sub-steps:
+    #   5a) Calculate total tiles going to each orchard from each lab source
+    #   5b) Check orchard capacity; redirect surplus tiles to reefs (overflow)
+    #   5c) Calculate outplant numbers (tiles x density x survival)
     
     
     # figure out how many can go to the orchard populations
@@ -1211,13 +1479,15 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # }
     # 
     
-    # now calculate the space in each orchard 
+    # Orchard space = max capacity minus whichever is larger: current tiles or adult colonies.
+    # WHY max(tiles, adults): Space is constrained by physical substrate (tiles) AND
+    # by biological occupancy (adult colonies). A tile with no coral still takes space;
+    # a coral that outgrew its tile still occupies a position.
     orchard_space <- rep(NA, s_orchard)
-    
+
     for(ss in 1:s_orchard){
 
-     # orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - orchard_tiles[[ss]][i-1]) # number of tiles ss^th orchard has space for
-     orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - max(orchard_tiles[[ss]][i-1], adult_tots[ss])) # number of tiles ss^th orchard has space for
+     orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - max(orchard_tiles[[ss]][i-1], adult_tots[ss]))
      # orchard_space[ss] <- max(0, rest_pars$orchard_size[ss] - adult_tots[ss]) # number of tiles ss^th orchard has space for
       
     }
@@ -1239,7 +1509,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       
     }
     
-    # now figure out which tiles fit in the orchards and which need to be moved to the reef
+    # WHY overflow to reef: When orchards are full, surplus tiles go to the first
+    # reef rather than being wasted. This reflects operational practice where
+    # produced tiles are always deployed somewhere.
     for(rr in 1:s_orchard){ # for each orchard
       
       if(orchard_space[rr] == 0){ # if there's no space in this orchard
@@ -1289,9 +1561,12 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     orchard_tiles_out[i] <- sum(as.vector(orchard_tiles_all))
     
     
-    # make a matrix with the number of recruits going from each lab treatment to each reef treatment
-    reef_outplants <- matrix(0, nrow = s_lab, ncol = s_reef) # from current timestep
-    reef_outplants1 <- matrix(0, nrow = s_lab, ncol = s_reef) # from last time step
+    # --- STEP 6: OUTPLANTING EXECUTION ---
+    # Calculate actual outplant numbers (tiles x density_per_tile) and add to
+    # reef/orchard populations with post-outplanting density-dependent survival.
+
+    reef_outplants <- matrix(0, nrow = s_lab, ncol = s_reef)  # immediate outplants
+    reef_outplants1 <- matrix(0, nrow = s_lab, ncol = s_reef) # retained outplants (from previous year's lab)
     
     # holding vector for outplanting densities (will be used to calculate post-outplanting density dependent survival)
     dens_out <- rep(NA, s_lab)
@@ -1326,12 +1601,17 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     }
     
     
-    # add the outplants to the reef subpopulations
+    # Add outplants to reef populations.
+    # WHY rr-1 offset: reef_outplants is indexed by lab treatment (1..s_lab), but
+    # reef_pops sources start at rr=1 (external). Lab treatment j maps to source rr=j+1.
+    # Post-outplanting survival: exp(-dd_pars * density) = Ricker density dependence.
+    # size_props distributes settlers across size classes (most go to SC1).
+    # size_props1 = size distribution for settlers retained 1 year (shifted to larger classes).
     for(ss in 1:s_reef){
-      
-        for(rr in 2:source_reef){ # for each lab source (rr = 1 is for external recruits)
+
+        for(rr in 2:source_reef){ # rr starts at 2: skip external recruits (rr=1)
           if(substr(lab_treatments[rr-1], start = 1, stop = 1)=="0"){
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,] # need rr-1 here because the reef_outplants matrix only includes the lab treatments as sources (first source is external recruitment)
+          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,]
           }
           
           # add the recruits from the previous year
@@ -1407,12 +1687,14 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     
     
       
-    # now add any colony transplants from the orchard to the reef
-    
-    if(rest_pars$transplant[i]==1){ # if colonies are moved from orchard to reef this year
-      
-      # get the corals that will be transplanted from each size class
-      #colony_mats <- list() # holding list for matrices with number of transplant colonies
+    # --- STEP 7: COLONY TRANSPLANTING (orchard → reef) ---
+    # WHY: Mature orchard colonies can be physically moved to reefs to
+    # immediately boost reproductive capacity. rest_pars$transplant[i] is a
+    # binary flag indicating whether transplanting occurs this year.
+    # trans_mats specifies how many colonies of each size class to move.
+    # trans_reef specifies the destination reef and source subpopulation.
+
+    if(rest_pars$transplant[i]==1){
       
       for(ss in 1:s_orchard){ # for each orchard subpopulation
         
@@ -1446,24 +1728,51 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     
   } # end of iteration over each year
   
-  # return all the population metrics
-  
+  # RETURN VALUE: List with 17 elements
+  #   reef_pops         — reef population sizes [[ss]][[rr]][size_class, year]
+  #   orchard_pops      — orchard population sizes [[ss]][[rr]][size_class, year]
+  #   lab_pops          — lab population sizes [[ss]][year]
+  #   reef_rep          — reef reproductive output (larvae) [[ss]][[rr]][year]
+  #   orchard_rep       — orchard reproductive output [[ss]][[rr]][year]
+  #   reef_out          — number outplanted to each reef [[ss]][[rr]][year]
+  #   orchard_out       — number outplanted to each orchard [[ss]][[rr]][year]
+  #   reef_pops_pre     — reef sizes BEFORE outplanting (for measuring natural dynamics)
+  #   orchard_pops_pre  — orchard sizes BEFORE outplanting
+  #   orchard_babies    — total larvae collected from orchards [year]
+  #   reef_babies       — total larvae available from reference reef [year]
+  #   orchard_babies_used — orchard larvae actually used [year]
+  #   reef_babies_used    — reef larvae actually used [year]
+  #   tiles_out_tot     — total tiles outplanted [year]
+  #   reef_tiles_out    — tiles outplanted to reefs [year]
+  #   orchard_tiles_out — tiles outplanted to orchards [year]
+  #   orchard_tiles     — tile inventory in each orchard [[ss]][year]
+
   return(list(reef_pops = reef_pops, orchard_pops = orchard_pops, lab_pops = lab_pops,
-              reef_rep = reef_rep, orchard_rep = orchard_rep, reef_out = reef_out, 
-              orchard_out = orchard_out, reef_pops_pre = reef_pops_pre, 
-              orchard_pops_pre = orchard_pops_pre, orchard_babies = orchard_babies, 
+              reef_rep = reef_rep, orchard_rep = orchard_rep, reef_out = reef_out,
+              orchard_out = orchard_out, reef_pops_pre = reef_pops_pre,
+              orchard_pops_pre = orchard_pops_pre, orchard_babies = orchard_babies,
               reef_babies = reef_babies, orchard_babies_used = orchard_babies_used,
-              reef_babies_used = reef_babies_used, tiles_out_tot = tiles_out_tot, 
-              reef_tiles_out = reef_tiles_out, orchard_tiles_out = orchard_tiles_out, 
+              reef_babies_used = reef_babies_used, tiles_out_tot = tiles_out_tot,
+              reef_tiles_out = reef_tiles_out, orchard_tiles_out = orchard_tiles_out,
               orchard_tiles = orchard_tiles))
-  
+
 }
 
-# function for calculating lambda from the transition matrix parameters
-
+# =============================================================================
+#' @title Population Growth Rate (Lambda) Calculator
+#' @description Calculates the asymptotic population growth rate (lambda) from
+#'   demographic parameters. Lambda > 1 = growing, lambda < 1 = declining.
+#'   Uses the leading eigenvalue of the projection matrix A = (T + F) %*% diag(S).
+#' @param surv_pars Vector of survival probabilities for each size class
+#' @param growth_pars List of growth transition probabilities
+#' @param shrink_pars List of shrinkage probabilities
+#' @param frag_pars List of fragmentation probabilities
+#' @return Numeric: leading eigenvalue (lambda) of the projection matrix
+#' @note Hardcodes n=5 size classes. SEE: coral_demographic_funs.R::G_fun()
+#' @export
 pop_lambda_fun <- function(surv_pars, growth_pars, shrink_pars, frag_pars){
-  
-  # growth/shrinkage and fragmentation matrices
+
+  # Build transition + fragmentation matrices for a single year
   all_mats <- G_fun(1, n = 5, growth_pars, shrink_pars, frag_pars)
   G_list <- all_mats$G_list
   Fr_list <- all_mats$Fr_list
@@ -1480,15 +1789,22 @@ pop_lambda_fun <- function(surv_pars, growth_pars, shrink_pars, frag_pars){
   
 }
 
-# function for summarizing model output
-#' @param model_sim full output from model simulation
-#' @param years number of years in model simulation
+#' @title Model Output Summary Function
+#' @description Summarizes simulation output into a matrix of yearly values for
+#'   a chosen metric (individuals, area, or reproductive output) across all
+#'   subpopulations of a given location type. Uses pre-outplant population sizes
+#'   (reef_pops_pre / orchard_pops_pre) to measure natural dynamics separately
+#'   from restoration additions.
+#' @param model_sim Full output list from rse_mod1() or rse_mod()
 #' @param location "reef" or "orchard"
-#' @param metric metric of choice ("ind" = number of individuals, "area_m2" = area covered in m2, "production" = reproductive output)
-#' @param n_reef number of reefs
-#' @param n_orchard number of orchards
-#' @param n_lab number of treatments
-#' @param size_classes size classes to include, defaults to all (c(1, 2, 3, 4, 5))
+#' @param metric "ind" (individuals), "area_m2" (coral cover in m^2), or "production" (larvae)
+#' @param n_reef Number of reef subpopulations
+#' @param n_orchard Number of orchard subpopulations
+#' @param n_lab Number of lab treatments
+#' @param size_classes Size classes to include (default: all 5)
+#' @return Matrix with rows = years, columns = subpopulations
+#' @note Requires A_mids (size class midpoint areas in cm^2) in the calling
+#'   environment for the "area_m2" metric. Division by 10000 converts cm^2 to m^2.
 
 model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab, 
                        size_classes = c(1, 2, 3, 4, 5)){
@@ -1703,6 +2019,22 @@ model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab,
 #' @param N0.r initial population sizes in each reef subpopulation
 #' @param N0.o initial population sizes in each orchard subpopulation
 #' @param N0.l initial population sizes in each lab subpopulation
+
+# ==========================================================================
+# LEGACY MODEL VERSION — Use rse_mod1() for current analyses
+# ==========================================================================
+# rse_mod() was the original implementation. Key differences from rse_mod1():
+#   - No density-dependent mortality (dens_pars.r, dens_pars.o not used)
+#   - No tile tracking (orchard_tiles not returned)
+#   - No reference reef larval collection (lambda_R not a parameter)
+#   - Space constraints are area-based (A_mids) rather than tile-count-based
+#   - Includes "none" treatment handling for reference reefs
+#   - Orchard overflow uses extra_orchard_outplants logic (different from rse_mod1)
+#   - lab_pars$s0/s1 are scalars (not year-indexed matrices as in rse_mod1)
+#
+# Retained for backward compatibility with function_tests.Rmd.
+# SEE: rse_mod1() above for the fully documented current model.
+# ==========================================================================
 
 rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r,
                     fec_pars.r, surv_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o,
@@ -2455,7 +2787,22 @@ rse_mod <- function(years, n, A_mids, surv_pars.r, growth_pars.r, shrink_pars.r,
 # make function for creating summary data frames (total cover, total reproductive output)
 
 
-# simple function for doing population viability analyses (just need one population)
+#' @title Population Viability Analysis (PVA) Model
+#' @description Simplified single-reef model for population viability analysis.
+#'   Tracks two sources of recruits (external/wild settlers and outplants) on a
+#'   single reef WITHOUT orchard or lab dynamics. Used to evaluate long-term
+#'   population persistence under different outplanting scenarios.
+#' @details Unlike rse_mod1(), this function:
+#'   - Models only a single reef (no orchards, no labs)
+#'   - Takes outplant numbers as direct input (out_pars) rather than modeling
+#'     the full lab pipeline
+#'   - Does not include space constraints or density dependence
+#'   - Does not include tile tracking or fragmentation suppression
+#'   Core equation: N(t) = (T + F) %*% (S * N(t-1)) + outplants + recruits
+#' @return List with 3 elements:
+#'   reef_pops — population sizes [[ss]][[rr]][size_class, year] (ss=1, rr=1..2)
+#'   reef_rep — reproductive output [[ss]][[rr]][year]
+#'   reef_pops_pre — population sizes before outplanting
 #' @param years number of years in simulation
 #' @param n number of size classes
 #' @param A_mids areas at the midpoint of each size class

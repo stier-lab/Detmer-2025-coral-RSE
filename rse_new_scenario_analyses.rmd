@@ -4,7 +4,16 @@ output: html_document
 date: "2026-02-13"
 ---
 
-README: updated version of the scenario analyses following January meeting with Fundemar, focusing on the orchard expansion and lab grow-out scenarios
+README: Updated scenario analyses following January 2026 meeting with Fundemar,
+focusing on the orchard expansion and lab grow-out scenarios.
+
+- MODEL FUNCTION: rse_mod1() from rse_funs.R (current model with density dependence)
+- DEPENDS ON: coral_demographic_funs.R, rse_funs.R, Detmer-2025-coral-parameters repo
+- STATUS: Current — primary analysis file for the manuscript
+- ANALYSES: (1) Orchard expansion — what proportion of substrates to orchard vs. reef,
+  with/without disturbance, sensitivity to 6+ parameters. (2) Lab grow-out — how long
+  to retain substrates in lab before outplanting (in development).
+- SUPERSEDES: rse_scenario_analyses.Rmd (which used literature-derived parameters)
 
 
 ```{r setup, include=FALSE}
@@ -66,7 +75,7 @@ apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "standardized_data/apal_sur
 # orchard expansion
 
 What proportion of substrates should be outplanted to the orchard vs. reef?
--- How long does it take for initial investment in orchard to pay off for reef restoration outcomes? 
+-- How long does it take for initial investment in orchard to pay off for reef restoration outcomes?
 -- What is the cost of investing in the orchard to short-term restoration goals on the reef?
 
 
@@ -78,6 +87,13 @@ years <- 51 # number of years in simulation
 n <- 5 # number of size classes
 
 # define size class boundaries
+# SIZE CLASS BOUNDARIES (cm^2 planar colony area)
+# These follow Vardi (2011/2012), with Vardi's original SC1 (0-100) split into
+# SC1 (0-10, recruits/settlers) and SC2 (10-100, small juveniles) to separately
+# track post-settlement dynamics.
+# NOTE: The companion Detmer-2025-coral-parameters repo uses different data-driven
+# boundaries (0, 25, 100, 500, 2000 cm^2) for parameter estimation. Verify that
+# parameter files align with these boundaries before running new analyses.
 SC1 <- 0
 SC2 <- 10
 SC3 <- 100
@@ -490,7 +506,20 @@ process results
 ```{r}
 # performance metrics: 1) coral cover on reef, 2) orchard function (loosely defined to include ecological function and reproduction since these are highly correlated in the model, calculate as sum or area covered of all reproductively mature size classes in the orchard), 3) reef ROI (m2 coral on reef per dollar spent), 4) total ROI (m2 coral on reef and orchard per dollar spent), 5) total costs, and 6) number of recruits outplanted to reef?
 
-# function for extracting performance metrics from the orchard expansion simulations
+# -----------------------------------------------------------------------------
+# INLINE ANALYSIS FUNCTIONS
+# These functions are defined here (not in rse_funs.R) because they depend on
+# variables from this analysis environment (rest_pars, A_mids, years, etc.).
+# -----------------------------------------------------------------------------
+
+#' Orchard expansion performance metrics
+#' Extracts 6 performance metrics from a set of orchard expansion simulations:
+#' 1) reef coral cover, 2) orchard function (reproductive adult area),
+#' 3) reef ROI (m^2 coral per dollar), 4) total ROI, 5) total costs,
+#' 6) recruits outplanted to reef. Normalizes each metric 0-1 and computes
+#' a weighted composite score.
+#' NOTE: Uses rest_pars, A_mids, years, reef/orchard/lab_treatments from the
+#' calling environment.
 orch_exp_metric_fun <- function(sim_list, n_sample1, L1, max_yr, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 1, recruits_out = 1), dt_D0 = data.frame(NA)){
   
       r_inf <- 0.056 # inflation rate
@@ -914,6 +943,9 @@ legend("topright", legend = c("reef", "orchard", "total"), col = c("black", "dod
 ```{r}
 # make a function for making the OHI-type plots
 
+#' OHI-style radar plot
+#' Creates a radar (spider) plot showing normalized performance metrics for
+#' each orchard-to-reef allocation proportion. Highlights the optimal proportion.
 ohi_fun <- function(dt_plot, opt_prop1){
   
 metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") # coral cover on reef, orchard function, reef ROI, total ROI, total costs, recruits outplanted to reef
@@ -2958,6 +2990,10 @@ N0.o[[1]][[1]] <- rep(0, n) # reset initial conditions in the orchard
 
 prop_cols <- c("#FEC44F", "#CC4C02", "#662506")
 
+#' Time series comparison plot
+#' Plots 4-panel comparison of two simulation scenarios showing: reef population,
+#' orchard population, tiles outplanted, and orchard tile inventory over time.
+#' Used to visualize sensitivity to individual parameter changes.
 ts_plot1 <- function(plot_sims, yrs_p, legend2_title, legend2_labs, par_ltys, ymaxs, add_h3 = F, add_h4 = F){
   
   par(mfrow = c(3, 2))
