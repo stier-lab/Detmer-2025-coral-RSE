@@ -344,13 +344,47 @@ if(par_type == "survival"){ # survival data
 } # end of function
 
 
-# function for setting up reef and orchard survival, growth/shrinkage, and fragmentation parameter values using summarized data
-# assumes all reefs have same parameters, all orchards have same parameters, and all lab treatments have same parameters
-#' @param n_reef number of intervention reefs
-#' @param n_orchard number of orchards
-#' @param n_lab number of lab treatments
-#' @param summ_metric_list named list specifying the summary metrics (mean, Q05, or Q95) to use for each type of parameter (field_surv, field_growth, field_shrink, field_frag, nurs_surv, nurs_growth, nurs_shrink)
-
+#' @title Default Parameter Assembly
+#' @description Assembles demographic parameter sets for all reefs and orchards using
+#'   summarized (mean or quantile) values from the empirical data. We assume all reefs
+#'   share one set of field-derived parameters, all orchards share one set of nursery-derived
+#'   parameters, and all lab treatment sources within a location share the same demographics.
+#'   This function is the deterministic counterpart to \code{rand_pars_fun()}.
+#' @param n_reef Integer. Number of intervention reefs.
+#' @param n_orchard Integer. Number of nursery orchards.
+#' @param n_lab Integer. Number of lab treatments (determines how many source subpopulations
+#'   each reef tracks: n_lab + 1, where +1 = external/wild recruits).
+#' @param summ_metric_list Named list specifying which summary statistic to use for each
+#'   parameter type. Names: \code{field_surv}, \code{field_growth}, \code{field_shrink},
+#'   \code{field_frag}, \code{nurs_surv}, \code{nurs_growth}, \code{nurs_shrink}. Values:
+#'   column names from the summary data frames (typically "mean", "Q05", or "Q95").
+#' @param field_surv Field survival data object from the parameters repo
+#'   (\code{field_surv_pars.rds}). Must contain \code{$SC_surv_summ_df} (summary by size class).
+#' @param field_growth Field growth data object (\code{field_growth_pars.rds}).
+#'   Must contain \code{$summ_list} (list of 5 transition summary data frames, one per size class).
+#' @param nurs_surv Nursery survival data object (\code{nurs_surv_pars.rds}).
+#'   Same structure as \code{field_surv}. Covers only SC1–SC2; caller must fill in SC3–SC5
+#'   from field data before passing.
+#' @param nurs_growth Nursery growth data object (\code{nurs_growth_pars.rds}).
+#'   Same structure as \code{field_growth}. SC3–SC5 must be filled from field data.
+#' @param apal_frag_summ Data frame of fragmentation summary statistics
+#'   (\code{apal_fragmentation_summ.csv}). Columns include \code{frag_type} (e.g., "F4_SC1")
+#'   and summary columns (mean, Q05, Q95).
+#' @return Named list with 8 elements, each a nested list:
+#'   \code{[[location]][[source]]} = parameter vector or list.
+#'   \describe{
+#'     \item{surv_pars.r}{\code{[[reef]][[source]]} -> numeric vector (length 5), survival per SC}
+#'     \item{growth_pars.r}{\code{[[reef]][[source]]} -> list of growth transition vectors}
+#'     \item{shrink_pars.r}{\code{[[reef]][[source]]} -> list of shrinkage vectors}
+#'     \item{frag_pars.r}{\code{[[reef]][[source]]} -> list of fragmentation vectors (SC4-5 only)}
+#'     \item{surv_pars.o}{\code{[[orchard]][[source]]} -> same as reef survival}
+#'     \item{growth_pars.o}{\code{[[orchard]][[source]]} -> same as reef growth}
+#'     \item{shrink_pars.o}{\code{[[orchard]][[source]]} -> same as reef shrinkage}
+#'     \item{frag_pars.o}{\code{[[orchard]][[source]]} -> all zeros (no fragmentation in orchards)}
+#'   }
+#' @seealso \code{\link{rand_pars_fun}} for stochastic parameter sampling,
+#'   \code{\link{par_list_fun}} for the underlying parameter extraction.
+#' @export
 default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_surv, field_growth, nurs_surv, nurs_growth, apal_frag_summ){
   
   # reef
