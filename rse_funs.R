@@ -456,11 +456,44 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
   
 }
 
-#function for setting up reef and orchard survival, growth/shrinkage, and fragmentation parameter values that vary randomly
-# assumes same parameters for all sources (all lab treatments plus external recruits), but parameters can differ across reefs and across orchards
-#' @param n_reef number of intervention reefs
-#' @param n_orchard number of orchards
-#' @param n_lab number of lab treatments
+#' @title Random Parameter Assembly
+#' @description Assembles demographic parameter sets by randomly sampling from empirical
+#'   distributions. We draw \code{n_sample} independent parameter sets, enabling Monte Carlo
+#'   uncertainty analysis. Each draw samples a complete row from the empirical data (preserving
+#'   correlations across size classes within a study). All sources within a reef share the same
+#'   draw; different reefs can receive different draws.
+#' @param n_reef Integer. Number of intervention reefs.
+#' @param n_orchard Integer. Number of nursery orchards.
+#' @param n_lab Integer. Number of lab treatments.
+#' @param n_sample Integer. Number of random parameter sets to generate. Each produces
+#'   an independent realization suitable for one model run.
+#' @param field_surv Field survival data object. Must contain \code{$SC_surv_df}
+#'   (individual-level survival data frame with columns \code{size_class} and
+#'   \code{prop_survived}).
+#' @param field_growth Field growth data object. Must contain \code{$mat_list}
+#'   (list of 5 transition probability data frames, one per size class).
+#' @param nurs_surv Nursery survival data object. Same structure as \code{field_surv}.
+#'   Caller must fill SC3–SC5 from field data before passing.
+#' @param nurs_growth Nursery growth data object. Same structure as \code{field_growth}.
+#'   SC3–SC5 must be filled from field data.
+#' @param apal_frag Fragmentation data frame (\code{apal_fragmentation.csv}). Each row
+#'   is one empirical observation with columns \code{F4_SC1}, \code{F4_SC2}, etc.
+#' @return Named list with 8 elements, each a nested list with an outer iteration dimension:
+#'   \code{[[iteration]][[location]][[source]]} = parameter vector or list.
+#'   \describe{
+#'     \item{surv_pars_L.r}{\code{[[iter]][[reef]][[source]]} -> numeric vector (length 5)}
+#'     \item{growth_pars_L.r}{\code{[[iter]][[reef]][[source]]} -> list of growth vectors}
+#'     \item{shrink_pars_L.r}{\code{[[iter]][[reef]][[source]]} -> list of shrinkage vectors}
+#'     \item{frag_pars_L.r}{\code{[[iter]][[reef]][[source]]} -> list of fragmentation vectors}
+#'     \item{surv_pars_L.o}{\code{[[iter]][[orchard]][[source]]} -> same as reef}
+#'     \item{growth_pars_L.o}{\code{[[iter]][[orchard]][[source]]} -> same as reef}
+#'     \item{shrink_pars_L.o}{\code{[[iter]][[orchard]][[source]]} -> same as reef}
+#'     \item{frag_pars_L.o}{\code{[[iter]][[orchard]][[source]]} -> all zeros}
+#'   }
+#'   To use iteration \code{nn}: pass \code{surv_pars_L.r[[nn]]} as \code{surv_pars.r}
+#'   to \code{rse_mod1()}, and likewise for all 8 elements.
+#' @seealso \code{\link{default_pars_fun}} for deterministic parameter assembly.
+#' @export
 rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_growth, nurs_surv, nurs_growth, apal_frag){
 
   
