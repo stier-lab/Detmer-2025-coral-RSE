@@ -1,5 +1,11 @@
 #' README: demographic functions for creating datasets with coral growth, survival, and
 #' reproduction parameters for each time step in the model simulation
+#'
+#' USED BY: rse_funs.R::mat_pars_fun() assembles outputs from all four functions
+#'          into year-specific parameter sets for the simulation.
+#' NOTE: While these functions work for arbitrary n size classes, all current
+#'       model configurations use n=5 (A. palmata size class boundaries:
+#'       0, 10, 100, 900, 4000 cm^2).
 
 
 #' @title Survival Function
@@ -20,6 +26,9 @@ Surv_fun <- function(years, n, surv_pars, sigma_s = 0, seed1 = 10){
   # holding list for survival probabilities of each size class
   S_list <- list()
 
+  # WHY log-normal: multiplicative errors (exp(Normal)) are standard in stochastic
+  # demography because they keep rates positive and produce right-skewed "bad year"
+  # events — consistent with how environmental variation affects coral survival.
   # errors (or could generate these in the for loop below to make them different for each life stage)
   set.seed(seed1) # set seed
   surv_errors <- rnorm(years, mean = 0, sd = sigma_s) # generate random errors (on log scale)
@@ -174,9 +183,11 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 #' @export
 Rep_fun <- function(years, n, fec_pars, sigma_f = 0, seed1 = 10){
 
-  # holding list for survival probabilities of each size class
+  # holding list for fecundity values of each size class
   F_list <- list()
 
+  # WHY log-normal: same rationale as survival — multiplicative environmental noise
+  # ensures fecundity stays positive and captures occasional high-recruitment years.
   # errors (or could generate these in the for loop below to make them different for each life stage)
   set.seed(seed1) # set seed
   fec_errors <- rnorm(years, mean = 0, sd = sigma_f) # generate random errors
