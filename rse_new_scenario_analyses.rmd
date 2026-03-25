@@ -2004,6 +2004,48 @@ for(i in 1:nrow(dt_plot0)){
 
 dev.off()
 
+
+
+
+pdf("TempFigs/scaled_reef_cover_tot_ROI.pdf", height = 4, width = 7)
+
+par(mfrow = c(1, 2))
+layout(matrix(c(1, 2), nrow = 1, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 1))
+#layout.show(2)
+par(mar=c(0, 1, 2.5, 0), oma = c(4.5, 2.5, 0.1, 0.1))
+
+
+dt_plot0 <- scaled_5_D0
+dt_plot1 <- scaled_5_D1
+
+plot(x = dt_plot0$reef_cover_s, y = dt_plot0$tot_ROI_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l")
+lines(x = dt_plot1$reef_cover_s, y = dt_plot1$tot_ROI_s, pch = 16, col = prop_col2)
+mtext(side = 1, "Scaled reef cover", line = 2, outer = T)
+mtext(side = 2, "Scaled total ROI", line = 2)
+mtext(side = 3, "5 year simulation")
+for(i in 1:nrow(dt_plot0)){
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$tot_ROI_s[i], pch = 16, col = rc1[i])
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$tot_ROI_s[i], pch = 16, col = rc2[i])
+}
+legend("topright", legend = c("none", "every 3 years"), col = c(prop_col, prop_col2), lwd =3, title = "Disturbance")
+
+dt_plot0 <- scaled_50_D0
+dt_plot1 <- scaled_50_D1
+
+plot(x = dt_plot0$reef_cover_s, y = dt_plot0$tot_ROI_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l", yaxt = "n")
+axis(side = 2, at = seq(from = 0, to = 1, by = 0.2), labels = NA)
+lines(x = dt_plot1$reef_cover_s, y = dt_plot1$tot_ROI_s, pch = 16, col = prop_col2)
+mtext(side = 3, "50 year simulation")
+#mtext(side = 1, "Scaled reef cover", line = 2)
+#mtext(side = 2, "Scaled reef ROI", line = 2)
+for(i in 1:nrow(dt_plot0)){
+  points(x = dt_plot0$reef_cover_s[i], y = dt_plot0$tot_ROI_s[i], pch = 16, col = rc1[i])
+  points(x = dt_plot1$reef_cover_s[i], y = dt_plot1$tot_ROI_s[i], pch = 16, col = rc2[i])
+}
+
+dev.off()
+
+
 # plot(x = dt_plot$reef_cover_s, y = dt_plot$reef_ROI_s, col = prop_col, xlim = c(0, 1), ylim = c(0, 1), las = 1, xlab = NA, ylab = NA, type = "l")
 # mtext(side = 1, "Scaled reef cover", line = 2)
 # mtext(side = 2, "Scaled reef ROI", line = 2)
