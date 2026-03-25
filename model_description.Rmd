@@ -1,11 +1,30 @@
 ---
-title: "model_description"
-output: html_document
+title: "RSE Model Walkthrough"
+output:
+  html_document:
+    toc: true
+    toc_float: true
 date: "2025-08-23"
 ---
 
+# Overview
 
-README: walking through the basic model dynamics (updated with parameters from the literature)
+This notebook walks through the core mechanics of the Restoration Strategy
+Evaluation (RSE) model for *Acropora palmata*. We set up parameters, run a
+baseline simulation, and inspect outputs to verify model behavior.
+
+**What this file is:** A worked example — executable code with explanations.
+**What this file is not:** The formal model description (see the
+[Google Doc](https://docs.google.com/document/d/1BZKpY6Miuxl-hSjrSZDMMTi1NgYexdEllyUdFK8ZDHY/edit)).
+
+**Model function:** `rse_mod1()` from `rse_funs.R` (current model with density dependence)
+**Dependencies:** `coral_demographic_funs.R`, `rse_funs.R`, and the
+[Detmer-2025-coral-parameters](https://github.com/stier-lab/Detmer-2025-coral-parameters)
+repository (must be cloned as a sibling directory).
+
+**WARNING:** Lambda calculations at lines ~916 and ~948 use row-wise survival
+broadcasting, which differs from `pop_lambda_fun()` and the simulation. Use
+`pop_lambda_fun()` for consistent lambda values.
 
 ```{r setup, include=FALSE}
 
@@ -26,60 +45,13 @@ source("coral_demographic_funs.R")
 source("rse_funs.R")
 ```
 
+# Load empirical parameter data
 
-import the parameter values
-
-
-```{r}
-# fun_test <- function(x){
-#   
-#   if(x > 1){
-#     y <- NA
-#     print("error")
-#   } else{
-#     y <- x + 1
-#   }
-#   
-#   return(y)
-# }
-# 
-# fun_test(0)
-# fun_test(2)
-
-```
-
-
-```{r}
-
-# extra_x <- 5
-# xset <- c(7, 0, 3, 6, 2)
-# #xset <- 6
-# removed_i <- rep(NA, extra_x)
-# for(i in 1:extra_x){
-#   indx <- which(xset == max(xset))[1]
-#   xset[indx] <- xset[indx] - 1
-#   removed_i[i] <- indx
-#
-# }
-#
-# xset
-# removed_i
-
-# max_x <- 10
-# xset <- c(1, 11)
-#
-# prop_fits_x <- max_x/sum(xset)
-#
-# xset*prop_fits_x
-#
-# sum(xset*prop_fits_x)
-
-max_x <- 10
-xset <- c(1, 11) # sum = 12
-
-
-```
-
+We load survival, growth, and fragmentation parameters from the companion
+`Detmer-2025-coral-parameters` repository. These were estimated from six
+published field studies of *A. palmata* (see that repo's README for full
+provenance). Nursery data cover only SC1–SC2, so we substitute field estimates
+for the larger size classes.
 
 
 ```{r}
@@ -106,121 +78,20 @@ lab_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_growth_pars.rds"
 # short-term lab survival data
 apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "standardized_data/apal_surv_lab_short.csv"))
 
-
-#View(field_surv$SC_surv_summ_df)
-
-#View(field_surv$SC_surv_df)
-
-# col_choice <- "mean"
-# 
-# field_growth$summ_list[[1]][-c(1:2) , col_choice] # 1 = first col, 2 = second, etc. 
-# 
-# field_growth$summ_list[[5]][ , col_choice] 
-# 
-# field_growth$mat_list[[1]][1:10, ]
-# 
-# nrow(field_growth$mat_list[[1]])
-
-
-#View(apal_frag_summ)
-
 ```
 
+# Define the simulation structure
 
-```{r}
-# test parameter function
-# 
-# # survival
-# par_test <- par_list_fun(par_type = "survival", sample_dt = F, summ_df = field_surv$SC_surv_summ_df, summ_metric = "mean", full_df = NA, n_sample = NA)
-# 
-# par_test <- par_list_fun(par_type = "survival", sample_dt = T, summ_df = NA, summ_metric = NA, full_df = field_surv$SC_surv_df, n_sample = 5)
-# 
-# par_test$surv_pars
-# 
-# # growth/shrinkage
-# par_test <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = field_growth$summ_list, summ_metric = "mean", full_df = NA, n_sample = NA)
-# 
-# par_test$growth_pars
-# par_test$shrink_pars
-# 
-# par_test <- par_list_fun(par_type = "growth", sample_dt = T, summ_df = NA, summ_metric = NA, full_df = field_growth$mat_list, n_sample = 5)
-# 
-# par_test$growth_pars[[1]]
-# par_test$shrink_pars[[1]]
-# 
-# # fragmentation
-# par_test <- par_list_fun(par_type = "fragmentation", sample_dt = F, summ_df = apal_frag_summ, summ_metric = "mean", full_df = NA, n_sample = NA)
-# 
-# par_test <- par_list_fun(par_type = "fragmentation", sample_dt = T, summ_df = NA, summ_metric = NA, full_df = apal_frag, n_sample = 10)
-# 
-# par_test$frag_pars[[1]]
-# 
-# 
-# #View(field_surv$SC_surv_summ_df)
-# 
-# 
-# #field_growth$summ_list[[1]]
-# 
-# par_test <- par_list_fun(par_type = "survival", sample_dt = F, summ_df = nurs_surv$SC_surv_summ_df, summ_metric = "mean", full_df = NA, n_sample = NA)
-# 
-# par_test <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = nurs_growth$summ_list, summ_metric = "mean", full_df = NA, n_sample = NA)
-# 
-# nurs_growth$summ_list
-# 
-# 
-# par_test # remember the nursery data don't include the larger size classes so will need to fill in with the field data. Do this outside the function (modify the input data frames)
+We configure a 100-year simulation with 5 size classes matching *A. palmata*
+colony area boundaries (0, 10, 100, 900, 4000 cm^2). The model tracks corals
+across one reef, one orchard, and two lab tile treatments (cement and ceramic).
 
-```
+## Demographic parameters
 
-
-```{r}
-# test summarized parameter function
-
-# field_surv1 <- field_surv
-# field_growth1 <- field_growth
-# nurs_surv1 <- nurs_surv
-# nurs_growth1 <- nurs_growth
-# 
-# # nursery data only available for size classes 1-2, so use the field data for the larger size classes
-# nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
-# 
-# nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
-# nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
-# nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
-# 
-# summ_pars_test1 <- default_pars_fun(n_reef = 1, n_orchard = 1, n_lab = 2, summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
-#  
-# summ_pars_test1$surv_pars.r
-# 
-# 
-# summ_pars_test1$frag_pars.o
-
-```
-
-
-```{r}
-# test random parameter function
-# field_surv1 <- field_surv
-# field_growth1 <- field_growth
-# nurs_surv1 <- nurs_surv
-# nurs_growth1 <- nurs_growth
-# 
-# # nursery data only available for size classes 1-2, so use the field data for larger size classes
-# nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
-# 
-# nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
-# nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
-# nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
-# 
-# rand_test1 <- rand_pars_fun(n_reef = 2, n_orchard = 1, n_lab = 2, n_sample = 2, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
-# 
-# rand_test1$surv_pars_L.r[[1]]
-# 
-# #rand_test1$frag_pars_L.o[[1]]
-
-```
-
-
+We extract mean survival, growth, shrinkage, and fragmentation rates from the
+empirical data. All reefs share one set of field-derived parameters; all orchards
+share one set of nursery-derived parameters (with field estimates filling in for
+the larger size classes where nursery data are unavailable).
 
 ```{r}
 
@@ -272,6 +143,16 @@ shrink_pars.r <- all_pars$shrink_pars.r
 # reef parameters: fragmentation
 frag_pars.r <- all_pars$frag_pars.r
 
+```
+
+## Density-dependent post-outplanting survival
+
+We apply Ricker-type density dependence at the moment of outplanting: per-tile
+settler density reduces post-outplanting survival via `exp(-dens_par * density)`.
+The coefficient (0.02) controls how steeply survival declines on crowded tiles,
+reflecting competition and post-settlement mortality on substrates with many recruits.
+
+```{r}
 # density dependent survival (smallest size class only for now)
 dens_pars.r <- list()
 dens_pars.r[[1]] <- list() # first reef treatment/subpop
@@ -279,6 +160,15 @@ dens_pars.r[[1]][[1]] <- 0.02 # first source to first reef (external recruits)
 dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (first lab treatment)
 dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (second lab treatment)
 
+```
+
+## Fecundity
+
+Reproductive output per colony comes from Fundemar's 2025 spawning data (Table 1
+of their annual report): 1,255,111 total embryos collected from 26 colonies,
+giving ~48,274 embryos per reproductive adult. Only SC3–SC5 reproduce.
+
+```{r}
 # reef parameters: fecundity (for tracking reef reproductive output)
 fec_pars.r <- list()
 fec_pars.r[[1]] <- list()
@@ -316,6 +206,16 @@ fec_pars.o[[1]] <- list() # first treatment
 fec_pars.o[[1]][[1]] <- c(0, 0, rep(1255111/26, 3)) #c(0, 0, 5000, 50000, 100000) # first source
 fec_pars.o[[1]][[2]] <- fec_pars.o[[1]][[1]] # second source
 
+```
+
+## Restoration strategy parameters
+
+These parameters define how the lab, orchard, and reef interact operationally:
+how many tiles the lab can process, what fraction of larvae settle, how recruits
+are distributed across sites. See the `@param rest_pars` documentation in
+`rse_funs.R` for the full structure reference.
+
+```{r}
 lambda <- 0 # external recruitment to reef
 
 #lambda_R <- 10000 # mean number of larvae produced by reference reefs each year
@@ -344,7 +244,15 @@ N0.l <- list()
 N0.l[[1]] <- 0
 N0.l[[2]] <- 0
 
+```
 
+## Disturbance regime
+
+We can overlay discrete disturbance events (hurricanes, bleaching) on any year
+by specifying which demographic parameters are affected and replacement values.
+Setting `dist_yrs` beyond the simulation length effectively turns disturbances off.
+
+```{r}
 # disturbance parameters
 dist_yrs <- c(years + 10) # years when disturbance occurs, can set to > years for none
 
@@ -391,7 +299,17 @@ dist_pars.o[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
 # second source in first orchard treatment
 dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][[2]], dist_surv0 = list(surv_pars.o[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
 
+```
 
+## Lab parameters
+
+Settlement, survival, and density-dependent mortality in the lab. Settlement rate
+(~15%) comes from Fundemar's 2025 data (see `rest_pars.rmd`). Lab survival rates
+(s0 = 0.95 for immediate outplanting, s1 = 0.70 for 1-year retention) and
+density-dependent mortality coefficients (m0, m1 = 0.02) are working estimates
+that we plan to refine with additional Fundemar monitoring data.
+
+```{r}
 # lab parameters
 #s0 <- c(0.95, 0.95) # fraction of settled larvae in each lab treatment that survive to immediate outplanting
 # update: make this a matrix to allow for disturbance events in the lab
@@ -464,12 +382,18 @@ trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # sec
 
 rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
 
+```
 
+# Run the baseline simulation
 
+We call `rse_mod1()` with all parameters defined above. The function returns a
+17-element list tracking population sizes, reproductive output, and tile
+allocations at each time step (see the return value documentation in `rse_funs.R`).
+
+```{r}
 sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 ```
-
 
 check tile calculations
 
@@ -519,6 +443,11 @@ sim1$tiles_out_tot
 
 ```
 
+# Inspect outputs
+
+We plot total individuals and coral cover over time for both the reef and orchard
+to verify that the model behaves sensibly: the orchard should fill toward capacity,
+and the reef should accumulate corals from outplanting plus any natural recruitment.
 
 ```{r}
 # plot results
