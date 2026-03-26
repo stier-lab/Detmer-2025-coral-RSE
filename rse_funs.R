@@ -309,7 +309,7 @@ if(par_type == "survival"){ # survival data
     if(sample_dt == F){ # if using summarized data
       # list(NULL, c(0, 0), c(0, 0, 0), c(F4_SC1, F4_SC2, F4_SC3, F4_SC4), c(F5_SC1, F5_SC2, F5_SC3, F5_SC4, F5_SC5)) 
       
-      # WHY: Only size classes 4 and 5 (>900 cm^2) produce fragments in A. palmata.
+      # WHY: Assume only size classes 4 and 5 (>900 cm^2) produce fragments in A. palmata (Vardi et al. 2012).
       # Smaller colonies lack the branching architecture for storm-driven breakage to
       # generate viable fragments. SC1-3 produce zero fragments by construction.
       # "F4_SC1" = fragments from SC4 colonies that land in SC1, etc.
@@ -655,14 +655,14 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
   
 }
 
-#' lab function
+#' lab function (not made; lab dynamics are currently in the full rse_mod1 function)
 #' make a function that takes the number of new babies from the orchard as an input and
 #' returns the number of outplants that can go to the reef
-#' this may or may not be a full population dynamics model, but either way I think it can
+#' this may or may not be a full population dynamics model, but either way it could
 #' be separate from the orchard and reef models
 
 
-# make a simpler model with a constant reference reef population
+# full rse model with a constant reference reef population
 #' Population dynamics function
 #' Arguments:
 #' @param years number of years in simulation
@@ -713,7 +713,7 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
 #'     \item{s0}{Matrix (years x n_lab). Annual survival probability of settled larvae from
 #'       settlement to immediate outplanting, for each lab treatment. Allows year-specific
 #'       values (e.g., to model lab disturbance events).}
-#'     \item{s1}{Matrix (years x n_lab). Annual survival of retained settlers (1-year
+#'     \item{s1}{Matrix (years x n_lab). Annual survival of retained settlers in lab (1-year
 #'       grow-out treatments). Typically lower than \code{s0} because colonies are held longer.}
 #'     \item{m0}{Numeric vector (length = n_lab). Density-dependent mortality coefficient for
 #'       immediate-outplant treatments. Applied as Ricker-type survival:
@@ -738,15 +738,15 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
 #'       and fertilized. Represents field collection efficiency.}
 #'     \item{spawn_target}{Numeric. Target number of embryos to collect from the orchard each
 #'       year. If the orchard cannot meet this target, the shortfall is supplemented from the
-#'       reference reef (up to \code{reef_yield * lambda_R}). Set to 0 for no lab settlers.}
+#'       reference reef (up to \code{reef_yield * lambda_R}). Set to 0 for no settlement collection.}
 #'     \item{reef_prop}{Numeric vector (length = number of lab treatments), each value 0–1.
-#'       Fraction of tiles from each lab treatment that go to the reef (remainder goes to orchards).}
+#'       Fraction of tiles from each lab treatment that go to the reef (remainder goes to orchards until orchards are full, then goes back to reef).}
 #'     \item{reef_out_props}{Matrix (n_lab x n_reef). Row i, column j = fraction of reef-bound
 #'       tiles from lab treatment i allocated to reef j. Rows sum to 1.}
-#'     \item{orchard_out_props}{Matrix (n_lab x n_orchard). Same logic for orchard allocation.}
+#'     \item{orchard_out_props}{Matrix (n_lab x n_orchard). Orchard allocation; follows same logic as for reef allocation.}
 #'     \item{reef_areas}{Numeric vector (length = n_reef). Available substrate area for each
-#'       reef in cm^2. Determines carrying capacity — once occupied area reaches this limit,
-#'       no new recruits or fragments establish.}
+#'       reef in cm^2. Could determines carrying capacity (once occupied area reaches this limit,
+#'       no new recruits or fragments establish), but currently that isn't implemented in the model.}
 #'     \item{lab_max}{Integer. Total tile capacity of the lab (tiles that can be processed
 #'       in a single spawning season). We assume 100 tiles per tank.}
 #'     \item{lab_retain_max}{Integer. Maximum tiles that can be held in the lab for 1-year
@@ -800,7 +800,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   #            surplus tiles to reefs.
   #   STEP 6 — OUTPLANTING: Add surviving recruits to reef and orchard
   #            populations with post-outplanting density-dependent survival.
-  #   STEP 7 — COLONY TRANSPLANTING (if scheduled): Move mature colonies
+  #   STEP 7 — COLONY TRANSPLANTING (if transplant vector is 1 that year): Move mature colonies
   #            from orchards to reefs.
   #
   # INDEX KEY for main data structures:
@@ -832,7 +832,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   # external recruitment each year
   ext_rec <- Ext_fun(years, lambda, rand = ext_rand[1], seed1 = seeds[3])
   # proportions going to each reef subpop (proportional to areas of each reef):
-  # FIX: Protect against division by zero when reef_areas sum to zero
+  # Protect against division by zero when reef_areas sum to zero
   reef_area_sum <- sum(rest_pars$reef_areas)
   if(reef_area_sum > 0) {
     ext_props <- rest_pars$reef_areas / reef_area_sum
@@ -846,8 +846,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
 
   # WHY: When a disturbance reduces reef survival, it also reduces reference reef
   # larval production proportionally. The ratio (disturbed_survival / baseline_survival)
-  # for reproductive size classes [3:5] = SC3-SC5 gives the proportional reduction.
-  # Uses reef 1, source 1 disturbance params as representative of the reference reef.
+  # for reproductive size classes [3:5] = SC3-SC5 gives the proportional reduction in larval supply.
+  # Uses reef 1, source 1 (ext. recruits) disturbance params as representative of the reference reef.
   if(is.na(dist_yrs[1])==F){
   for(i in dist_yrs){
 
@@ -905,7 +905,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   
   # WHY +1 for reef: Reef populations track individuals from each lab treatment
   # PLUS external (wild) recruits. Source rr=1 = external, rr=2..s_lab+1 = lab treatments.
-  # Orchards only receive lab-sourced recruits (no wild settlement in managed nurseries).
+  # Orchards only receive lab-sourced recruits (assume no wild settlement in managed nurseries).
   source_reef <- 1 + s_lab
   source_orchard <- s_lab
 
@@ -919,7 +919,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   reef_rep <- list()      # reproductive output [[ss]][[rr]][i]
   reef_mat_pars <- list() # demographic parameters [[ss]][[rr]]$survival/growth/fragmentation/fecundity
   reef_out <- list()      # number outplanted [[ss]][[rr]][i]
-  reef_pops_pre <- list() # population sizes BEFORE outplanting (for measuring natural dynamics)
+  reef_pops_pre <- list() # population sizes BEFORE outplanting (so the just-outplanted recruits aren't counted in that year's population size)
   
   for(ss in 1:s_reef){
     
@@ -1216,7 +1216,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
         
         
         # ONE-ADULT-PER-TILE CAP
-        # WHY: In physical orchards, each tile/reef star can support at most one
+        # WHY: In physical orchards, assume each tile/reef star can support at most one
         # mature colony. If the matrix projection predicts more adults (SC3-SC5,
         # indices [3:5]) than tiles, the excess die. We remove from the smallest
         # adult class first (SC3), then SC4 if needed. SC5 is never reduced
@@ -1272,8 +1272,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     
     
     # --- STEP 3: LARVAL COLLECTION FROM ORCHARDS AND REFERENCE REEFS ---
-    # WHY orchard-first priority: Orchard larvae come from genetically diverse
-    # managed stock. Reference reef larvae are only collected to make up any
+    # WHY orchard-first priority: Orchard larvae come from managed stock. 
+    # Reference reef larvae are only collected to make up any
     # shortfall below spawn_target, minimizing impact on wild populations.
 
     new_babies.o <- matrix(NA, nrow = s_orchard, ncol = source_orchard)
@@ -1366,7 +1366,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # prop_use = fraction of lab capacity actually used this year (0 to 1).
     # Formula: (total_larvae / min_embryos_per_tank * 100_tiles_per_tank) / total_tiles
     # If larvae supply is less than lab capacity, we use fewer tiles.
-    # The magic number 100 = tiles per tank (same constant as the safety cap above).
+    # Assume 100 tiles per tank (same constant as the safety cap above).
     prop_use <- min(1, (tot_babies/rest_pars$tank_min*100)/rest_pars$lab_max)
     
     
@@ -1481,7 +1481,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     
     # Orchard space = max capacity minus whichever is larger: current tiles or adult colonies.
     # WHY max(tiles, adults): Space is constrained by physical substrate (tiles) AND
-    # by biological occupancy (adult colonies). A tile with no coral still takes space;
+    # by biological occupancy (adult colonies). A tile with no adult coral still takes space;
     # a coral that outgrew its tile still occupies a position.
     orchard_space <- rep(NA, s_orchard)
 
@@ -1606,7 +1606,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # reef_pops sources start at rr=1 (external). Lab treatment j maps to source rr=j+1.
     # Post-outplanting survival: exp(-dd_pars * density) = Ricker density dependence.
     # size_props distributes settlers across size classes (most go to SC1).
-    # size_props1 = size distribution for settlers retained 1 year (shifted to larger classes).
+    # size_props1 = size distribution for settlers retained 1 year (potentially shifted to larger classes).
     for(ss in 1:s_reef){
 
         for(rr in 2:source_reef){ # rr starts at 2: skip external recruits (rr=1)
