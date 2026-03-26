@@ -67,16 +67,16 @@ function setupTooltips() {
     // Stop click from propagating to location box
     el.on('click', (event) => event.stopPropagation());
 
-    // Tooltips on ♀ and ⚡ icons within this SC node
+    // Tooltips on reproduction and fragmentation icons within this SC node
     el.selectAll('.sc-icon-repro').on('mouseenter', (event) => {
       event.stopPropagation();
-      showTooltip(event, `♀ Sexual Reproduction`, `<strong>${scId}</strong> produces larvae via fecundity.<br>Larvae enter the collection pipeline for lab settlement.`);
+      showTooltip(event, `Sexual Reproduction`, `<strong>${scId}</strong> produces larvae via fecundity.<br>Larvae enter the collection pipeline for lab settlement.`);
     }).on('mousemove', moveTooltip).on('mouseleave', (event) => { event.stopPropagation(); hideTooltip(); })
       .on('click', (event) => event.stopPropagation());
 
     el.selectAll('.sc-icon-frag').on('mouseenter', (event) => {
       event.stopPropagation();
-      showTooltip(event, `⚡ Fragmentation`, `<strong>${scId}</strong> fragments into smaller size classes (SC1–SC3).<br>Asexual reproduction via colony breakage.`);
+      showTooltip(event, `Fragmentation`, `<strong>${scId}</strong> fragments into smaller size classes (SC1-SC3).<br>Asexual reproduction via colony breakage.`);
     }).on('mousemove', moveTooltip).on('mouseleave', (event) => { event.stopPropagation(); hideTooltip(); })
       .on('click', (event) => event.stopPropagation());
   });
@@ -90,7 +90,7 @@ function setupTooltips() {
 
     el.on('mouseenter', (event) => {
       showTooltip(event, flow.label + ` (${locations[flow.from].name} → ${locations[flow.to].name})`,
-        `${flow.description}<br><br><span class="param-name">${flow.param}</span>${flow.costLayer ? '<br><br>💰 ' + flow.costLayer : ''}`);
+        `${flow.description}<br><br><span class="param-name">${flow.param}</span>${flow.costLayer ? '<br><br>Cost: ' + flow.costLayer : ''}`);
     })
     .on('mousemove', moveTooltip)
     .on('mouseleave', hideTooltip);

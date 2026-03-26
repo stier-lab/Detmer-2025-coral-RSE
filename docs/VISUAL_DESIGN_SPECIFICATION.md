@@ -488,7 +488,7 @@ Restoration Strategy Comparison
 │ Outplant Timing  │ 1-Year    │ Immediate │ Immediate │ Immediate │
 │ Orchard Yield    │ 0.8       │ 0.5       │ 0.0       │ 0.0       │
 ├──────────────────┼───────────┼───────────┼───────────┼───────────┤
-│ λ (Growth Rate)  │ 1.28 ⭐   │ 1.15 ✓    │ 1.05 ✓    │ 0.92 ✗    │
+│ λ (Growth Rate)  │ 1.28 *    │ 1.15 ✓    │ 1.05 ✓    │ 0.92 ✗    │
 │ Final Cover (m²) │ 287       │ 195       │ 142       │ 45        │
 │ Time to Target   │ 18 years  │ 24 years  │ 32 years  │ Never     │
 │ Cost (Estimate)  │ $$$       │ $$        │ $$        │ $         │
@@ -497,7 +497,7 @@ Restoration Strategy Comparison
 │ Trajectory       │           │           │           │           │
 └──────────────────┴───────────┴───────────┴───────────┴───────────┘
 
-Click column header to sort | ✓ = Growing | ✗ = Declining | ⭐ = Best
+Click column header to sort | ✓ = Growing | ✗ = Declining | * = Best
 ```
 
 #### Visual Specifications
@@ -552,7 +552,7 @@ Click column header to sort | ✓ = Growing | ✗ = Declining | ⭐ = Best
   margin-right: 4px;
 }
 
-.status-best { background: #4CAF50; content: "⭐"; }
+.status-best { background: #4CAF50; content: "*"; }
 .status-good { background: #8BC34A; content: "✓"; }
 .status-poor { background: #F44336; content: "✗"; }
 ```
@@ -982,7 +982,7 @@ const trajectory = await result.toArray();
 │   and field outplanting.                                       │
 │                                                                 │
 │   ┌───────────────┐  ┌───────────────┐  ┌───────────────┐    │
-│   │ 🔬 Explore    │  │ 📊 Compare    │  │ 📚 Learn      │    │
+│   │ Explore       │  │ Compare       │  │ Learn         │    │
 │   │ Model         │  │ Scenarios     │  │ About Model   │    │
 │   └───────────────┘  └───────────────┘  └───────────────┘    │
 │                                                                 │
@@ -995,7 +995,7 @@ const trajectory = await result.toArray();
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ ☰ Menu    Coral Restoration Model     [Scenario: Default] [Run] [Reset]    │
+│ Menu    Coral Restoration Model     [Scenario: Default] [Run] [Reset]      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  ┌───────────────────────────────────┬───────────────────────────────────┐ │
@@ -1003,11 +1003,11 @@ const trajectory = await result.toArray();
 │  │                                   │                                   │ │
 │  │  [Interactive flow visualization] │  [Line chart with uncertainty]    │ │
 │  │                                   │                                   │ │
-│  │  ⚙ External                       │  Coral Cover (m²)                 │ │
+│  │  External                         │  Coral Cover (m²)                 │ │
 │  │     ↓ Larvae                      │    300│         ╱╱╱               │ │
-│  │  ⚙ Lab → ⚙ Orchard                │       │      ╱╱╱                  │ │
+│  │  Lab → Orchard                    │       │      ╱╱╱                  │ │
 │  │     ↓        ↓                    │    200│   ╱╱╱                     │ │
-│  │  ⚙ Reef ←────┘                    │       │╱╱╱                        │ │
+│  │  Reef ←────┘                      │       │╱╱╱                        │ │
 │  │                                   │       └────────────────────       │ │
 │  │  Hover for details                │       0    10    20    30 Year    │ │
 │  └───────────────────────────────────┴───────────────────────────────────┘ │
@@ -1021,7 +1021,7 @@ const trajectory = await result.toArray();
 │  │  └──────────────┴──────────────┴──────────────┴──────────────────┘  │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
-│  [💾 Save Scenario] [📥 Export Data] [📖 Help] [🔬 Advanced Mode]          │
+│  [Save Scenario] [Export Data] [Help] [Advanced Mode]                      │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 

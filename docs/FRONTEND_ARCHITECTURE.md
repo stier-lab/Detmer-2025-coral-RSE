@@ -435,10 +435,10 @@ const COMPARISON_METRICS: ComparisonMetric[] = [
 │                        (base)     +42% ↑        -27% ↓   │
 │                                                           │
 │  Years to Target       18         12            Never    │
-│                        (base)     -6 yrs ✓      ✗        │
+│                        (base)     -6 yrs Pass   Fail     │
 │                                                           │
 │  Extinction Risk       2.3%       0.8%          8.7%     │
-│                        (base)     -1.5% ✓       +6.4% ✗  │
+│                        (base)     -1.5% Pass    +6.4% Fail│
 │                                                           │
 ├─────────────────────────────────────────────────────────┤
 │  [Export Table]  [Clone Scenario]  [Delete Selected]    │
@@ -714,15 +714,15 @@ export const TRANSITIONS = {
 ### 5.1 WCAG 2.1 AA Compliance
 
 **Requirements:**
-- ✅ Color contrast ratio ≥ 4.5:1 for normal text
-- ✅ Color contrast ratio ≥ 3:1 for large text and UI components
-- ✅ All interactive elements keyboard accessible
-- ✅ Focus indicators visible and high contrast
-- ✅ No content flashing more than 3 times per second
-- ✅ Proper heading hierarchy (h1 → h2 → h3)
-- ✅ Alternative text for all images and icons
-- ✅ Form labels associated with inputs
-- ✅ ARIA labels for complex widgets
+- Color contrast ratio ≥ 4.5:1 for normal text
+- Color contrast ratio ≥ 3:1 for large text and UI components
+- All interactive elements keyboard accessible
+- Focus indicators visible and high contrast
+- No content flashing more than 3 times per second
+- Proper heading hierarchy (h1 → h2 → h3)
+- Alternative text for all images and icons
+- Form labels associated with inputs
+- ARIA labels for complex widgets
 
 ### 5.2 Keyboard Navigation
 
@@ -1199,18 +1199,18 @@ jobs:
 ## Success Metrics
 
 ### Technical Metrics
-- ✅ Lighthouse score 90+ (all categories)
-- ✅ Zero critical accessibility violations
-- ✅ Test coverage > 80%
-- ✅ Build time < 30 seconds
-- ✅ Bundle size < 250KB gzipped
+- Lighthouse score 90+ (all categories)
+- Zero critical accessibility violations
+- Test coverage > 80%
+- Build time < 30 seconds
+- Bundle size < 250KB gzipped
 
 ### User Metrics
-- ✅ User can understand model structure in < 5 minutes
-- ✅ User can run first simulation in < 2 minutes
-- ✅ 90% of users complete tutorial without help
-- ✅ Average session duration > 15 minutes
-- ✅ Return user rate > 40%
+- User can understand model structure in < 5 minutes
+- User can run first simulation in < 2 minutes
+- 90% of users complete tutorial without help
+- Average session duration > 15 minutes
+- Return user rate > 40%
 
 ---
 

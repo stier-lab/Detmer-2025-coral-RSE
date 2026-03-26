@@ -9,28 +9,28 @@ export const COMPARTMENTS: Record<string, CompartmentInfo> = {
     label: 'External Reefs',
     color: '#10b981',
     description: 'Wild reference reefs providing larvae for collection',
-    icon: '🌍'
+    icon: 'E'
   },
   lab: {
     id: 'lab',
     label: 'Lab Facility',
     color: '#3b82f6',
     description: 'Settlement facility for larvae rearing on artificial substrates',
-    icon: '🔬'
+    icon: 'L'
   },
   orchard: {
     id: 'orchard',
     label: 'Orchard Nursery',
     color: '#06b6d4',
     description: 'Protected nursery for growing corals to transplantable sizes',
-    icon: '🌿'
+    icon: 'O'
   },
   reef: {
     id: 'reef',
     label: 'Restoration Reef',
     color: '#f43f5e',
     description: 'Target restoration site for coral outplanting',
-    icon: '🪸'
+    icon: 'R'
   }
 } as const;
 

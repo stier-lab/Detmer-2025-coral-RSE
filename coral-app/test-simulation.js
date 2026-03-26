@@ -21,15 +21,15 @@ try {
   const results = runSimulation(config);
   const summary = calculateSummaryStats(results);
 
-  console.log('✅ Simulation completed successfully!');
+  console.log('Simulation completed successfully!');
   console.log('\nResults for 10-year simulation:');
   console.log('- Final population:', Math.round(summary.finalPopulation));
   console.log('- Peak population:', Math.round(summary.peakPopulation));
   console.log('- Final coral cover:', (summary.finalCoralCover / 10000).toFixed(1), 'm²');
   console.log('- Mean growth rate:', (summary.meanGrowthRate * 100).toFixed(1), '%');
 
-  console.log('\n✅ All model logic is working correctly!');
+  console.log('\nAll model logic is working correctly!');
 } catch (error) {
-  console.error('❌ Simulation failed:', error.message);
+  console.error('Simulation failed:', error.message);
   console.error(error.stack);
 }

@@ -1,6 +1,6 @@
 # Coral Restoration App - Current Status
 
-## What Works ✅
+## What Works
 
 1. **Build System**: Compiles successfully (65.52KB bundle)
 2. **Dev Server**: Runs on http://localhost:5174/
@@ -9,7 +9,7 @@
 5. **UI Components**: Button, Card, Slider, Tabs all functional
 6. **Basic Layout**: Header, tabs, cards render correctly
 
-## Known Issues 🐛
+## Known Issues
 
 ### Critical Issues
 
@@ -34,7 +34,7 @@ Open http://localhost:5174/ and verify:
 
 - [ ] Page loads without console errors
 - [ ] All 4 tabs are clickable
-- [ ] Overview tab shows compartment cards with emojis
+- [ ] Overview tab shows compartment cards with icons
 - [ ] Parameters tab shows slider
 - [ ] Slider value updates when dragged
 - [ ] "Run Simulation" button is clickable
@@ -95,13 +95,13 @@ const handleRunSimulation = () => {
 
 1. **Does it load?** Open browser, check for white screen or errors
 2. **Do tabs work?** Click each tab, verify content shows
-3. **Does simulation run?** Click Parameters → Run Simulation → Check Results tab
+3. **Does simulation run?** Click Parameters > Run Simulation > Check Results tab
 4. **Are there console errors?** Open DevTools (F12), check Console tab
 
 ## Expected Behavior
 
 When working correctly:
-- Overview tab shows 4 colored circles with emojis
+- Overview tab shows 4 colored circles with compartment icons
 - Slider in Parameters tab ranges from 10-100
 - Running simulation updates Results tab with 4 metric cards
 - No console errors

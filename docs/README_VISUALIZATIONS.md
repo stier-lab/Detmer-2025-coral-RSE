@@ -1,16 +1,16 @@
 # Coral Restoration Model - Visualization Documentation
 
-## 📚 What's Been Created
+## What's Been Created
 
 I've built a comprehensive set of documentation and interactive visualizations for your coral restoration model, specifically designed for **ecologists without technical/programming backgrounds**. Everything is user-friendly, interactive, and educational.
 
 ---
 
-## 🎯 Three Levels of Documentation
+## Three Levels of Documentation
 
 ### 1. **For Frontend Developers** (Technical Specifications)
 
-**📄 [`MODEL_ARCHITECTURE_SPECIFICATION.md`](MODEL_ARCHITECTURE_SPECIFICATION.md)**
+**[`MODEL_ARCHITECTURE_SPECIFICATION.md`](MODEL_ARCHITECTURE_SPECIFICATION.md)**
 - 30,000+ word complete technical specification
 - Mathematical foundations (Leslie matrix model)
 - All 3 biological compartments explained in detail
@@ -19,7 +19,7 @@ I've built a comprehensive set of documentation and interactive visualizations f
 - Code architecture and key functions
 - Biological assumptions and limitations
 
-**📄 [`VISUAL_DESIGN_SPECIFICATION.md`](VISUAL_DESIGN_SPECIFICATION.md)**
+**[`VISUAL_DESIGN_SPECIFICATION.md`](VISUAL_DESIGN_SPECIFICATION.md)**
 - 15,000+ word visual design guide
 - Five core visualization components with mockups
 - Complete color palette and design system
@@ -33,7 +33,7 @@ I've built a comprehensive set of documentation and interactive visualizations f
 
 ### 2. **For Ecologists** (Interactive Guides)
 
-**🌐 [`interactive_model_guide.html`](../figures/interactive_model_guide.html)** ⭐ **OPEN THIS FIRST**
+**[`interactive_model_guide.html`](../figures/interactive_model_guide.html)** **OPEN THIS FIRST**
 - **What it is:** A comprehensive, interactive web page that ecologists can open in any browser
 - **No installation needed:** Just double-click the HTML file
 - **5 interactive tabs:**
@@ -44,18 +44,18 @@ I've built a comprehensive set of documentation and interactive visualizations f
   5. **Key Parameters** — Most important "knobs" with ecological interpretation
 
 **Features:**
-- ✅ Hover tooltips explaining everything
-- ✅ Click compartments for detailed explanations
-- ✅ Color-coded by ecological role (External=green, Lab=blue, Orchard=teal, Reef=coral red)
-- ✅ Visual transition matrix with hover-to-see probabilities
-- ✅ Research questions you can answer with the model
-- ✅ Trade-offs and management insights highlighted
+- Hover tooltips explaining everything
+- Click compartments for detailed explanations
+- Color-coded by ecological role (External=green, Lab=blue, Orchard=teal, Reef=coral red)
+- Visual transition matrix with hover-to-see probabilities
+- Research questions you can answer with the model
+- Trade-offs and management insights highlighted
 
 **Best for:** Understanding the model structure, teaching, presentations, onboarding new team members
 
 ---
 
-**🌐 [`model_visual_summary.html`](../figures/model_visual_summary.html)**
+**[`model_visual_summary.html`](../figures/model_visual_summary.html)**
 - **What it is:** A one-page visual summary/infographic
 - **Purpose:** Quick reference, printable handout, presentation slide
 - **Content:**
@@ -67,10 +67,10 @@ I've built a comprehensive set of documentation and interactive visualizations f
   - Key management insights
 
 **Features:**
-- ✅ Print-optimized (Cmd+P / Ctrl+P for handout)
-- ✅ Clean, modern design
-- ✅ No interactivity (static for printing)
-- ✅ All essential information on one page
+- Print-optimized (Cmd+P / Ctrl+P for handout)
+- Clean, modern design
+- No interactivity (static for printing)
+- All essential information on one page
 
 **Best for:** Quick reference, stakeholder presentations, teaching materials, conference posters
 
@@ -78,14 +78,14 @@ I've built a comprehensive set of documentation and interactive visualizations f
 
 ### 3. **Existing Documentation** (Already in your repo)
 
-**📄 [`model_summary.md`](model_summary.md)**
+**[`model_summary.md`](model_summary.md)**
 - Your existing component summary
 - Technical but accessible
 - Good reference for parameters
 
 ---
 
-## 🚀 How to Use These Resources
+## How to Use These Resources
 
 ### For You (Project Lead)
 1. **Start with** `interactive_model_guide.html` to get a comprehensive overview
@@ -113,7 +113,7 @@ I've built a comprehensive set of documentation and interactive visualizations f
 
 ---
 
-## 📊 What Each Visualization Shows
+## What Each Visualization Shows
 
 ### Interactive Model Guide (Detailed Exploration)
 
@@ -138,13 +138,13 @@ I've built a comprehensive set of documentation and interactive visualizations f
 
 ---
 
-## 🎨 Design Principles Used
+## Design Principles Used
 
 ### Color Coding (Consistent Across All Docs)
-- **🟢 External Reefs:** Green (#2ecc71) — Natural, wild
-- **🔵 Lab:** Blue (#3498db) — Scientific, controlled
-- **🔵 Orchard:** Teal (#1abc9c) — Semi-controlled, intermediate
-- **🔴 Reef:** Coral red (#e74c3c) — Restoration target
+- **External Reefs:** Green (#2ecc71) — Natural, wild
+- **Lab:** Blue (#3498db) — Scientific, controlled
+- **Orchard:** Teal (#1abc9c) — Semi-controlled, intermediate
+- **Reef:** Coral red (#e74c3c) — Restoration target
 
 ### Process Colors
 - **Growth:** Green
@@ -167,7 +167,7 @@ I've built a comprehensive set of documentation and interactive visualizations f
 
 ---
 
-## 💡 Teaching with These Materials
+## Teaching with These Materials
 
 ### Suggested Lesson Plan (2-hour workshop)
 
@@ -188,7 +188,7 @@ I've built a comprehensive set of documentation and interactive visualizations f
 
 ---
 
-## 🔧 Technical Details for Developers
+## Technical Details for Developers
 
 ### Files Created
 ```
@@ -211,10 +211,10 @@ figures/
 - **No build tools required** — Just open HTML files in browser
 
 ### Browser Compatibility
-- ✅ Chrome/Edge 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Mobile browsers (responsive design)
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Mobile browsers (responsive design)
 
 ### File Sizes
 - `interactive_model_guide.html`: ~50KB
@@ -223,7 +223,7 @@ figures/
 
 ---
 
-## 🎯 Next Steps (If Building Full Web App)
+## Next Steps (If Building Full Web App)
 
 ### Phase 1: Core Visualizations (2-3 weeks)
 1. **System flow diagram** with animated particle flows
@@ -252,7 +252,7 @@ figures/
 
 ---
 
-## 📧 Questions & Support
+## Questions & Support
 
 **For technical questions about the model:**
 - See `MODEL_ARCHITECTURE_SPECIFICATION.md`
@@ -268,38 +268,38 @@ figures/
 
 ---
 
-## ✅ Summary Checklist
+## Summary Checklist
 
 What you now have:
 
-- ✅ **Complete technical specification** for developers (30k words)
-- ✅ **Complete visual design guide** for frontend developers (15k words)
-- ✅ **Interactive model guide** for ecologists (HTML, self-contained)
-- ✅ **One-page visual summary** for quick reference (HTML, printable)
-- ✅ **Color-coded system** consistent across all materials
-- ✅ **Research questions** you can answer with the model
-- ✅ **Management insights** highlighted
-- ✅ **Teaching materials** ready to use
-- ✅ **No installation required** (HTML files work offline)
+- **Complete technical specification** for developers (30k words)
+- **Complete visual design guide** for frontend developers (15k words)
+- **Interactive model guide** for ecologists (HTML, self-contained)
+- **One-page visual summary** for quick reference (HTML, printable)
+- **Color-coded system** consistent across all materials
+- **Research questions** you can answer with the model
+- **Management insights** highlighted
+- **Teaching materials** ready to use
+- **No installation required** (HTML files work offline)
 
 **Everything is designed for ecologists first, technical accuracy second.**
 
 ---
 
-## 🎓 Educational Goals Achieved
+## Educational Goals Achieved
 
 These materials help ecologists:
 
-1. ✅ **Understand model structure** without reading code
-2. ✅ **Visualize compartments and flows** interactively
-3. ✅ **Grasp size class dynamics** with clear examples
-4. ✅ **Interpret the core equation** in plain English
-5. ✅ **Follow the annual cycle** step-by-step
-6. ✅ **Identify key parameters** and their ecological meaning
-7. ✅ **Recognize trade-offs** in restoration strategies
-8. ✅ **Ask research questions** the model can answer
-9. ✅ **Communicate findings** to stakeholders
-10. ✅ **Teach others** about the model
+1. **Understand model structure** without reading code
+2. **Visualize compartments and flows** interactively
+3. **Grasp size class dynamics** with clear examples
+4. **Interpret the core equation** in plain English
+5. **Follow the annual cycle** step-by-step
+6. **Identify key parameters** and their ecological meaning
+7. **Recognize trade-offs** in restoration strategies
+8. **Ask research questions** the model can answer
+9. **Communicate findings** to stakeholders
+10. **Teach others** about the model
 
 **Bottom line:** An ecologist can now understand your model in 1-2 hours without writing a single line of code.
 

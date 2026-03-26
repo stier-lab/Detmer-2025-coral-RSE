@@ -634,7 +634,7 @@ body {
   fill: rgba(15, 23, 42, 0.85);
 }
 
-/* ── SC icons (♀ ⚡) ────────────────────── */
+/* ── SC icons (repro, frag) ──────────────── */
 .sc-icon {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }

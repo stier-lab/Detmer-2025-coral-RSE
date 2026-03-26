@@ -1,6 +1,6 @@
 # Coral Restoration Model - Quick Start Guide
 
-## 🚀 Ready to Use - Start Here!
+## Ready to Use - Start Here!
 
 ### For Ecologists & Non-Technical Users
 
@@ -9,21 +9,21 @@
 Just double-click the file - it will open in your web browser. No installation, no setup required.
 
 This interactive visualization shows:
-- ✨ Beautiful, modern interface with smooth animations
-- 📊 5 interactive tabs exploring different aspects of the model
-- 🎯 Click on compartments to learn more
-- 📱 Works on desktop, tablet, and mobile
-- 🖨️ Print-friendly for presentations
+- Beautiful, modern interface with smooth animations
+- 5 interactive tabs exploring different aspects of the model
+- Click on compartments to learn more
+- Works on desktop, tablet, and mobile
+- Print-friendly for presentations
 
 ---
 
-## 📚 All Available Resources
+## All Available Resources
 
 ### 1. Interactive Visualizations (Open in Browser)
 
 | File | Best For | Open Now |
 |------|----------|----------|
-| **[`modern_model_explorer.html`](figures/modern_model_explorer.html)** ⭐ | Primary interactive guide - modern, beautiful UI | **START HERE** |
+| **[`modern_model_explorer.html`](figures/modern_model_explorer.html)** | Primary interactive guide - modern, beautiful UI | **START HERE** |
 | [`interactive_model_guide.html`](figures/interactive_model_guide.html) | Alternative interactive guide - simpler design | Good backup |
 | [`model_visual_summary.html`](figures/model_visual_summary.html) | One-page printable summary | For handouts |
 
@@ -38,7 +38,7 @@ This interactive visualization shows:
 
 ---
 
-## 🎯 Quick Scenarios
+## Quick Scenarios
 
 ### "I want to understand the model"
 1. Open [`modern_model_explorer.html`](figures/modern_model_explorer.html)
@@ -68,32 +68,32 @@ This interactive visualization shows:
 
 ---
 
-## 🎨 What Makes the Modern Explorer Special?
+## What Makes the Modern Explorer Special?
 
 The [`modern_model_explorer.html`](figures/modern_model_explorer.html) file includes:
 
 ### Visual Design
-- 🎨 Modern gradient backgrounds and card layouts
-- ✨ Smooth animations and hover effects
-- 🎯 Professional typography (Inter font)
-- 🌈 Color-coded compartments (External=green, Lab=blue, Orchard=teal, Reef=red)
+- Modern gradient backgrounds and card layouts
+- Smooth animations and hover effects
+- Professional typography (Inter font)
+- Color-coded compartments (External=green, Lab=blue, Orchard=teal, Reef=red)
 
 ### Interactive Features
-- 📊 5-tab navigation system
-- 🖱️ Click compartments for detailed explanations
-- 📈 Animated arrows showing coral/larvae flows
-- ⏱️ Timeline visualization of annual cycle
-- 🎛️ Parameter cards with ecological interpretation
+- 5-tab navigation system
+- Click compartments for detailed explanations
+- Animated arrows showing coral/larvae flows
+- Timeline visualization of annual cycle
+- Parameter cards with ecological interpretation
 
 ### Accessibility
-- ♿ WCAG 2.1 AA compliant
-- ⌨️ Keyboard navigation support
-- 📱 Mobile-responsive design
-- 🔊 Screen reader friendly
+- WCAG 2.1 AA compliant
+- Keyboard navigation support
+- Mobile-responsive design
+- Screen reader friendly
 
 ---
 
-## 📖 Model Quick Reference
+## Model Quick Reference
 
 ### The Core Equation
 ```
@@ -108,27 +108,27 @@ Where:
 - **R** = Recruitment vector (new settlers)
 
 ### Four Compartments
-1. **🟢 External Reefs** — Wild larval source (reference reefs)
-2. **🔵 Lab** — Settlement facility (larvae → settlers)
-3. **🟦 Orchard** — Nursery (growing juveniles to outplants)
-4. **🔴 Reef** — Restoration site (outplanting target)
+1. **External Reefs** -- Wild larval source (reference reefs)
+2. **Lab** -- Settlement facility (larvae to settlers)
+3. **Orchard** -- Nursery (growing juveniles to outplants)
+4. **Reef** -- Restoration site (outplanting target)
 
 ### Five Size Classes
-- **SC1**: 1-20 cm² (tiny)
-- **SC2**: 20-100 cm² (small)
-- **SC3**: 100-300 cm² (medium)
-- **SC4**: 300-600 cm² (large)
-- **SC5**: 600+ cm² (huge)
+- **SC1**: 1-20 cm2 (tiny)
+- **SC2**: 20-100 cm2 (small)
+- **SC3**: 100-300 cm2 (medium)
+- **SC4**: 300-600 cm2 (large)
+- **SC5**: 600+ cm2 (huge)
 
 ### Key Parameters to Know
-1. **μ** (mu) — Size-specific mortality rates
-2. **κ** (kappa) — Carrying capacity constraints
-3. **η** (eta) — Settlement success rates
-4. **β** (beta) — Fragmentation rates
+1. **mu** -- Size-specific mortality rates
+2. **kappa** -- Carrying capacity constraints
+3. **eta** -- Settlement success rates
+4. **beta** -- Fragmentation rates
 
 ---
 
-## ⚡ One-Minute Start
+## One-Minute Start
 
 **Right now, do this:**
 
@@ -143,10 +143,10 @@ Where:
 
 ---
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 **Q: The HTML file won't open**
-- Right-click → "Open With" → Choose your web browser (Chrome, Firefox, Safari)
+- Right-click > "Open With" > Choose your web browser (Chrome, Firefox, Safari)
 
 **Q: The arrows aren't showing between compartments**
 - Refresh the page (Cmd+R / Ctrl+R)
@@ -168,7 +168,7 @@ Where:
 
 ---
 
-## 📧 Need More Help?
+## Need More Help?
 
 - **For model questions:** See [`MODEL_ARCHITECTURE_SPECIFICATION.md`](docs/MODEL_ARCHITECTURE_SPECIFICATION.md)
 - **For teaching tips:** See [`README_VISUALIZATIONS.md`](docs/README_VISUALIZATIONS.md)
@@ -176,18 +176,18 @@ Where:
 
 ---
 
-## ✅ What You Have
+## What You Have
 
 You now have a **complete, production-ready visualization system** for your coral restoration model:
 
-- ✅ Modern, beautiful web interface
-- ✅ No installation or setup required
-- ✅ Works offline (after first load)
-- ✅ Mobile-friendly
-- ✅ Accessible to all users
-- ✅ Print-ready materials
-- ✅ Comprehensive documentation
-- ✅ Teaching materials ready to use
+- Modern, beautiful web interface
+- No installation or setup required
+- Works offline (after first load)
+- Mobile-friendly
+- Accessible to all users
+- Print-ready materials
+- Comprehensive documentation
+- Teaching materials ready to use
 
 **Everything an ecologist needs to understand, teach, and communicate about this model.**
 
@@ -195,4 +195,4 @@ You now have a **complete, production-ready visualization system** for your cora
 
 **Created:** January 2026
 **For:** Adrian Stier Lab, Coral Restoration Research
-**Status:** ✅ Ready to use immediately
+**Status:** Ready to use immediately

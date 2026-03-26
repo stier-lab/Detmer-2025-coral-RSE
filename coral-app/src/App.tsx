@@ -75,10 +75,10 @@ function App() {
       <nav className="frosted rounded-2xl p-2 mb-8 max-w-5xl mx-auto relative z-10 fade-in stagger-1">
         <div className="flex gap-2">
           {[
-            { id: 'overview', label: 'System Overview', icon: '🌊' },
-            { id: 'parameters', label: 'Parameters', icon: '⚙️' },
-            { id: 'results', label: 'Results', icon: '📊' },
-            { id: 'about', label: 'About', icon: '📖' }
+            { id: 'overview', label: 'System Overview', icon: '' },
+            { id: 'parameters', label: 'Parameters', icon: '' },
+            { id: 'results', label: 'Results', icon: '' },
+            { id: 'about', label: 'About', icon: '' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -109,25 +109,25 @@ function App() {
                 {[
                   {
                     title: 'External Reefs',
-                    icon: '🌍',
+                    icon: 'E',
                     color: 'from-emerald-400 to-teal-600',
                     description: 'Wild reference reefs providing larvae for collection'
                   },
                   {
                     title: 'Lab Facility',
-                    icon: '🔬',
+                    icon: 'L',
                     color: 'from-blue-400 to-indigo-600',
                     description: 'Settlement facility for larvae rearing on substrates'
                   },
                   {
                     title: 'Orchard Nursery',
-                    icon: '🌿',
+                    icon: 'O',
                     color: 'from-cyan-400 to-blue-600',
                     description: 'Protected nursery for growing corals to transplantable sizes'
                   },
                   {
                     title: 'Restoration Reef',
-                    icon: '🪸',
+                    icon: 'R',
                     color: 'from-pink-400 to-rose-600',
                     description: 'Target restoration site for coral outplanting'
                   }
@@ -218,7 +218,7 @@ function App() {
           <div className="fade-in">
             {!results ? (
               <div className="frosted rounded-3xl p-12 text-center max-w-4xl mx-auto">
-                <div className="text-8xl mb-6">📊</div>
+                <div className="text-8xl mb-6"></div>
                 <h3 className="text-2xl font-bold mb-4 text-gray-900">No simulation results yet</h3>
                 <p className="text-gray-800 mb-6">Configure your parameters and run a simulation to see population dynamics</p>
                 <button
