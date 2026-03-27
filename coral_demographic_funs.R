@@ -12,10 +12,10 @@
 #' @description Generates survival probabilities with environmental stochasticity for each
 #'   year in the simulation. Survival values are modified by log-normal errors to introduce
 #'   interannual variability while ensuring probabilities remain bounded between 0 and 1.
-#'   No density dependence is included in this function.
+#'   No density dependence is included in this function (only generates density independent survival).
 #' @param years Number of years to simulate
 #' @param n Number of size classes
-#' @param surv_pars Vector of baseline survival probabilities for each size class
+#' @param surv_pars Vector of baseline (mean) survival probabilities for each size class
 #' @param sigma_s Standard deviation for environmental variation (on log scale). Default = 0 (no stochasticity)
 #' @param seed1 Random seed for reproducibility. Default = 10
 #' @return List of length 'years' where each element is a vector of survival probabilities
@@ -29,13 +29,14 @@ Surv_fun <- function(years, n, surv_pars, sigma_s = 0, seed1 = 10){
   # WHY log-normal: multiplicative errors (exp(Normal)) are standard in stochastic
   # demography because they keep rates positive and produce right-skewed "bad year"
   # events — consistent with how environmental variation affects coral survival.
-  # errors (or could generate these in the for loop below to make them different for each life stage)
   set.seed(seed1) # set seed
   surv_errors <- rnorm(years, mean = 0, sd = sigma_s) # generate random errors (on log scale)
-
+  # note:could generate errors in the for loop below to make them different for each size class,
+  # but changes in survival would likely be correlated across size classes in many cases
+  
   for(i in 1:years){ # for each year in simulation
 
-    # FIX: Properly bound survival between 0 and 1 (prevents negative values from extreme errors)
+    # bound survival between 0 and 1 (prevents negative values from extreme errors)
     S_i <- pmax(0, pmin(1, surv_pars * exp(surv_errors[i])))
 
     S_list[[i]] <- S_i
@@ -57,11 +58,12 @@ Surv_fun <- function(years, n, surv_pars, sigma_s = 0, seed1 = 10){
 
 #' @title Growth/Shrinkage/Fragmentation Function
 #' @description Constructs transition matrices for coral size class dynamics including growth,
-#'   shrinkage (partial mortality), and fragmentation. Transition matrices ensure column sums
+#'   shrinkage (partial mortality resulting in an individual moving to a smaller size class), 
+#'   and fragmentation. Transition matrices ensure column sums
 #'   equal 1 (conservation of individuals), while fragmentation matrices can have column sums > 1
 #'   since new individuals are created.
 #' @details Currently does not include stochasticity. If adding stochasticity in future:
-#'   get the growth, shrinkage, and staying (1-G-Sh) probabilities, then divide each by
+#'   get the stochastic growth, shrinkage, and staying (1-G-Sh) probabilities, then divide each by
 #'   sum to make sure they sum to 1.
 #' @param years Number of years in simulation
 #' @param n Number of size classes
@@ -122,7 +124,7 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 
     } # end of second loop over columns
 
-    # FIX: Validate that diagonal elements (stay probabilities) are non-negative
+    # check that diagonal elements (staying probabilities) are non-negative
     if(any(diag(Ti_mat) < 0)) {
       warning("Growth + shrinkage probabilities exceed 1 for some size classes. Clamping to valid range.")
       diag(Ti_mat) <- pmax(0, diag(Ti_mat))
@@ -134,8 +136,7 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
     Fi_mat <- matrix(0, nrow = n, ncol = n) # fragmentation matrix
 
     # now add the fragmentation probabilities (with these, columns can sum to >1 because new individuals are created by the fragments)
-    # FIX: Fragments should only go to SMALLER size classes (rows 1 to cc-1, not 1 to cc)
-    # UPDATE: Fragments can go to the same size class (e.g., if a large coral produced a large fragment, and both the fragment and original coral were both large enough to be in the original coral's size class)
+    # note fragments can go to the same size class (e.g., if a large coral produced a large fragment, and both the fragment and original coral were both large enough to be in the original coral's size class)
     for(cc in 2:n){ # for each column of the transition matrix (i.e., each size class) except the smallest
 
        #Ti_mat[1:(cc-1), cc] <- Ti_mat[1:(cc-1), cc] + frag_pars[[cc]] # add probabilities of producing fragments in each smaller size class
@@ -174,7 +175,7 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 #'   interannual variability.
 #' @param years Number of years to simulate
 #' @param n Number of size classes
-#' @param fec_pars Vector of mean fecundities for each size class
+#' @param fec_pars Vector of baseline (mean) fecundities for each size class
 #' @param sigma_f Standard deviation for environmental variation in fecundity (on log scale).
 #'   Default = 0 (no stochasticity)
 #' @param seed1 Random seed for reproducibility. Default = 10
@@ -188,7 +189,6 @@ Rep_fun <- function(years, n, fec_pars, sigma_f = 0, seed1 = 10){
 
   # WHY log-normal: same rationale as survival — multiplicative environmental noise
   # ensures fecundity stays positive and captures occasional high-recruitment years.
-  # errors (or could generate these in the for loop below to make them different for each life stage)
   set.seed(seed1) # set seed
   fec_errors <- rnorm(years, mean = 0, sd = sigma_f) # generate random errors
 
