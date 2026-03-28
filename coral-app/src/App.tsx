@@ -3,6 +3,7 @@ import { runSimulation, calculateSummaryStats } from './lib/model/simulation';
 import type { SimulationSummary } from './lib/model/simulation';
 import { DEFAULT_REEF_PARAMS, DEFAULT_ORCHARD_PARAMS, DEFAULT_MANAGEMENT_PARAMS } from './lib/constants';
 import type { SimulationConfig, PopulationVector, SimulationState } from './types/model';
+import ModelDiagram from './components/diagram/ModelDiagram';
 import './styles/globals.css';
 
 interface SimulationResults {
@@ -13,7 +14,7 @@ interface SimulationResults {
 function App() {
   const [simulationYears, setSimulationYears] = useState(50);
   const [results, setResults] = useState<SimulationResults | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('diagram');
 
   const initialReefPop: PopulationVector = {
     sc1: 100,
@@ -75,6 +76,7 @@ function App() {
       <nav className="frosted rounded-2xl p-2 mb-8 max-w-5xl mx-auto relative z-10 fade-in stagger-1">
         <div className="flex gap-2">
           {[
+            { id: 'diagram', label: 'Model Diagram', icon: '' },
             { id: 'overview', label: 'System Overview', icon: '' },
             { id: 'parameters', label: 'Parameters', icon: '' },
             { id: 'results', label: 'Results', icon: '' },
@@ -99,6 +101,13 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto relative z-10">
+        {/* Diagram Tab */}
+        {activeTab === 'diagram' && (
+          <div className="fade-in">
+            <ModelDiagram />
+          </div>
+        )}
+
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-8 fade-in">

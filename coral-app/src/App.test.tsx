@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 
 describe('App', () => {
@@ -14,10 +14,13 @@ describe('App', () => {
     expect(screen.getByText(/Overview/i)).toBeInTheDocument();
     expect(screen.getByText(/Parameters/i)).toBeInTheDocument();
     expect(screen.getByText(/Results/i)).toBeInTheDocument();
+    expect(screen.getByText(/Model Diagram/i)).toBeInTheDocument();
   });
 
-  it('renders size class information', () => {
+  it('renders size class information on overview tab', () => {
     render(<App />);
+    // Default tab is now diagram, so click overview first
+    fireEvent.click(screen.getByText(/System Overview/i));
     expect(screen.getByText(/Size Classes/i)).toBeInTheDocument();
   });
 });
