@@ -2029,5 +2029,351 @@ polygon(x = c(1:years, rev(1:years)), y = c(reef1_tot - reef1_5 - reef1_4 - reef
 ```
 
 
+# Restoring diff size classes
+
+Compare effects of adding babies vs. larger colonies. Cheat and just use the same reference reef-to-lab-to intervention reef pipeline for this, but change the size class of the corals collected from the reef (size_props in the lab parameters) and the number of corals collected from the reference reef (lambda_R)
+
+```{r}
+
+years <- 50
+
+orchard_treatments <- c("orchard1") 
+reef_treatments <- c("reef1") 
+lab_treatments <- c("0_T1") 
+
+# demographic parameters for each orchard and reef
+field_surv1 <- field_surv
+field_growth1 <- field_growth
+nurs_surv1 <- nurs_surv
+nurs_growth1 <- nurs_growth
+
+# nursery data only available for size classes 1-2, so use the field data for the larger size classes
+nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
+
+nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
+nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
+nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
+
+
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters: survival
+surv_pars.r <- all_pars$surv_pars.r
+
+# reef parameters: growth
+growth_pars.r <- all_pars$growth_pars.r
+
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars$shrink_pars.r
+
+# reef parameters: fragmentation
+frag_pars.r <- all_pars$frag_pars.r
+
+
+# density dependent survival (smallest size class only for now)
+dens_pars.r <- list()
+dens_pars.r[[1]] <- list() # first reef treatment/subpop
+dens_pars.r[[1]][[1]] <- 0
+dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]]
+
+# orchard parameters: survival
+surv_pars.o <- all_pars$surv_pars.o
+
+# orchard parameters: growth
+growth_pars.o <- all_pars$growth_pars.o
+
+# orchard parameters: shrinkage
+shrink_pars.o <- all_pars$shrink_pars.o
+
+# orchard parameters: fragmentation
+frag_pars.o <- all_pars$frag_pars.o
+
+
+# stochasticity parameters
+sigma_s <- 0
+sigma_f <- 0
+ext_rand <- c(FALSE, FALSE)
+seeds <- c(1000, 5000, 10000, 40000)
+
+# initial conditions in each reef subpopulation
+N0.r <- list()
+N0.r[[1]] <- list() # second reef subpop
+N0.r[[1]][[1]] <- rep(0, n) # first source (external recruits)
+N0.r[[1]][[2]] <- rep(0, n) # second source
+
+# initial conditions in each orchard subpopulation
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- rep(0, n) # first source
+
+N0.l <- list()
+N0.l[[1]] <- 0
+N0.l[[2]] <- 0
+
+
+# disturbance parameters
+dist_yrs <- NA#c(years + 10) # years when disturbance occurs, can set to > years for none
+
+# effects of disturbance on each reef subpop
+dist_effects.r <- list()
+dist_effects.r[[1]] <- list() # list where each element is the effects of disturbance on corals from each source in the 1st reef subpop (either "survival" for survival, "Tmat" for growth/survival, "Fmat" for fragmentation, or "fecundity" for reproduction)
+dist_effects.r[[1]][[1]] <- list() # effects of disturbances on corals from first source in first reef subpop
+dist_effects.r[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
+dist_effects.r[[1]][[2]] <- list() # second source
+dist_effects.r[[1]][[2]][[1]] <- c("survival")
+
+
+# disturbance parameters for each reef subpop (what happens to the population parameters at each disturbance eve)
+dist_pars.r <- list()
+
+# first reef population
+dist_pars.r[[1]] <- list() 
+# first source to second reef subpop
+dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) # list of disturbance parameters for the first source to the first reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
+# second source to second reef subpop
+dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+
+# disturbance effects for each orchard subpop
+dist_effects.o <- list()
+
+dist_effects.o[[1]] <- list() 
+dist_effects.o[[1]][[1]] <- list() # effects of disturbances on corals from first source in first orchard treatment
+dist_effects.o[[1]][[1]][[1]] <- c("survival") # effects of 1st disturbance on corals from first source in first reef subpop ([[1]][[1]][[2]] would be second disturbance, etc.)
+
+
+# disturbance parameters for each orchard subpop
+dist_pars.o <- list()
+
+# first orchard treatment
+dist_pars.o[[1]] <- list() 
+# first source in first orchard treatment
+dist_pars.o[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][[1]], dist_surv0 = list(surv_pars.o[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) 
+
+
+# lab parameters
+# fractions of settled larvae in each lab treatment that survive to immediate outplanting each year
+s0 <- matrix(NA, nrow = years, ncol = 2)
+s0[,1] <- rep(1, years)
+s0[,2] <- rep(1, years)
+
+# fractions of settled larvae in each lab treatment that survive to 1 yr outplanting
+s1 <- matrix(NA, nrow = years, ncol = 2)
+s1[,1] <- rep(1, years)
+s1[,2] <- rep(1, years)
+
+m0 <- c(0.02)*0 # density dependent mortality rate of larvae in each lab treatment that get outplanted immediately
+m1 <- c(0.02)*0 # density dependent mortality rate of larvae in each lab treatment that get outplanted after 1 year
+sett_props <- list(T1 = 1) # proportion of larvae that settle on each tile type
+size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment (0_T1)
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props)
+
+# restoration strategy parameters
+tile_props <- list(T1 = 1) # proportion of tiles that are each type
+orchard_yield <- 0 # percent of new orchard babies successfully collected
+reef_yield <- 1 # percent of new reef babies successfully collected and fertilized
+spawn_target <- 2000000 # target number of embryos to collect from orchard each year (note: if this is set to zero, there won't be any settlers)
+reef_prop <- c(1) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
+reef_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion recruits going from each lab treatment to each reef treatment (row = origin lab treatment, column = destination reef treatment)
+reef_out_props[1,] <- c(1) # from first lab treatment to each reef treatment (here there's just on intervention reef so they all go there)
+#reef_out_props[2,] <- c(1) # from second lab treatment to each reef treatment 
+
+orchard_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(orchard_treatments)) # proportion recruits going from each lab treatment to each orchard treatment
+orchard_out_props[1,] <- c(1) # from first lab treatment to each orchard 
+#orchard_out_props[2,] <- c(1) # from second lab treatment to each orchard 
+
+# sizes allocated to each treatment
+reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
+lab_max <- 3100 # total number of settlers that the lab can accommodate
+lab_retain_max <- 0 # total number of settlers that the lab can keep for a year
+tank_min <- 14600 # min number of embryos to put in a tank 
+tank_max <- 33333 # max number of embryos to put in a tank 
+orchard_size <- c(30*500) # number of individuals each orchard treatment has space for
+
+# coral transplanting
+transplant <- rep(0, years) # years in which corals get transplanted from the orchard
+#transplant[10] <- 1 # in 10th year, move corals from orchard to reef
+
+null_mat <- matrix(0, nrow = years, ncol = n)
+trans_mats <- list()
+trans_mats[[1]] <- list() # first orchard 
+trans_mats[[1]][[1]] <- null_mat 
+
+# where on the reef to put the transplants
+trans_reef <- list()
+trans_reef[[1]] <- list() # first orchard
+trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T)
+
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+
+
+# no external input
+lambda <- 0
+
+# number of corals to outplant this year
+lambda_R <- 10000#1255111 # mean number of larvae produced by reference reefs each year
+
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+
+max(sim1$orchard_pops[[1]][[1]])
+
+unique(sim1$reef_out[[1]][[1]])
+
+unique(sim1$reef_out[[1]][[2]]) # even if all mortality and density dependence is turned off, this might not match lambda_R if lambda_R is so big that tank_max starts to cap larvae
+
+
+```
+
+
+plot time series
+
+
+```{r}
+
+# outplanting size classes 1, 2, 3, 4, and 5... maybe go down by factor of 10 each time? 10000, 1000, 100, 10, 1
+
+lambda_R_12345 <- c(10000, 1000, 100, 10, 1)
+out_sizes <- c(1, 2, 3, 4, 5)
+
+
+# holding list for model output
+
+mod_out_L <- list()
+
+mod_ind <- matrix(NA, nrow = years, ncol = 5) # total number of individuals on reef
+mod_area <- matrix(NA, nrow = years, ncol = 5) # total area covered on the reef
+
+for(j in 1:5){
+  
+  lambda_R <- lambda_R_12345[j]
+  
+  size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- rep(0, 5) # first lab treatment (0_T1)
+size_props[1, out_sizes[j]] <- 1
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props)
+
+sim_j <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+  
+mod_out_L[[j]] <- sim_j
+
+
+mod_ind[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+mod_area[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+
+}
+
+```
+
+
+plot the results
+
+
+```{r}
+
+cols1 <- c("#EE6677", "#CCBB44", "#228833", "#66CCEE", "#4477AA")
+
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_ind)), col = NA, xlab = NA, ylab = NA, las = 1)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_ind[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+
+```
+
+
+repeat but outplanting the same number of each size class
+
+```{r}
+lambda_R_12345 <- c(100, 100, 100, 100, 100)
+out_sizes <- c(1, 2, 3, 4, 5)
+
+
+# holding list for model output
+
+mod_out_L2 <- list()
+
+mod_ind2 <- matrix(NA, nrow = years, ncol = 5) # total number of individuals on reef
+mod_area2 <- matrix(NA, nrow = years, ncol = 5) # total area covered on the reef
+
+for(j in 1:5){
+  
+  lambda_R <- lambda_R_12345[j]
+  
+  size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- rep(0, 5) # first lab treatment (0_T1)
+size_props[1, out_sizes[j]] <- 1
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props)
+
+sim_j <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+  
+mod_out_L2[[j]] <- sim_j
+
+
+mod_ind2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+mod_area2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+
+}
+```
+
+
+```{r}
+cols1 <- c("#EE6677", "#CCBB44", "#228833", "#66CCEE", "#4477AA")
+
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_ind2)), col = NA, xlab = NA, ylab = NA, las = 1)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_ind2[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area2)), col = NA, xlab = NA, ylab = NA, las = 1)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area2[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+```
+
+
+
+```{r}
+# plot together
+
+pdf("TempFigs/outplanting_size.pdf", height = 6, width = 5)
+
+par(mfrow = c(1, 2))
+layout(matrix(c(1, 2), nrow = 2, ncol = 1, byrow = T), widths = rep(1, 1), heights = rep(1, 2))
+#layout.show(2)
+par(mar=c(0, 5, 1, 0.1), oma = c(4, 2, 0.1, 0.1))
+
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area2)), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = NA)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area2[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+legend("topleft", legend = c("1 (100)", "2 (100)", "3 (100)", "4 (100)", "5 (100)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1)
+mtext(side = 1, "Year", line = 2.5)
+mtext(side = 2, expression("Coral cover ("*m^2*")"), line = -2, outer = T)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+legend("topleft", legend = c("1 (10,000)", "2 (1,000)", "3 (100)", "4 (10)", "5 (1)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+
+dev.off()
+
+```
 
 
