@@ -79,8 +79,9 @@ function CompartmentNode({ data }: NodeProps) {
         </div>
       )}
 
+      <Handle type="target" position={Position.Bottom} id="bottom" style={{ background: style.border }} />
       <Handle type="source" position={Position.Right} id="right" style={{ background: style.border }} />
-      <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: style.border }} />
+      <Handle type="source" position={Position.Bottom} id="bottom-source" style={{ background: style.border }} />
       <Handle type="source" position={Position.Left} id="left-source" style={{ background: style.border }} />
     </div>
   );

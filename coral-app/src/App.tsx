@@ -88,7 +88,7 @@ function App() {
               className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
                 activeTab === tab.id
                   ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-lg'
-                  : 'text-gray-900 hover:bg-white/50'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
               }`}
               style={{ fontFamily: 'Crimson Pro, serif' }}
             >
