@@ -18,6 +18,7 @@ export interface CompartmentNodeData {
   layers: LayerState;
   parameters?: { name: string; value: string; description: string }[];
   sizeClasses?: { id: string; range: string; survival: number; fecundity: number; color: string }[];
+  selectedNodeId: string | null;
 }
 
 export interface ExternalNodeData {
@@ -25,6 +26,7 @@ export interface ExternalNodeData {
   label: string;
   subtitle: string;
   type: 'external-reefs' | 'wild-recruitment';
+  selectedNodeId: string | null;
 }
 
 export interface DecisionNodeData {
@@ -33,6 +35,7 @@ export interface DecisionNodeData {
   parameter: string;
   value: string;
   detailLevel: DetailLevel;
+  selectedNodeId: string | null;
 }
 
 export interface FlowEdgeData {
@@ -43,6 +46,7 @@ export interface FlowEdgeData {
   animated: boolean;
   cost?: string;
   showCost: boolean;
+  dimmed: boolean;
 }
 
 export type CompartmentNodeType = Node<CompartmentNodeData, 'compartment'>;

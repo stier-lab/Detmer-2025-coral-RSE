@@ -15,7 +15,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import './diagram-theme.css';
-import type { DetailLevel, LayerState } from './types';
+import type { DetailLevel, LayerState, CompartmentNodeData } from './types';
 import { useDiagramLayout } from './hooks/useDiagramLayout';
 import CompartmentNode from './nodes/CompartmentNode';
 import ExternalNode from './nodes/ExternalNode';
@@ -24,6 +24,7 @@ import FlowEdge from './edges/FlowEdge';
 import DetailToggle from './DetailToggle';
 import LayerToggles from './LayerToggles';
 import Legend from './Legend';
+import DetailPanel from './DetailPanel';
 
 const nodeTypes = {
   compartment: CompartmentNode,
@@ -44,8 +45,10 @@ function DiagramInner() {
     disturbance: false,
     stochasticity: false,
   });
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [panelData, setPanelData] = useState<CompartmentNodeData | null>(null);
 
-  const layout = useDiagramLayout(detailLevel, layers);
+  const layout = useDiagramLayout(detailLevel, layers, selectedNodeId);
   const [nodes, setNodes, onNodesChange] = useNodesState(layout.nodes as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges as Edge[]);
   const { fitView } = useReactFlow();
@@ -72,7 +75,21 @@ function DiagramInner() {
         proOptions={{ hideAttribution: true }}
         nodesDraggable={false}
         nodesConnectable={false}
-        elementsSelectable={false}
+        elementsSelectable={true}
+        onNodeClick={(_event, node) => {
+          const isCompartment = node.type === 'compartment';
+          setSelectedNodeId(prev => prev === node.id ? null : node.id);
+          if (isCompartment) {
+            const nodeData = node.data as unknown as CompartmentNodeData;
+            setPanelData(prev => prev?.compartmentId === nodeData.compartmentId ? null : nodeData);
+          } else {
+            setPanelData(null);
+          }
+        }}
+        onPaneClick={() => {
+          setSelectedNodeId(null);
+          setPanelData(null);
+        }}
       >
         <MiniMap
           position="bottom-right"
@@ -91,7 +108,11 @@ function DiagramInner() {
       </div>
 
       <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}>
-        <Legend detailLevel={detailLevel} />
+        {panelData ? (
+          <DetailPanel nodeData={panelData} onClose={() => { setPanelData(null); setSelectedNodeId(null); }} />
+        ) : (
+          <Legend detailLevel={detailLevel} />
+        )}
       </div>
     </div>
   );

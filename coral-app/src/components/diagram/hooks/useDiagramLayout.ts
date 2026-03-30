@@ -3,12 +3,12 @@ import { MarkerType } from '@xyflow/react';
 import type { DetailLevel, LayerState, DiagramNode, DiagramEdge } from '../types';
 
 const POSITIONS = {
-  extReefs:        { x: 30,  y: 180 },
-  lab:             { x: 260, y: 250 },
-  decision:        { x: 530, y: 255 },
-  reef:            { x: 760, y: 140 },
-  orchard:         { x: 530, y: 460 },
-  wildRecruitment: { x: 760, y: 20 },
+  extReefs:        { x: 0,   y: 200 },
+  lab:             { x: 300, y: 250 },
+  decision:        { x: 620, y: 260 },
+  reef:            { x: 950, y: 150 },
+  orchard:         { x: 620, y: 500 },
+  wildRecruitment: { x: 950, y: 0 },
 };
 
 const LAB_PARAMS = [
@@ -49,7 +49,8 @@ const COSTS: Record<string, string> = {
 
 export function buildDiagramLayout(
   detailLevel: DetailLevel,
-  layers: LayerState
+  layers: LayerState,
+  selectedNodeId: string | null = null
 ): { nodes: DiagramNode[]; edges: DiagramEdge[] } {
   const showParams = detailLevel !== 'story';
   const showSizeClasses = detailLevel === 'full';
@@ -63,6 +64,7 @@ export function buildDiagramLayout(
         label: 'External Reefs',
         subtitle: 'Reference reef larvae',
         type: 'external-reefs',
+        selectedNodeId,
       },
     },
     {
@@ -73,6 +75,7 @@ export function buildDiagramLayout(
         label: 'Wild Recruitment',
         subtitle: 'External larval input',
         type: 'wild-recruitment',
+        selectedNodeId,
       },
     },
     {
@@ -87,6 +90,7 @@ export function buildDiagramLayout(
         detailLevel,
         layers,
         parameters: showParams ? LAB_PARAMS : undefined,
+        selectedNodeId,
       },
     },
     {
@@ -98,6 +102,7 @@ export function buildDiagramLayout(
         parameter: 'reef_prop',
         value: '0.75',
         detailLevel,
+        selectedNodeId,
       },
     },
     {
@@ -113,6 +118,7 @@ export function buildDiagramLayout(
         layers,
         parameters: showParams ? REEF_PARAMS : undefined,
         sizeClasses: showSizeClasses ? SIZE_CLASS_DATA : undefined,
+        selectedNodeId,
       },
     },
     {
@@ -128,6 +134,7 @@ export function buildDiagramLayout(
         layers,
         parameters: showParams ? ORCHARD_PARAMS : undefined,
         sizeClasses: showSizeClasses ? SIZE_CLASS_DATA : undefined,
+        selectedNodeId,
       },
     },
   ];
@@ -151,6 +158,7 @@ export function buildDiagramLayout(
         animated: true,
         cost: COSTS['ext-to-lab'],
         showCost,
+        dimmed: false,
       },
     },
     {
@@ -168,6 +176,7 @@ export function buildDiagramLayout(
         animated: true,
         cost: '',
         showCost: false,
+        dimmed: false,
       },
     },
     {
@@ -185,6 +194,7 @@ export function buildDiagramLayout(
         animated: true,
         cost: COSTS['decision-to-reef'],
         showCost,
+        dimmed: false,
       },
     },
     {
@@ -202,6 +212,7 @@ export function buildDiagramLayout(
         animated: true,
         cost: COSTS['decision-to-orchard'],
         showCost,
+        dimmed: false,
       },
     },
     {
@@ -219,6 +230,7 @@ export function buildDiagramLayout(
         animated: true,
         cost: COSTS['orchard-to-lab'],
         showCost,
+        dimmed: false,
       },
     },
     {
@@ -236,6 +248,7 @@ export function buildDiagramLayout(
         animated: false,
         cost: COSTS['orchard-to-reef'],
         showCost,
+        dimmed: false,
       },
     },
     {
@@ -253,16 +266,45 @@ export function buildDiagramLayout(
         animated: false,
         cost: '',
         showCost: false,
+        dimmed: false,
       },
     },
   ];
 
-  return { nodes, edges };
+  const connectedNodeIds = selectedNodeId
+    ? new Set([
+        selectedNodeId,
+        ...edges.filter(e => e.source === selectedNodeId || e.target === selectedNodeId)
+          .flatMap(e => [e.source, e.target]),
+      ])
+    : null;
+
+  const finalNodes = nodes.map(n => ({
+    ...n,
+    data: {
+      ...n.data,
+      isHighlighted: connectedNodeIds === null || connectedNodeIds.has(n.id),
+    },
+  })) as DiagramNode[];
+
+  const connectedEdgeIds = selectedNodeId
+    ? new Set(edges.filter(e => e.source === selectedNodeId || e.target === selectedNodeId).map(e => e.id))
+    : null;
+
+  const finalEdges = edges.map(e => ({
+    ...e,
+    data: {
+      ...e.data,
+      dimmed: connectedEdgeIds ? !connectedEdgeIds.has(e.id) : false,
+    },
+  })) as DiagramEdge[];
+
+  return { nodes: finalNodes, edges: finalEdges };
 }
 
-export function useDiagramLayout(detailLevel: DetailLevel, layers: LayerState) {
+export function useDiagramLayout(detailLevel: DetailLevel, layers: LayerState, selectedNodeId: string | null = null) {
   return useMemo(
-    () => buildDiagramLayout(detailLevel, layers),
-    [detailLevel, layers]
+    () => buildDiagramLayout(detailLevel, layers, selectedNodeId),
+    [detailLevel, layers, selectedNodeId]
   );
 }

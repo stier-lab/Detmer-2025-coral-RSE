@@ -21,6 +21,7 @@
   padding: 16px 20px;
   min-width: 200px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .compartment-node:hover {
@@ -35,6 +36,7 @@
   border-radius: 10px;
   padding: 10px 16px;
   color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
 }
 
 .decision-node {
@@ -46,6 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
 .decision-node-content {
@@ -61,8 +64,8 @@
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 10px;
+  padding: 4px 10px;
+  font-size: 12px;
   font-family: 'JetBrains Mono', monospace;
   color: rgba(255, 255, 255, 0.8);
   white-space: nowrap;
@@ -74,7 +77,7 @@
   color: #4ADE80;
   border-radius: 4px;
   padding: 1px 6px;
-  font-size: 9px;
+  font-size: 10px;
   font-family: 'JetBrains Mono', monospace;
   margin-top: 2px;
 }
@@ -134,4 +137,21 @@
     radial-gradient(ellipse at 50% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
+}
+
+.detail-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 300px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  z-index: 20;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
 }
