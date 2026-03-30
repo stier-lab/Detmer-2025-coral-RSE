@@ -1,6 +1,13 @@
-import { memo } from 'react';
+import React, { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { CompartmentNodeData } from '../types';
+import { LabIcon, OrchardIcon, ReefIcon } from './NodeIcons';
+
+const ICON_MAP: Record<string, React.FC<{ size?: number; color?: string }>> = {
+  lab: LabIcon,
+  orchard: OrchardIcon,
+  reef: ReefIcon,
+};
 
 const COMPARTMENT_STYLES: Record<string, { border: string; bg: string; glow: string }> = {
   lab: {
@@ -23,6 +30,7 @@ const COMPARTMENT_STYLES: Record<string, { border: string; bg: string; glow: str
 function CompartmentNode({ data }: NodeProps) {
   const nodeData = data as unknown as CompartmentNodeData;
   const style = COMPARTMENT_STYLES[nodeData.compartmentId] ?? COMPARTMENT_STYLES.lab;
+  const Icon = ICON_MAP[nodeData.compartmentId];
 
   return (
     <div
@@ -36,8 +44,11 @@ function CompartmentNode({ data }: NodeProps) {
       <Handle type="target" position={Position.Left} id="left" style={{ background: style.border }} />
       <Handle type="target" position={Position.Top} id="top" style={{ background: style.border }} />
 
-      <div style={{ color: nodeData.color, fontWeight: 700, fontSize: 15, fontFamily: 'Crimson Pro, serif' }}>
-        {nodeData.label}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {Icon && <Icon size={20} color={nodeData.color} />}
+        <div style={{ color: nodeData.color, fontWeight: 700, fontSize: 17, fontFamily: 'Crimson Pro, serif' }}>
+          {nodeData.label}
+        </div>
       </div>
       <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 2 }}>
         {nodeData.subtitle}
