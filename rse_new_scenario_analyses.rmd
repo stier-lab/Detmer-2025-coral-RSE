@@ -624,12 +624,13 @@ orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_
 function for processing the output
 
 ```{r}
-# 1) coral cover on reef, 2) orchard function (loosely defined to include ecological function and reproduction since these are highly correlated in the model, calculate as sum or area covered of all reproductively mature size classes in the orchard), 3) reef ROI (m2 coral on reef per dollar spent), 4) total ROI (m2 coral on reef and orchard per dollar spent), 5) total costs, and 6) number of recruits outplanted to reef?
-
-# function for extracting performance metrics from the orchard expansion simulations
-orch_exp_sens_fun <- function(sim_list, par_set2, prop_set, L2, L1, max_yr, weights = list(reef_cover = 1, orch_fun = 1, reef_ROI = 1, tot_ROI = 1, tot_costs = 0, recruits_out = 0), dt_D0 = data.frame(NA)){
+# function for extracting performance metrics from the simulations
+# sim = model simulation output
+# max_yr = end of time interval over which to calculate the metrics
+metrics_dt_fun <- function(sim, max_yr){
   
       r_inf <- 0.056 # inflation rate
+      
       # fixed costs
       c_RS <- 84.6*rest_pars$orchard_size/30 + 1200 # reef stars (cost of reef stars plus cost of boat rental for installation); no inflation because assume this is only an initial cost
       
@@ -642,13 +643,9 @@ orch_exp_sens_fun <- function(sim_list, par_set2, prop_set, L2, L1, max_yr, weig
       c_fixed <- c_RS + c_perm + c_boat + c_log
   
   
-  # calculate the performance metrics for each parameter combination
-  for(i in 1:L2){ # for each parameter combination
-    
     # make the holding data frame
+      L1 <- 1
     dt_i <- data.frame(
-  par_val = rep(par_set2[i], L1), # random parameter replicate
-  prop_out = rep(NA, L1), # proportion outplanted to reef
   reef_cover_mean = rep(NA, L1), # m2 of coral cover on reef (mean over years 1 to max_yr)
   reef_function_mean = rep(NA, L1), # avg area covered by large/reproductive (size classes 3-5) corals on reef
   reef_tiles_out_tot = rep(NA, L1), # total number of tiles outplanted to reef
@@ -658,36 +655,17 @@ orch_exp_sens_fun <- function(sim_list, par_set2, prop_set, L2, L1, max_yr, weig
   tot_ROI_mean = rep(NA, L1), # average total ROI (total area covered by corals on reef and orchard per dollar spent)
   orch_function_mean = rep(NA, L1), # avg area covered by large/reproductive (size classes 3-5) corals in orchard
  tot_costs = rep(NA, L1), # total amount spent over length of simulation
- costs_saved = rep(NA, L1), # amount saved relative to most expensive strategy
  c_fixed = rep(NA, L1), # fixed costs
  c_subs = rep(NA, L1), # costs of substrates
  c_out = rep(NA, L1), # outplanting costs
  c_maint = rep(NA, L1), # orchard maintenance costs
  c_lab = rep(NA, L1), # lab costs
- c_spawn = rep(NA, L1), # costs of collecting spawn
-strategy_score = rep(NA, L1), # weighted sum of top metrics relative to their max possible value
-  reef_cover_cost = rep(NA, L1)#, # avg coral cover on reef over max_yr years compared to if all corals were put on the reef
-  #orch_rep_cost = rep(NA, L1) # avg orchard reproduction over max_yr years compared to if all corals were put in the orchard
-  
+ c_spawn = rep(NA, L1) # costs of collecting spawn
 )
     
+  j <- 1
     
-    # NOTE: could calculate coral cover as coral cover per m2, where the m2 is the total area outplanted up to that time point, but then you might get numbers that look high if very few tiles were outplanted so that might be confusing...
-    
-   # orch_rep_0 <- model_summ(model_sim = sim_list[[i]][[1]], location = "orchard", metric = "production", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
-    
-   # orch_rep_max <- mean(orch_rep_0[2:max_yr], na.rm = T)
-    
-    
-    # get reef cover if nothing was outplanted to orchard to estimate "cost" of investing in orchard in terms of reef coral cover lost
-    reef_cover_1 <- model_summ(model_sim = sim_list[[i]][[L1]], location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
-    
-    reef_cover_max <- mean(reef_cover_1[2:max_yr], na.rm = T)
-    
-    
-    for(j in 1:L1){ # for each proportion outplanted to reef
-      
-      sim_ij <- sim_list[[i]][[j]]
+      sim_ij <- sim
       
       # reef cover
       reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
@@ -699,7 +677,7 @@ strategy_score = rep(NA, L1), # weighted sum of top metrics relative to their ma
 #orch_rep_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "production", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
       
       # orchard cover
-      orch_cover_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+     # orch_cover_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
       # orchard function
 orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
@@ -786,66 +764,9 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       
       dt_i$tot_ROI_mean[j] <- mean((reef_cover_ij[2:max_yr] + orch_cover_ij[2:max_yr])/tot_costs)
       
-    } # end of iteration over strategy parameter values
-    
-    # get max values of top metrics for ith parameter combination for calculating weighted scores
-    # metrics considered: 1) coral cover on reef, 2) orchard function, 3) reef ROI, 4) total ROI, 5) total costs, and 6) number of recruits outplanted to reef
-    
-    # update: replace zeros with 1 (if max was zero, e.g., if outplant survival on the reef was zero, that means all values were zero so this will result in dividing 0 by 1 = 0 instead of 0/0 = NA)
-    
-    # if there is disturbance, use the no disturbance case as the max
-    if(is.na(as.vector(dt_D0)[1]) == T){
-      dt_iM <- dt_i
-    } else{
-      if("par_rep" %in% colnames(dt_D0)){ # bad messy way of dealing with inconsistent naming...
-        dt_iM <- dt_D0[which(dt_D0$par_rep == i),]
-      } else{
-        dt_iM <- dt_D0[which(dt_D0$par_val == par_set2[i]),]
-      }
       
-    }
   
-    reef_cover_max_i <- max(dt_iM$reef_cover_mean, na.rm = T)
-   # reef_cover_max_i <- ifelse(reef_cover_max_i == 0, 1, reef_cover_max_i)
-    orch_fun_max_i <- max(dt_iM$orch_function_mean, na.rm = T)
-   # orch_fun_max_i <- ifelse(orch_fun_max_i == 0, 1, orch_fun_max_i)
-    reef_ROI_max_i <- max(dt_iM$reef_ROI_mean, na.rm = T)
-   # reef_ROI_max_i <- ifelse(reef_ROI_max_i == 0, 1, reef_ROI_max_i)
-    tot_ROI_max_i <- max(dt_iM$tot_ROI_mean, na.rm = T)
-   # tot_ROI_max_i <- ifelse(tot_ROI_max_i == 0, 1, tot_ROI_max_i)
-   # tot_costs_min_i <- min(dt_iM$tot_costs) # want to minimize total costs
-    tot_costs_max_i <- max(dt_iM$tot_costs, na.rm = T)
-    tot_saved_max_i <- tot_costs_max_i - min(dt_iM$tot_costs)
-    reef_recruits_out_tot_max_i <- max(dt_iM$reef_recruits_out_tot, na.rm = T)
-  #  reef_recruits_out_tot_max_i <- ifelse(reef_recruits_out_tot_max_i == 0, 1, reef_recruits_out_tot_max_i)
-    
-  
-    
-    # now add the scores for each 
-    for(j in 1:L1){
-    
-      
-      w_sum <- sum(unlist(weights))
-      
-      dt_i$strategy_score[j] <- weights$reef_cover/w_sum*dt_i$reef_cover_mean[j]/reef_cover_max_i + weights$orch_fun/w_sum*dt_i$orch_function_mean[j]/orch_fun_max_i + weights$reef_ROI/w_sum*dt_i$reef_ROI_mean[j]/reef_ROI_max_i + weights$tot_ROI/w_sum*dt_i$tot_ROI_mean[j]/tot_ROI_max_i + #weights$tot_costs/w_sum*(dt_i$tot_costs[j]/tot_costs_min_i)^(-1) +
-weights$tot_costs/w_sum*(tot_costs_max_i- dt_i$tot_costs[j])/tot_saved_max_i + weights$recruits_out/w_sum*dt_i$reef_recruits_out_tot[j]/reef_recruits_out_tot_max_i
-    
-      # calculate costs saved
-    dt_i$costs_saved[j] <- tot_costs_max_i- dt_i$tot_costs[j]
-  
-      
-    }
-    
-    
-  if(i == 1){
-    dt <- dt_i
-  } else{
-    dt <- rbind(dt, dt_i)
-  }
-    
-  }
-  
-  return(dt) # return the data frame
+  return(dt_i) # return the data frame
   
 }
 
