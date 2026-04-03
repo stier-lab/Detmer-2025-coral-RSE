@@ -344,8 +344,8 @@ N0.o[[1]][[1]] <- rep(0, n) # first source
 N0.o[[1]][[2]] <- rep(0, n) # second source
 
 N0.l <- list()
-N0.l[[1]] <- 0
-N0.l[[2]] <- 0
+N0.l[[1]] <- 1000 # start with some babies in the lab
+N0.l[[2]] <- 0 
 
 sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
@@ -405,7 +405,7 @@ dist_yrs3 <- c(1:max(years))[c(F, F,T)] # years when disturbance occurs: once ev
 dist_mat.r <- matrix(0.25, nrow = length(dist_yrs3), ncol = 5)
 dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
 
-dist_mat.o <- matrix(0.4, nrow = length(dist_yrs3), ncol = 5)
+dist_mat.o <- matrix(0.5, nrow = length(dist_yrs3), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list3 <- list(dist.r = dist.r, dist.o = dist.o)
@@ -419,7 +419,7 @@ dist_yrs5 <- c(1:max(years))[c(F, F,F, F, T)] # years when disturbance occurs: o
 dist_mat.r <- matrix(0.25, nrow = length(dist_yrs5), ncol = 5)
 dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
 
-dist_mat.o <- matrix(0.4, nrow = length(dist_yrs5), ncol = 5)
+dist_mat.o <- matrix(0.5, nrow = length(dist_yrs5), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list5 <- list(dist.r = dist.r, dist.o = dist.o)
@@ -570,11 +570,11 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
       rest_pars_ij[[which(names(rest_pars_ij) == par2_name)]] <- par_set2[i]
     } else if(par2_name == "lambda_R"){
       lambda_R <- par_set2[i]
+      
     } 
     
     # run the model
     sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars_ij, N0.r, N0.o, N0.l)
-    
     
     # save the output
     mod_list[[j]] <- sim_ij
@@ -601,6 +601,8 @@ orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_
   for(i in 1:n_pars){
     
     dem_pars <- sapply(dem_pars_all, "[[", i) # select the i^th element from each component of the full list of demographic parameters
+    
+    dem_pars <- list(surv_pars.r = list(dem_pars$surv_pars_L.r), growth_pars.r = list(dem_pars$growth_pars_L.r), shrink_pars.r = list(dem_pars$shrink_pars_L.r), frag_pars.r = list(dem_pars$frag_pars_L.r), surv_pars.o = list(dem_pars$surv_pars_L.o), growth_pars.o = list(dem_pars$growth_pars_L.o), shrink_pars.o = list(dem_pars$shrink_pars_L.o), frag_pars.o = list(dem_pars$frag_pars_L.o))
     
     out_list2[[i]] <- orch_exp_fun1(dem_pars, prop_set, par_set2, par2_name, dist, dist_yrs, dist_pars_list)
     
@@ -771,9 +773,230 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
 }
 
 
+
+# function that returns mean and error bars for coral cover and orchard function at each time point across demographic parameters
+# sim_list = full list of simulations across demographic parameters, orchard outplanting proportions, and an optional second parameter
+ts_fun <- function(sim_list, n_pars, max_yr, prop_choice, par2_choice = 1){
+  
+  # holding matrix for total coral cover at each timepoint (row) and parameter combination (columns)
+  reef_cover <- matrix(NA, nrow = max_yr, ncol = n_pars)
+  
+  # repeat for orchard function
+  orch_fun <- matrix(NA, nrow = max_yr, ncol = n_pars)
+  
+  for(i in 1:n_pars){
+    
+    sim_i <- sim_list[[i]][[par2_choice]][[prop_choice]]
+    
+    reef_cover[,i] <- model_summ(model_sim = sim_i, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))[1:max_yr]
+    
+    orch_fun[,i] <- model_summ(model_sim = sim_i, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
+    
+  }
+  
+  # now calculate the mean, 95%, and 5% quantiles, and standard deviations  across parameter values at each time point
+  reef_cover_mn <- apply(reef_cover, 1, function(x) mean(x, na.rm = T))
+  reef_cover_low <- apply(reef_cover, 1, function(x) quantile(x, 0.95, na.rm = T))
+  reef_cover_up <- apply(reef_cover, 1, function(x) quantile(x, 0.05, na.rm = T))
+  
+  reef_cover_sd <- apply(reef_cover, 1, function(x) sd(x, na.rm = T))
+  
+  orch_fun_mn <- apply(orch_fun, 1, function(x) mean(x, na.rm = T))
+  orch_fun_low <- apply(orch_fun, 1, function(x) quantile(x, 0.95, na.rm = T))
+  orch_fun_up <- apply(orch_fun, 1, function(x) quantile(x, 0.05, na.rm = T))
+  orch_fun_sd <- apply(orch_fun, 1, function(x) sd(x, na.rm = T))
+  
+  
+  # return mean, 75% quantile, 25% quantile, and full matrixes for each metric
+  
+  return(list(reef_cover_mn = reef_cover_mn, reef_cover_low = reef_cover_low, reef_cover_up = reef_cover_up, reef_cover_sd = reef_cover_sd, orch_fun_mn = orch_fun_mn, orch_fun_low = orch_fun_low, orch_fun_up = orch_fun_up, orch_fun_sd = orch_fun_sd, reef_cover_all = reef_cover, orch_fun_all = orch_fun))
+  
+}
+
+
+
+
 ```
 
 
+
+## main simulations
+
+```{r}
+prop_main <- c(0.8, 0.9, 1) # main strategies to focus on
+
+lambda_Rs <- c(0, 1255111)
+
+#orch_D0 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+orch_D0 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+orch_D3 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = T, dist_yrs = dist_yrs3, dist_pars_list = dist_pars_list3)
+
+orch_D5 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = T, dist_yrs = dist_yrs5, dist_pars_list = dist_pars_list5)
+
+
+# get the dataframes with the performance metrics
+# MAKE THIS A WRAPPER FUNCTION
+for(i in 1:n_sample1){
+  
+  for(j in 1:length(lambda_Rs)){
+    
+    for(k in 1:length(prop_main)){
+      
+      sim_ijk <- sim_list[[i]][[j]][[k]]
+      
+      dt_ijk <- metrics_dt_fun(sim, max_yr)
+      
+      dt_ijk$par_rep <- i
+      dt_ijk$prop_out <- prop_main[k]
+      dt_ijk$par2 <- lambda_Rs[j]
+      
+      if(k == 1){
+        dt_k <- dt_ijk
+      } else{
+        dt_k <- rbind(dt_k, dt_ijk)
+      }
+    }
+    
+    if(j == 1){
+      dt_j <- dt_k
+    } else{
+      dt_j <- rbind(dt_j, dt_k)
+    }
+    
+  }
+  
+  if(i == 1){
+    dt_i <- dt_j
+  } else{
+    dt_i <- rbind(dt_i, dt_j)
+  }
+  
+}
+
+
+```
+
+
+plots to make for part 1: 
+-- basic time series of coral cover and orchard function (for each of the 3 disturbance scenarios? might put in SM) with mean + se across dem pars
+
+```{r}
+
+# ts_test1 <- ts_fun(sim_list = orch_D0, n_pars = n_sample1, max_yr = years, prop_choice = 1)
+# 
+# ts_test1$reef_cover_all
+# ts_test1$reef_cover_mn
+# ts_test1$reef_cover_sd
+# 
+# ts_test1$reef_cover_up
+
+#mean(ts_test1$reef_cover_all[51,])
+#quantile(ts_test1$reef_cover_all[51,], 0.95)
+
+#orch_D0[[4]][[1]][[1]]$reef_pops
+
+#orch_D0[[4]][[1]][[3]]$reef_pops
+
+#prop_cols <- c("#EE8866", "#77AADD", "#AAAA00")
+
+prop_cols <- c("#FEC44F", "#CC4C02", "#662506")
+
+plot_list <- orch_D0
+
+xlab1 <- "Proportion substrates initially outplanted to reef"
+ylab1 <- expression("Reef cover ("*m^2*")")
+#plotlab <- "c) Reef ROI"
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+#mtext(side = 3, plotlab, adj = 0)
+for(j in 1:length(prop_main)){
+  plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
+  
+  lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = prop_cols[j], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+  
+}
+legend("topleft", legend = c("80", "90", "100"), col = prop_cols, lwd = c(2, 2, 2), lty = c(1, 1, 1), title = "% Initially \noutplanted to reef", bty = "n", cex = 0.85, inset = c(0, 0.1), fill = c(adjustcolor(prop_cols[1], alpha.f = 0.2), adjustcolor(prop_cols[2], alpha.f = 0.2), adjustcolor(prop_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 3))
+
+
+plot_list <- orch_D5
+
+xlab1 <- NA
+ylab1 <- expression("Reef cover ("*m^2*")")
+#plotlab <- "c) Reef ROI"
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+#mtext(side = 3, plotlab, adj = 0)
+for(j in 1:length(prop_main)){
+  plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
+  
+  lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = prop_cols[j], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+  
+}
+
+plot_list <- orch_D3
+
+xlab1 <- "Proportion substrates initially outplanted to reef"
+ylab1 <- expression("Reef cover ("*m^2*")")
+#plotlab <- "c) Reef ROI"
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA)
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+#mtext(side = 3, plotlab, adj = 0)
+for(j in 1:length(prop_main)){
+  plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
+  
+  lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = prop_cols[j], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+  
+}
+
+
+
+
+# xlab1 <- "Proportion substrates initially outplanted to reef"
+# ylab1 <- expression("Orchard function ("*m^2~"adults)")
+# #plotlab <- "c) Reef ROI"
+# plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 6000), las = 1, xlab = NA, ylab = NA)
+# mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+# mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+# #mtext(side = 3, plotlab, adj = 0)
+# for(j in 1:length(prop_main)){
+#   plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j)
+#   
+#   lines(x = c(1:years), y = plot_dt$orch_fun_mn, col = prop_cols[j], lwd = 2)
+#   polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$orch_fun_low, rev(plot_dt$orch_fun_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+#   
+# }
+
+
+```
+
+THOUGHT: for main text time series, maybe just show no orchard investment case (baseline for all other simulations, just to show the different disturbance regimes), then put the figure with all the investment time series in the SM
+
+```{r}
+# repeat the timeseries with just the 100% outplanting case, adjust axes so full quantiles are shown (don't need that in the SM fig since there the point is to show differences btw outplanting proportions)
+```
+
+
+-- trade-off plots (coral cover vs. total ROI) for 5 and 50 yrs and different disturbance regimes AND with/without reference reef supply
+
+
+
+
+-- sensitivity analyses (which could be here or in SM depending on usefulness)
+
+## SM simulations
+
+supplemental figures
+-- full metrics for full proportions outplanted
+-- time to full orchard figure
+-- any sensitivity analyses not in main text
 
 # orchard expansion
 
