@@ -1325,6 +1325,10 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     # This prevents unrealistically high embryo densities in the lab.
     tot_babies <- min(tot_babies, rest_pars$tank_max*rest_pars$lab_max/100)
     
+    # if this is the beginning of the simulation, also add the initial population in the lab
+    if(i == 2){
+      tot_babies <- tot_babies + N0.l[[1]]
+    }
     
     # make sure these don't exceed max lab capacity (assumed lab capacity is proportional to number of tiles)
     #tot_babies <- min(tot_babies, rest_pars$lab_max)
