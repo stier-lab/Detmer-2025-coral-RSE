@@ -649,9 +649,12 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
     
   } # end of random iterations
   
-  return(list(surv_pars_L.r = surv_pars_L.r, growth_pars_L.r = growth_pars_L.r, shrink_pars_L.r = shrink_pars_L.r,
-              frag_pars_L.r = frag_pars_L.r, surv_pars_L.o = surv_pars_L.o, growth_pars_L.o = growth_pars_L.o, 
-              shrink_pars_L.o = shrink_pars_L.o, frag_pars_L.o = frag_pars_L.o))
+ return(list(surv_pars_L.r = surv_pars_L.r, growth_pars_L.r = growth_pars_L.r, shrink_pars_L.r = shrink_pars_L.r,
+           frag_pars_L.r = frag_pars_L.r, surv_pars_L.o = surv_pars_L.o, growth_pars_L.o = growth_pars_L.o, 
+           shrink_pars_L.o = shrink_pars_L.o, frag_pars_L.o = frag_pars_L.o))
+ # return(list(surv_pars.r = surv_pars_L.r, growth_pars.r = growth_pars_L.r, shrink_pars.r = shrink_pars_L.r,
+            #  frag_pars.r = frag_pars_L.r, surv_pars.o = surv_pars_L.o, growth_pars.o = growth_pars_L.o, 
+             # shrink_pars.o = shrink_pars_L.o, frag_pars.o = frag_pars_L.o))
   
 }
 
