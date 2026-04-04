@@ -363,8 +363,10 @@ trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T) # first source corals in orchard 1 ([[1]]) get transplanted to the second source of corals in the first reef (c(1, 2)) each year there is a transplant event (remember source 2 on the reef is the same as source 1 in the orchard, because the reef has an offset of 1 due to external recruits)
 trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # second source corals in orchard 1 ([[2]]) get transplanted to the third source of corals in the first reef (c(1, 3))
 
+trans_surv <- c(1, 1, 1, 1, 1) # proportion of colonies of each size class that survival transplanting
+
 # put all the restoration parameters together for input into the rse_mod1 function
-rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 ```
 
@@ -566,7 +568,7 @@ trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T) # first source corals in orchard 1 ([[1]]) get transplanted to the second source of corals in the first reef (c(1, 2)) each year there is a transplant event (remember source 2 on the reef is the same as source 1 in the orchard, because the reef has an offset of 1 due to external recruits)
 trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # second source corals in orchard 1 ([[2]]) get transplanted to the third source of corals in the first reef (c(1, 3))
 
-rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
 sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
@@ -775,7 +777,7 @@ trans_reef <- list()
 trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T) 
 
-rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
 sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)

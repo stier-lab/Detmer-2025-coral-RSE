@@ -1722,7 +1722,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
           rr.reef <- rest_pars$trans_reef[[ss]][[rr]][i,2] # [i, 2] = reef source subpopulation (e.g., lab treatment 1 outplants, etc.) receiving the corals from the ith transplant from the ss/rr^th orchard population
           
          # if(prop_fits[ss.reef] !=0){ # if there's room on this reef
-            reef_pops[[ss.reef]][[rr.reef]][ ,i] <-  reef_pops[[ss.reef]][[rr.reef]][ ,i] + trans_colonies
+            reef_pops[[ss.reef]][[rr.reef]][ ,i] <-  reef_pops[[ss.reef]][[rr.reef]][ ,i] + trans_colonies*rest_pars$trans_surv
             # and substract these from the orchard
             orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] - trans_colonies
          # }
