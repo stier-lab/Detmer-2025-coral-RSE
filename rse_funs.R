@@ -905,6 +905,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   reef_tiles_out[1] <- 0 # tiles outplanted to reef each year
   orchard_tiles_out[1] <- 0 # tiles outplanted to orchard each year
   
+  # holding vector for total number of orchard colonies transplanted to reef each year
+  trans_colonies_tot <- rep(0, years)
   
   # WHY +1 for reef: Reef populations track individuals from each lab treatment
   # PLUS external (wild) recruits. Source rr=1 = external, rr=2..s_lab+1 = lab treatments.
@@ -1703,6 +1705,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
 
     if(rest_pars$transplant[i]==1){
       
+      # holding matrix for total colonies transplanted from each orchard
+      trans_all0 <- matrix(NA, nrow = s_orchard, ncol = source_orchard)
       for(ss in 1:s_orchard){ # for each orchard subpopulation
         
         #colony_mat_ss <- list()
@@ -1727,9 +1731,15 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
             orchard_pops[[ss]][[rr]][ ,i] <- orchard_pops[[ss]][[rr]][ ,i] - trans_colonies
          # }
           
+            # record total number of colonies
+            trans_all0[ss, rr] <- sum(trans_colonies, na.rm = T)
+            
         } # end of iteration over all source subpopulations in ss^th orchard
         
       } # end of iteration over all orchards
+      
+      # record total colonies transplanted this year
+      trans_colonies_tot[i] <- sum(as.vector(trans_all0), na.rm = T)
       
     } # end of if statement for transplanting colonies
     
@@ -1753,6 +1763,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   #   reef_tiles_out    — tiles outplanted to reefs [year]
   #   orchard_tiles_out — tiles outplanted to orchards [year]
   #   orchard_tiles     — tile inventory in each orchard [[ss]][year]
+  #   trans_colonies_tot - total orchard colonies transplanted to reef [year]
 
   return(list(reef_pops = reef_pops, orchard_pops = orchard_pops, lab_pops = lab_pops,
               reef_rep = reef_rep, orchard_rep = orchard_rep, reef_out = reef_out,
@@ -1761,7 +1772,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
               reef_babies = reef_babies, orchard_babies_used = orchard_babies_used,
               reef_babies_used = reef_babies_used, tiles_out_tot = tiles_out_tot,
               reef_tiles_out = reef_tiles_out, orchard_tiles_out = orchard_tiles_out,
-              orchard_tiles = orchard_tiles))
+              orchard_tiles = orchard_tiles, trans_colonies_tot = trans_colonies_tot))
 
 }
 

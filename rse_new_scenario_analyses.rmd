@@ -1456,7 +1456,8 @@ need to add disturbance in lab, and maybe orchard-specific disturbance (e.g., di
 
 
 NOTE: either need to update cost calculations with estimate of costs, OR only show coral cover and not ROI for that case and say that's because we don't have cost estimates
-
+-- so maybe first show a figure that just compares coral cover to baseline for lab surv, growth, and transplanting surv
+-- then just for the lab case show the full change in cover vs. change in total ROI
 
 
 # orchard expansion
