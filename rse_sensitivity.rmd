@@ -464,7 +464,9 @@ trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T) # first source corals in this orchard get transplanted to the second source of corals in the first reef
 trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # second source corals in this orchard get transplanted to the third source of corals in the second reef
 
-rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+trans_surv <- c(1, 1, 1, 1, 1) # proportion of colonies of each size class that survival transplanting
+
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
 sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
@@ -1234,7 +1236,7 @@ trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years2, ncol = 2, byrow = T) # first source corals in this orchard get transplanted to the second source of corals in the first reef
 trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years2, ncol = 2, byrow = T) # second source corals in this orchard get transplanted to the third source of corals in the second reef
 
-rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
 lambdaG <- which(lambda_set >= 1) # parameter sets where pop'n grows
@@ -1371,7 +1373,7 @@ trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years2, ncol = 2, byrow = T) # first source corals in this orchard get transplanted to the second source of corals in the first reef
 trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years2, ncol = 2, byrow = T) # second source corals in this orchard get transplanted to the third source of corals in the second reef
 
-rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
 # holding matrices for year when population is extinct (total pop'n size falls below 1)
@@ -1899,7 +1901,7 @@ trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T) # first source corals in this orchard get transplanted to the second source of corals in the first reef
 trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # second source corals in this orchard get transplanted to the third source of corals in the second reef
 
-rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
 # no external input
@@ -2204,7 +2206,7 @@ trans_reef <- list()
 trans_reef[[1]] <- list() # first orchard
 trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T)
 
-rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef)
+rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
 # no external input
@@ -2232,8 +2234,10 @@ plot time series
 ```{r}
 
 # outplanting size classes 1, 2, 3, 4, and 5... maybe go down by factor of 10 each time? 10000, 1000, 100, 10, 1
-
-lambda_R_12345 <- c(10000, 1000, 100, 10, 1)
+# update: outplant the same area (10m2) each year (which will be different numbers of individuals)
+# per-coral area in each size class
+#A_mids*0.0001
+lambda_R_12345 <- round(10/(A_mids*0.0001)) #c(10000, 1000, 100, 10, 1)
 out_sizes <- c(1, 2, 3, 4, 5)
 
 
@@ -2353,10 +2357,11 @@ pdf("TempFigs/outplanting_size.pdf", height = 6, width = 5)
 par(mfrow = c(1, 2))
 layout(matrix(c(1, 2), nrow = 2, ncol = 1, byrow = T), widths = rep(1, 1), heights = rep(1, 2))
 #layout.show(2)
-par(mar=c(0, 5, 1, 0.1), oma = c(4, 2, 0.1, 0.1))
+par(mar=c(0, 5, 2, 0.1), oma = c(4, 2, 0.1, 0.1))
 
 
 plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area2)), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+mtext(side = 3, "a) Outplant 100 individuals each", adj = 0)
 axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = NA)
 for(j in 1:5){
   lines(x = c(1:years), y = mod_area2[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
@@ -2365,14 +2370,17 @@ legend("topleft", legend = c("1 (100)", "2 (100)", "3 (100)", "4 (100)", "5 (100
 
 
 plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1)
+mtext(side = 3, expression("b) Outplant 10"*m^2~"each"), adj = 0)
 mtext(side = 1, "Year", line = 2.5)
 mtext(side = 2, expression("Coral cover ("*m^2*")"), line = -2, outer = T)
 for(j in 1:5){
   lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
 }
-legend("topleft", legend = c("1 (10,000)", "2 (1,000)", "3 (100)", "4 (10)", "5 (1)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+legend("topleft", legend = c("1 (20,000)", "2 (1,818)", "3 (200)", "4 (41)", "5 (11)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
 
 dev.off()
+
+round(10/(A_mids*0.0001))
 
 ```
 
