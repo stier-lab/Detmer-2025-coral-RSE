@@ -313,7 +313,8 @@ orchard_size <- c(30*500) # number of tiles each orchard has space for (500 star
 transplant <- rep(0, years) # years in which corals get transplanted from the orchard
 #transplant[10] <- 1 # in 10th year, move corals from orchard to reef
 
-null_mat <- matrix(0, nrow = years, ncol = n)
+# null_mat <- matrix(0, nrow = years, ncol = n)
+null_mat <- matrix(c(0, 0, 0.25*orchard_size, 0, 0), nrow = years, ncol = n, byrow = T)
 #trans_mats[[1]][[1]][which(transplant!=0)[1],] <- c(0, 0, 0, 2,0)# max number of colonies of each size class to move to reef in first transplant event
 trans_mats <- list()
 trans_mats[[1]] <- list() # first orchard 
@@ -686,7 +687,6 @@ metrics_dt_fun <- function(sim, max_yr){
       # orchard function
 orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
 
-      dt_i$prop_out[j] <- prop_set[j]
       dt_i$reef_cover_mean[j] <- mean(reef_cover_ij[2:max_yr], na.rm = T)
       dt_i$reef_function_mean[j] <- mean(reef_fun_ij[2:max_yr], na.rm = T)
       dt_i$reef_tiles_out_tot[j] <- sum(sim_ij$reef_tiles_out[2:max_yr], na.rm = T)
@@ -1402,7 +1402,7 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
       
       
       trans_surv_j <- rep(out_set[j], 5)
-      lab_pars_j$trans_surv <- trans_surv_j
+      rest_pars_ij$trans_surv <- trans_surv_j
     
       sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_j, rest_pars_ij, N0.r, N0.o, N0.l)
     }
@@ -1429,7 +1429,7 @@ return(out_list)
 # wrapper function for iterating over multiple demographic parameter sets
 # dem_pars_all = list with all sets of demographic parameters
 # n_pars = number of parameter sets in dem_pars_all
-orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
+lab_trans_fun2 <- function(dem_pars_all, n_pars, out_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
   
   out_list2 <- list() # holding list
   
@@ -1439,7 +1439,7 @@ orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_
     
     dem_pars <- list(surv_pars.r = list(dem_pars$surv_pars_L.r), growth_pars.r = list(dem_pars$growth_pars_L.r), shrink_pars.r = list(dem_pars$shrink_pars_L.r), frag_pars.r = list(dem_pars$frag_pars_L.r), surv_pars.o = list(dem_pars$surv_pars_L.o), growth_pars.o = list(dem_pars$growth_pars_L.o), shrink_pars.o = list(dem_pars$shrink_pars_L.o), frag_pars.o = list(dem_pars$frag_pars_L.o))
     
-    out_list2[[i]] <- orch_exp_fun1(dem_pars, prop_set, par_set2, par2_name, dist, dist_yrs, dist_pars_list)
+    out_list2[[i]] <- lab_trans_fun1(dem_pars, out_set, out_par_type, par_set2, par2_name, dist, dist_yrs, dist_pars_list)
     
   }
   
@@ -1448,16 +1448,308 @@ orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_
 }
 
 
+
+# second wrapper function for making the data frames
+# wrapper function for combining data frames from multiple parameter sets
+# sim_list = list with model simulation output for multiple parameters
+# max_yr = end of time interval over which to calculate the metrics
+# n_pars = number of demographic parameter sets used in sim_list
+# prop_set = vector with proportions of substrates to outplant to orchard
+# par_set2 = values of the second parameter to iterate over
+# par2_name = name of the second parameter iterated over in sim_list
+full_dt_fun2 <- function(sim_list, max_yr, n_pars, out_set, out_par_type, par_set2, par2_name){
+  
+  for(i in 1:n_pars){
+  
+  for(j in 1:length(par_set2)){
+    
+    for(k in 1:length(out_set)){
+      
+      sim_ijk <- sim_list[[i]][[j]][[k]]
+      
+      dt_ijk <- metrics_dt_fun(sim_ijk, max_yr)
+      
+      dt_ijk$par_rep <- i
+      dt_ijk$out_par <- out_set[k]
+      dt_ijk$par2 <- par_set2[j]
+      
+      if(k == 1){
+        dt_k <- dt_ijk
+      } else{
+        dt_k <- rbind(dt_k, dt_ijk)
+      }
+    }
+    
+    if(j == 1){
+      dt_j <- dt_k
+    } else{
+      dt_j <- rbind(dt_j, dt_k)
+    }
+    
+  }
+  
+  if(i == 1){
+    dt_i <- dt_j
+  } else{
+    dt_i <- rbind(dt_i, dt_j)
+  }
+  
+  }
+  
+  
+  dt_i$par_name2 <- par2_name
+  dt_i$out_par_type <- out_par_type
+  
+  return(dt_i)
+}
+
 ```
 
-sensitivity figures: can plot coral cover and total ROI separately, each with sens par on x-axis and horizontal line at default value
 
-need to add disturbance in lab, and maybe orchard-specific disturbance (e.g., disease outbreaks)
+## main simulations
+
+
+```{r}
+
+# parameter sets
+# post-outplanting survival of recruits kept in lab for a year
+LS_set <- seq(from = 0, to = 1, length.out = 10) 
+
+# growth of recruits kept in lab for a year
+LG_set <- seq(from = 0, to = 1, length.out = 10) 
+
+# post-transplanting survival of orchard colonies moved to reef
+TS_set <- seq(from = 0, to = 1, length.out = 10) 
+
+# lab simulations: update lab_retain_max
+rest_pars$lab_retain_max <- 0.5*lab_max
+
+labS_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, out_set = LS_set, out_par_type = "lab_surv", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+labG_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, out_set = LG_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+rest_pars$lab_retain_max <- 0 # reset lab_retain_max
+
+
+# transplanting simulations: update the transplanting parameters
+rest_pars$transplant <- rep(1, years) # years in which corals get transplanted from the orchard
+
+trans_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, out_set = TS_set, out_par_type = "trans_surv", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+
+# reset transplanting parameters
+rest_pars$transplant <- rep(0, years)
+
+
+# get the reference values
+orch_D0_ref5 <- orch_D0_dt5 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean)
+
+orch_D0_ref50 <- orch_D0_dt50 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean)
+
+# make the data frames
+
+labS_D0_dt5 <- full_dt_fun2(sim_list = labS_D0, max_yr = 6, n_pars = n_sample1, out_set = LS_set, out_par_type = "lab_surv", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5, by = c("par_rep"))
+labS_D0_dt50 <- full_dt_fun2(sim_list = labS_D0, max_yr = 51, n_pars = n_sample1, out_set = LS_set, out_par_type = "lab_surv", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref50, by = c("par_rep"))
+
+labG_D0_dt5 <- full_dt_fun2(sim_list = labG_D0, max_yr = 6, n_pars = n_sample1, out_set = LG_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5, by = c("par_rep"))
+labG_D0_dt50 <- full_dt_fun2(sim_list = labG_D0, max_yr = 51, n_pars = n_sample1, out_set = LG_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")  %>% left_join(orch_D0_ref50, by = c("par_rep"))
+
+trans_D0_dt5 <- full_dt_fun2(sim_list = trans_D0, max_yr = 6, n_pars = n_sample1, out_set = TS_set, out_par_type = "trans_surv", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5, by = c("par_rep"))
+trans_D0_dt50 <- full_dt_fun2(sim_list = trans_D0, max_yr = 51, n_pars = n_sample1, out_set = TS_set, out_par_type = "trans_surv", par_set2 = NA, par2_name = "none")  %>% left_join(orch_D0_ref50, by = c("par_rep"))
+
+
+```
+
+
+
+```{r}
+# plot change from default (90% orchard investment with external recruitment) for each parameter combination
+
+
+# need to get average differences across parameter values
+
+#View(labS_D0_dt5)
+
+kcols <- c("#77AADD", "#AAAA00", "#EE8866")
+
+dt_plot <- labS_D0_dt5
+pars_plot <- LS_set
+
+plot(x = pars_plot, y = rep(1, length(pars_plot)), col = NA, ylim = c(-20, 500), las = 1)
+abline(h = 0, col = "gray")
+for(j in 1:length(pars_plot)){
+  
+  dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+points(x = pars_plot[j], y = dt_pt1$mn, pch = 16, col = kcols[1])
+arrows(x0 = pars_plot[j], y0 = dt_pt1$q05, y1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = kcols[1]) # , col = prop_cols[j]
+}
+
+dt_plot <- labG_D0_dt5
+pars_plot <- LG_set
+for(j in 1:length(pars_plot)){
+dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+points(x = pars_plot[j], y = dt_pt1$mn, pch = 16, col = kcols[2])
+arrows(x0 = pars_plot[j], y0 = dt_pt1$q05, y1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = kcols[2]) 
+}
+
+dt_plot <- trans_D0_dt5
+pars_plot <- TS_set
+
+for(j in 1:length(pars_plot)){
+dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+points(x = pars_plot[j], y = dt_pt1$mn, pch = 16, col = kcols[3])
+arrows(x0 = pars_plot[j], y0 = dt_pt1$q05, y1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = kcols[3]) 
+
+}
+
+
+# 50 years
+dt_plot <- labS_D0_dt50
+pars_plot <- LS_set
+
+plot(x = pars_plot, y = rep(1, length(pars_plot)), col = NA, ylim = c(-20, 10000), las = 1)
+abline(h = 0, col = "gray")
+for(j in 1:length(pars_plot)){
+  
+  dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+points(x = pars_plot[j], y = dt_pt1$mn, pch = 16, col = kcols[1])
+arrows(x0 = pars_plot[j], y0 = dt_pt1$q05, y1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = kcols[1]) # , col = prop_cols[j]
+}
+
+dt_plot <- labG_D0_dt50
+pars_plot <- LG_set
+for(j in 1:length(pars_plot)){
+dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+points(x = pars_plot[j], y = dt_pt1$mn, pch = 16, col = kcols[2])
+arrows(x0 = pars_plot[j], y0 = dt_pt1$q05, y1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = kcols[2]) 
+}
+
+dt_plot <- trans_D0_dt50
+pars_plot <- TS_set
+
+for(j in 1:length(pars_plot)){
+dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+points(x = pars_plot[j], y = dt_pt1$mn, pch = 16, col = kcols[3])
+arrows(x0 = pars_plot[j], y0 = dt_pt1$q05, y1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = kcols[3]) 
+
+}
+
+```
+
+
+
+```{r}
+
+# make color palettes 
+nHalf <- length(LS_set)
+Max <- 1
+Min <- 0
+rc1 <- colorRampPalette(colors = c("#8CC7FF", "#0C1017"), space = "Lab")(nHalf)
+rampcols1 <- c(rc1) # all the colors
+
+rc2 <- colorRampPalette(colors = c("#F5F500", "#4F4F00"), space = "Lab")(nHalf)
+rampcols2 <- c(rc2) # all the colors
+# get the color breaks
+#rb1 <- seq(Min, Max, length.out = nHalf + 1)
+#rampbreaks1 <- c(rb1)
+
+dt_plot <- labS_D0_dt5
+pars_plot <- LS_set
+
+plot(x = 1, y = 1, col = NA, xlim = c(-20, 400), ylim = c(-0.0001, 0.0015), las = 1)
+abline(h = 0, col = "gray")
+abline(v = 0, col = "gray")
+for(j in 1:length(pars_plot)){
+  
+  dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+  dt_pt2 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(tot_ROI_mean - tot_ROI_ref), q05 = quantile(tot_ROI_mean - tot_ROI_ref, 0.05), q95 = quantile(tot_ROI_mean - tot_ROI_ref, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = 16, col = rampcols1[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = rampcols1[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = rampcols1[j])
+}
+
+
+dt_plot <- labG_D0_dt5
+pars_plot <- LG_set
+plot(x = 1, y = 1, col = NA, xlim = c(-20, 400), ylim = c(-0.0001, 0.0015), las = 1)
+abline(h = 0, col = "gray")
+abline(v = 0, col = "gray")
+for(j in 1:length(pars_plot)){
+  
+  dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+  dt_pt2 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(tot_ROI_mean - tot_ROI_ref), q05 = quantile(tot_ROI_mean - tot_ROI_ref, 0.05), q95 = quantile(tot_ROI_mean - tot_ROI_ref, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = 16, col = rampcols2[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = rampcols2[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = rampcols2[j])
+}
+
+
+
+dt_plot <- labS_D0_dt50
+pars_plot <- LS_set
+
+plot(x = 1, y = 1, col = NA, xlim = c(-20, 10000), ylim = c(-0.0001, 0.0015), las = 1)
+abline(h = 0, col = "gray")
+abline(v = 0, col = "gray")
+for(j in 1:length(pars_plot)){
+  
+  dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+  dt_pt2 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(tot_ROI_mean - tot_ROI_ref), q05 = quantile(tot_ROI_mean - tot_ROI_ref, 0.05), q95 = quantile(tot_ROI_mean - tot_ROI_ref, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = 16, col = rampcols1[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = rampcols1[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = rampcols1[j])
+}
+
+dt_plot <- labG_D0_dt50
+pars_plot <- LG_set
+
+plot(x = 1, y = 1, col = NA, xlim = c(-20, 10000), ylim = c(-0.0001, 0.0015), las = 1)
+abline(h = 0, col = "gray")
+abline(v = 0, col = "gray")
+
+for(j in 1:length(pars_plot)){
+  
+  dt_pt1 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(reef_cover_mean - reef_cover_ref), q05 = quantile(reef_cover_mean - reef_cover_ref, 0.05), q95 = quantile(reef_cover_mean - reef_cover_ref, 0.95))
+  
+  dt_pt2 <- dt_plot %>% filter(out_par == pars_plot[j]) %>% summarize(mn = mean(tot_ROI_mean - tot_ROI_ref), q05 = quantile(tot_ROI_mean - tot_ROI_ref, 0.05), q95 = quantile(tot_ROI_mean - tot_ROI_ref, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = 16, col = rampcols2[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = rampcols2[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = rampcols2[j])
+}
+
+
+# make the legends
+plot(x = 1, y = 1, xlim = c(-10, 10), ylim = c(-10, 10), col =NA, xlab = NA, ylab = NA)
+legend("topleft", legend = as.character(round(LS_set, 2)), fill = rampcols1, cex = 0.6)
+
+plot(x = 1, y = 1, xlim = c(-10, 10), ylim = c(-10, 10), col =NA, xlab = NA, ylab = NA)
+legend("topleft", legend = as.character(round(LG_set, 2)), fill = rampcols2, cex = 0.6)
+
+
+```
 
 
 NOTE: either need to update cost calculations with estimate of costs, OR only show coral cover and not ROI for that case and say that's because we don't have cost estimates
 -- so maybe first show a figure that just compares coral cover to baseline for lab surv, growth, and transplanting surv
--- then just for the lab case show the full change in cover vs. change in total ROI
+-- then just for the lab cases show the full change in cover vs. change in total ROI
+-- then repeat with disturbance in lab, and maybe orchard-specific disturbance (e.g., disease outbreaks)
+
+make a plot where x-axis is freq of severe (100%) mortality in the lab
+
+sensitivity figures: can plot coral cover and total ROI separately, each with sens par on x-axis and horizontal line at default value
 
 
 # orchard expansion
