@@ -831,7 +831,12 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name)
     
     for(k in 1:length(prop_set)){
       
-      sim_ijk <- sim_list[[i]][[j]][[k]]
+      if(n_pars == 1){
+        sim_ijk <- sim_list[[j]][[k]]
+      } else{
+        sim_ijk <- sim_list[[i]][[j]][[k]]
+      }
+      
       
       dt_ijk <- metrics_dt_fun(sim_ijk, max_yr)
       
@@ -901,6 +906,29 @@ orch_D3_dt5 <- full_dt_fun(sim_list = orch_D3, max_yr = 6, n_pars = n_sample1, p
 orch_D3_dt50 <- full_dt_fun(sim_list = orch_D3, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R")
 
 #View(orch_D0_dt5)
+
+```
+
+
+disturbance heatmaps
+
+```{r}
+# for 50 years only, x-axis = frequency, y-axis = severity, once with reef and orchard impacted the same and once with orchard impacted less, repeat for 80% and 90% orchard investment. Use mean parameter values only
+```
+
+
+petal plots
+
+```{r}
+# using mean parameters only (?), show 80% and 100% investment relative to 90% investment. Petal plots will have circles for 1x default, 2x, etc.
+
+# simulations
+orch_D0_mn <- orch_exp_fun1(dem_pars = all_pars, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+ 
+# process output
+orch_D0_mn_dt5 <- full_dt_fun(sim_list = orch_D0_mn, max_yr = 6, n_pars = 1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R")
+
+orch_D0_mn_dt50 <- full_dt_fun(sim_list = orch_D0_mn, max_yr = 51, n_pars = 1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R")
 
 ```
 
@@ -1252,6 +1280,195 @@ dev.off()
 
 ```
 
+petal plots
+
+```{r}
+# make a function for making the OHI-type plots
+
+#' OHI-style radar plot
+#' Creates a radar (spider) plot showing normalized performance metrics for
+#' each orchard-to-reef allocation proportion. Highlights the optimal proportion.
+petal_fun <- function(dt_plot, prop_choice){
+  
+metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") # coral cover on reef, orchard function, reef ROI, total ROI, total costs, recruits outplanted to reef
+
+Lcol <- "gray"
+lab_cex <- 0.9
+
+ref_vals <- dt_plot %>% filter(prop_out == 0.9) %>% rename(prop_out_ref = prop_out, reef_cover_ref = reef_cover_mean, orch_function_ref = orch_function_mean, reef_ROI_ref = reef_ROI_mean, tot_ROI_ref = tot_ROI_mean, tot_costs_ref = tot_costs, recruits_out_ref = reef_recruits_out_tot) %>% select(prop_out_ref, reef_cover_ref, orch_function_ref, reef_ROI_ref, tot_ROI_ref, tot_costs_ref, recruits_out_ref, par_rep, par2)
+  
+dt_plot2 <- dt_plot %>% filter(prop_out == prop_choice) %>% left_join(ref_vals, by = c("par_rep", "par2"))
+
+  
+par(pty = "s")
+r_in <- 0.5
+r_out0 <- r_in + 1
+test_x <- seq(from = -r_in, to = r_in, length.out = 100)
+plot(x = 1, y = 1, col = NA, xlim = c(-5, 5), ylim = c(-5, 5), asp = 1, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n", bty = "n") # , xaxs = "i", yaxs = "i"
+polygon(x = c(test_x, rev(test_x)), y = c(sqrt((r_in)^2 - test_x^2), rev(-1*sqrt(r_in^2 - test_x^2))), border = Lcol) # , col = "gray"
+test_x <- seq(from = -r_out0, to = r_out0, length.out = 100)
+polygon(x = c(test_x, rev(test_x)), y = c(sqrt((r_out0)^2 - test_x^2), rev(-1*sqrt(r_out0^2 - test_x^2))), border = Lcol)
+#text(x = 0, y = 0, paste(as.character(round(opt_prop1*100,0)), "%", sep = ""))
+text(x = 0, y = 0, paste(as.character(prop_choice), as.character(0.9), sep = "/")) 
+
+# add background lines
+th1_set <- seq(from = 0, to = 300, by = 60)
+th2_set <- seq(from = 60, to = 360, by = 60)
+for(i in 1:6){
+  r_in_x <- seq(from = r_in*cos(th1_set[i]*pi/180), to = r_in*cos(th2_set[i]*pi/180), length.out = 100)
+r_out_x <- seq(from = r_out0*cos(th1_set[i]*pi/180), to = r_out0*cos(th2_set[i]*pi/180), length.out = 100)
+
+if(i < 4){
+  polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out0^2 - r_out_x^2))), border = Lcol)
+} else{
+  polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out0^2 - r_out_x^2))), border = Lcol)
+}
+
+}
+
+# value to plot: on average, how far was each metric from it's max possible value for that parameter set? (outer ring is one); actual value to show in text is the average of the raw values at the proportion outplanted?
+
+# coral cover
+r_out <- mean(dt_plot2$reef_cover_mean/dt_plot2$reef_cover_ref) + r_in
+th1 <- 0 # starting angle (in degrees)
+th2 <- 60 # ending angle (in degrees)
+r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = metric_cols[1], border = NA)
+# if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line with the color of this performance metric at zero
+#   lines(x = r_in_x, y = sqrt(r_in^2 - r_in_x^2), col = metric_cols[1])
+# }
+#labs1 <- as.character(round(mean(dt_plot2$reef_cover_mean), 0))
+#labs1 <- ifelse(labs1 == "0", as.character(round(mean(dt_plot2$reef_cover_mean), 3)), labs1)
+#text(x = 1.3*r_out0*cos((th1 + th2)/2*pi/180), y =1.3*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)~m^2), cex = lab_cex)
+
+
+# orchard function
+r_out <- mean(dt_plot2$orch_function_mean/dt_plot2$orch_function_ref) + r_in
+th1 <- 60 # starting angle (in degrees)
+th2 <- 120 # ending angle (in degrees)
+r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = metric_cols[2], border = NA)
+# if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line with the color of this performance metric at zero
+#   lines(x = r_in_x, y = sqrt(r_in^2 - r_in_x^2), col = metric_cols[2])
+# }
+#labs1 <- as.character(round(mean(dt_plot2$orch_function_mean), 0))
+#text(x = 0, y =1.15*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)~m^2), cex = lab_cex)
+
+# reef ROI
+r_out <- mean(dt_plot2$reef_ROI_mean/dt_plot2$reef_ROI_ref) + r_in
+th1 <- 120 # starting angle (in degrees)
+th2 <- 180 # ending angle (in degrees)
+r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_out^2 - r_out_x^2))), col = metric_cols[3], border = NA)
+# if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line with the color of this performance metric at zero
+#   lines(x = r_in_x, y = sqrt(r_in^2 - r_in_x^2), col = metric_cols[3])
+# }
+#labs1 <- as.character(round(mean(dt_plot2$reef_ROI_mean), 5))
+#labs1 <- ifelse(labs1 == "0", as.character(round(mean(dt_plot2$reef_ROI_mean), 7)), labs1)
+#text(x = 1.5*r_out0*cos((th1 + th2)/2*pi/180), y =1.5*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)~m^2*"/$"), cex = lab_cex)
+
+# past 180: need to switch to negative square root
+# tot ROI
+r_out <- mean(dt_plot2$tot_ROI_mean/dt_plot2$tot_ROI_ref) + r_in
+th1 <- 180 # starting angle (in degrees)
+th2 <- 240 # ending angle (in degrees)
+r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = metric_cols[4], border = NA)
+# if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line with the color of this performance metric at zero
+#   lines(x = r_in_x, y = -sqrt(r_in^2 - r_in_x^2), col = metric_cols[4])
+# }
+#labs1 <- as.character(round(mean(dt_plot2$tot_ROI_mean), 4))
+#text(x = 1.5*r_out0*cos((th1 + th2)/2*pi/180), y =1.5*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)~m^2*"/$"), cex = lab_cex)
+
+
+# tot costs saved
+# r_out <- 1- (mean(dt_plot2$tot_costs/dt_plot2$tot_costs_min))^(-1) + r_in
+r_out <- mean(dt_plot2$tot_costs/dt_plot2$tot_costs_ref) + r_in
+th1 <- 240 # starting angle (in degrees)
+th2 <- 300 # ending angle (in degrees)
+r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = metric_cols[5], border = NA)
+# if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line with the color of this performance metric at zero
+#   lines(x = r_in_x, y = -sqrt(r_in^2 - r_in_x^2), col = metric_cols[5])
+# }
+#labs1 <- as.character(round(mean(dt_plot2$tot_costs), 0))
+#text(x = 0, y =1.15*r_out0*sin((th1 + th2)/2*pi/180), bquote("$"*.(labs1)), cex = lab_cex)
+
+
+# recruits outplanted to reef
+r_out <- mean(dt_plot2$reef_recruits_out_tot/dt_plot2$recruits_out_ref) + r_in
+th1 <- 300 # starting angle (in degrees)
+th2 <- 360 # ending angle (in degrees)
+r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
+r_out_x <- seq(from = r_out*cos(th1*pi/180), to = r_out*cos(th2*pi/180), length.out = 100)
+polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r_out^2 - r_out_x^2))), col = metric_cols[6], border = NA)
+# if(r_out == r_in){ # if r_out is equal to r_in (metric was zero), add a line with the color of this performance metric at zero
+#   lines(x = r_in_x, y = -sqrt(r_in^2 - r_in_x^2), col = metric_cols[6])
+# }
+#labs1 <- as.character(round(mean(dt_plot2$reef_recruits_out_tot), 0))
+#text(x = 1.4*r_out0*cos((th1 + th2)/2*pi/180), y =1.4*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)), cex = lab_cex)
+
+}
+
+```
+
+```{r}
+#View(orch_D0_mn_dt5)
+#View(orch_D0_mn_dt50)
+
+
+dt_plot0 <- orch_D0_mn_dt5[which(orch_D0_mn_dt5$par2 == lambda_R),]
+pdf("TempFigs/petal_5_D0_08.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.8)
+dev.off()
+
+pdf("TempFigs/petal_5_D0_1.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 1)
+dev.off()
+
+dt_plot0 <- orch_D0_mn_dt50[which(orch_D0_mn_dt50$par2 == lambda_R),]
+pdf("TempFigs/petal_50_D0_08.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.8)
+dev.off()
+
+pdf("TempFigs/petal_50_D0_1.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 1)
+dev.off()
+
+
+# repeat without external recruitment
+dt_plot0 <- orch_D0_mn_dt5[which(orch_D0_mn_dt5$par2 == 0),]
+pdf("TempFigs/petal_5_D0_08_noR.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.8)
+dev.off()
+
+pdf("TempFigs/petal_5_D0_1_noR.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 1)
+dev.off()
+
+dt_plot0 <- orch_D0_mn_dt50[which(orch_D0_mn_dt50$par2 == 0),]
+pdf("TempFigs/petal_50_D0_08_noR.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.8)
+dev.off()
+
+pdf("TempFigs/petal_50_D0_1_noR.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 1)
+dev.off()
+
+# make a legend
+metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") # coral cover on reef, orchard function, reef ROI, total ROI, total costs, recruits outplanted to reef
+
+pdf("TempFigs/petal_legend.pdf", height = 7, width = 7)
+plot(x = 1, y = 1, col = NA, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n", bty = "n")#, bty = "n"
+legend("topleft", legend = c(expression("Reef coral cover ("*m^2*")"), expression("Orchard function ("*m^2*" adults)"), expression("Reef ROI ("*m^2~"reef coral/$)"), "Total ROI ("*m^2~"coral/$)", "Total costs ($)", "Reef recruits outplanted"), fill = metric_cols, bty = "n")
+dev.off()
+
+```
 
 
 -- sensitivity analyses (which could be here or in SM depending on usefulness)
@@ -1823,6 +2040,7 @@ make a plot where x-axis is freq of severe (100%) mortality in the lab
 make heatmaps where x = survival or growth and y = number of substrates outplanted and color = difference from default
 
 sensitivity figures: can plot coral cover and total ROI separately, each with sens par on x-axis and horizontal line at default value
+- AND/OR: just so min survival needed to increase both reef cover and total ROI
 
 
 # orchard expansion
