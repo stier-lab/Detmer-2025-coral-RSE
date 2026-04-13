@@ -397,7 +397,7 @@ lines(x = c(1:years), y = sim1$orchard_out[[1]][[1]], col = "dodgerblue")
 ```
 
 
-set up disturbance parameters 
+set up default disturbance parameters 
 
 ```{r}
 
@@ -415,7 +415,7 @@ dist_pars_list3 <- list(dist.r = dist.r, dist.o = dist.o)
 
 
 # repeat for disturbance every 5 years
-dist_yrs5 <- c(1:max(years))[c(F, F,F, F, T)] # years when disturbance occurs: once every 3 years
+dist_yrs5 <- c(1:max(years))[c(F, F, T, F, F)] # years when disturbance occurs: once every 5 years but with first disturbance in year 3
 
 # list where elements are for each group, each element is matrix where rows are time points with disturbances and columns are size classes
 
@@ -426,6 +426,20 @@ dist_mat.o <- matrix(0.5, nrow = length(dist_yrs5), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list5 <- list(dist.r = dist.r, dist.o = dist.o)
+
+
+# repeat for disturbance every 7 years
+dist_yrs7 <- c(1:max(years))[c(F, F,T, F, F, F, F)] # years when disturbance occurs: once every 7 years, with first disturbance in year 3
+
+# list where elements are for each group, each element is matrix where rows are time points with disturbances and columns are size classes
+
+dist_mat.r <- matrix(0.25, nrow = length(dist_yrs7), ncol = 5)
+dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
+
+dist_mat.o <- matrix(0.5, nrow = length(dist_yrs7), ncol = 5)
+dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
+
+dist_pars_list7 <- list(dist.r = dist.r, dist.o = dist.o)
 
 
 ```
@@ -665,7 +679,8 @@ metrics_dt_fun <- function(sim, max_yr){
  c_out = rep(NA, L1), # outplanting costs
  c_maint = rep(NA, L1), # orchard maintenance costs
  c_lab = rep(NA, L1), # lab costs
- c_spawn = rep(NA, L1) # costs of collecting spawn
+ c_spawn = rep(NA, L1), # costs of collecting spawn
+ c_trans = rep(NA, L1) # costs of transplanting corals
 )
     
   j <- 1
@@ -706,6 +721,9 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       c_orch <- rep(NA, length(2:max_yr)) # orchard
       c_maint <- rep(NA, length(2:max_yr)) # orchard maintenance
       
+      # transplanting costs (ESTIMATED)
+      c_trans <- rep(NA, length(2:max_yr)) # transplanting from orchard to reef
+      
       for(ii in 2:max_yr){
         #print(ii)
         
@@ -729,16 +747,20 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
         c_maint[ii-1] <- ifelse(RS_ii == 0, 0, (1.5*530-530)/(2*123-123)*RS_ii + 265) 
         c_maint[ii-1] <- c_maint[ii-1]*2*(1 + r_inf)^(ii) # assume maintenance is performed 2x per year, also add inflation
         
+        # transplanting costs (ESTIMATED: assume you can collect 1000 corals from the orchard per day and outplant that many to the reef in one more day)
+        # trans_colonies_tot
+        c_trans[ii-1] <- (300*ceiling(sim_ij$trans_colonies_tot[ii]/1000) + 200*sim_ij$trans_colonies_tot[ii]/1000)*2 # boat costs + diver costs, x2 for collecting from orchard and then outplanting on reef
+        
       } # end of loop over 2:max_yr
       
       c_out <- sum(c_reef) + sum(c_orch)
       c_maint <- sum(c_maint)
+      c_trans <-  sum(c_trans)
  
       # lab costs
      # c_lab <- (432*7 + 200*7)*length(2:max_yr) # assume all tiles are only kept in the lab for two weeks
       c_lab <- sum((432*7 + 200*7)*(1 + r_inf)^(2:max_yr))
     
-      
   
       # spawning costs    
       c_spawn <- rep(NA, length(2:max_yr))
@@ -751,7 +773,7 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       c_spawn <- sum(c_spawn)
       
       
-     tot_costs <- c_fixed + c_subs + c_out + c_maint + c_lab + c_spawn
+     tot_costs <- c_fixed + c_subs + c_out + c_maint + c_lab + c_spawn + c_trans
      
      dt_i$c_fixed[j] <- c_fixed
      dt_i$c_subs[j] <- c_subs
@@ -759,6 +781,7 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
      dt_i$c_maint[j] <- c_maint
      dt_i$c_lab[j] <- c_lab
      dt_i$c_spawn[j] <- c_spawn
+     dt_i$c_trans[j] <- c_trans
      dt_i$tot_costs[j] <- tot_costs
       
       #dt_i$tot_dollar_costs[j]
@@ -878,10 +901,14 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name)
 
 
 
+
 ## main simulations
 
+
+varying proportion outplanted
+
 ```{r}
-prop_main <- c(0.8, 0.9, 1) # main strategies to focus on
+prop_main <- c(0.5, 0.9, 1) # main strategies to focus on
 
 lambda_Rs <- c(0, 1255111)
 
@@ -910,14 +937,82 @@ orch_D3_dt50 <- full_dt_fun(sim_list = orch_D3, max_yr = 51, n_pars = n_sample1,
 ```
 
 
-disturbance heatmaps
+illustrate population vulnerability to disturbance
 
 ```{r}
-# for 50 years only, x-axis = frequency, y-axis = severity, once with reef and orchard impacted the same and once with orchard impacted less, repeat for 80% and 90% orchard investment. Use mean parameter values only
+
+# vary disturbance severity (proportional reduction in survival), repeat with different frequencies (every 3, 5, and 7 yrs)
+
+dist_sev.r <- rev(seq(from = 0.001, to = 1, length.out = 25))
+dist_sev.o <- dist_sev.r
+dist_sev.o <- apply(matrix(c(2*dist_sev.r, rep(1, 25)), ncol = 2, byrow = F), 1, function(x) min(x))
+
+
+# frequency of 7 years
+dist_yrsX <- dist_yrs7
+
+orch_D7s <- list()
+for(i in 1:length(dist_sev.r)){
+
+dist_mat.r <- matrix(dist_sev.r[i], nrow = length(dist_yrsX), ncol = 5)
+dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
+
+dist_mat.o <- matrix(dist_sev.o[i], nrow = length(dist_yrsX), ncol = 5)
+dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
+
+dist_pars_listX <- list(dist.r = dist.r, dist.o = dist.o)
+
+orch_D7s[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrsX, dist_pars_list = dist_pars_listX)
+}
+
+
+# frequency of 5 years
+dist_yrsX <- dist_yrs5
+
+orch_D5s <- list()
+for(i in 1:length(dist_sev.r)){
+
+dist_mat.r <- matrix(dist_sev.r[i], nrow = length(dist_yrsX), ncol = 5)
+dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
+
+dist_mat.o <- matrix(dist_sev.o[i], nrow = length(dist_yrsX), ncol = 5)
+dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
+
+dist_pars_listX <- list(dist.r = dist.r, dist.o = dist.o)
+
+orch_D5s[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrsX, dist_pars_list = dist_pars_listX)
+}
+
+# frequency of 3 years
+dist_yrsX <- dist_yrs3
+
+orch_D3s <- list()
+for(i in 1:length(dist_sev.r)){
+
+dist_mat.r <- matrix(dist_sev.r[i], nrow = length(dist_yrsX), ncol = 5)
+dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
+
+dist_mat.o <- matrix(dist_sev.o[i], nrow = length(dist_yrsX), ncol = 5)
+dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
+
+dist_pars_listX <- list(dist.r = dist.r, dist.o = dist.o)
+
+orch_D3s[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrsX, dist_pars_list = dist_pars_listX)
+}
+
+
 ```
 
 
-petal plots
+disturbance heatmaps (might not need)
+
+```{r}
+# for 50 years only, x-axis = frequency, y-axis = severity, once with reef and orchard impacted the same and once with orchard impacted less, repeat for 50% and 90% orchard investment. Use mean parameter values only
+```
+
+
+
+simulations for petal plots
 
 ```{r}
 # using mean parameters only (?), show 80% and 100% investment relative to 90% investment. Petal plots will have circles for 1x default, 2x, etc.
