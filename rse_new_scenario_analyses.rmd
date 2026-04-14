@@ -944,7 +944,6 @@ illustrate population vulnerability to disturbance
 # vary disturbance severity (proportional reduction in survival), repeat with different frequencies (every 3, 5, and 7 yrs)
 
 dist_sev.r <- rev(seq(from = 0.001, to = 1, length.out = 25))
-dist_sev.o <- dist_sev.r
 dist_sev.o <- apply(matrix(c(2*dist_sev.r, rep(1, 25)), ncol = 2, byrow = F), 1, function(x) min(x))
 
 
@@ -1001,13 +1000,96 @@ orch_D3s[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, pr
 }
 
 
+# repeat with simulations where orchard is equally impacted
+dist_sev.o <- dist_sev.r
+
+# frequency of 7 years
+dist_yrsX <- dist_yrs7
+
+orch_D7s2 <- list()
+for(i in 1:length(dist_sev.r)){
+
+dist_mat.r <- matrix(dist_sev.r[i], nrow = length(dist_yrsX), ncol = 5)
+dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
+
+dist_mat.o <- matrix(dist_sev.o[i], nrow = length(dist_yrsX), ncol = 5)
+dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
+
+dist_pars_listX <- list(dist.r = dist.r, dist.o = dist.o)
+
+orch_D7s2[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrsX, dist_pars_list = dist_pars_listX)
+}
+
+
+# frequency of 5 years
+dist_yrsX <- dist_yrs5
+
+orch_D5s2 <- list()
+for(i in 1:length(dist_sev.r)){
+
+dist_mat.r <- matrix(dist_sev.r[i], nrow = length(dist_yrsX), ncol = 5)
+dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
+
+dist_mat.o <- matrix(dist_sev.o[i], nrow = length(dist_yrsX), ncol = 5)
+dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
+
+dist_pars_listX <- list(dist.r = dist.r, dist.o = dist.o)
+
+orch_D5s2[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrsX, dist_pars_list = dist_pars_listX)
+}
+
+# frequency of 3 years
+dist_yrsX <- dist_yrs3
+
+orch_D3s2 <- list()
+for(i in 1:length(dist_sev.r)){
+
+dist_mat.r <- matrix(dist_sev.r[i], nrow = length(dist_yrsX), ncol = 5)
+dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
+
+dist_mat.o <- matrix(dist_sev.o[i], nrow = length(dist_yrsX), ncol = 5)
+dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
+
+dist_pars_listX <- list(dist.r = dist.r, dist.o = dist.o)
+
+orch_D3s2[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrsX, dist_pars_list = dist_pars_listX)
+}
+
+# disturbance heatmaps (might not need?)
+
+# for 50 years only, x-axis = frequency, y-axis = severity, once with reef and orchard impacted the same and once with orchard impacted less, repeat for 50% and 90% orchard investment. Use mean parameter values only
+
 ```
 
 
-disturbance heatmaps (might not need)
+
 
 ```{r}
-# for 50 years only, x-axis = frequency, y-axis = severity, once with reef and orchard impacted the same and once with orchard impacted less, repeat for 50% and 90% orchard investment. Use mean parameter values only
+
+# process results
+
+dist_sims <- orch_D7s
+
+for(i in 1:length(dist_sev.r)){
+  
+  dt_i <- full_dt_fun(sim_list = dist_sims[[i]], max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
+  
+   dt_i$dist_sev_r <- dist_sev.r[i]
+   dt_i$dist_sev_o <- dist_sev.r[i]
+
+   if(i == 1){
+     orch_D7s_dt <- dt_i
+   } else{
+     orch_D7s_dt <- rbind(orch_D7s_dt, dt_i)
+   }
+  
+}
+
+View(orch_D7s_dt)
+
+
+# note: hopefully figures will show disturbance severity where things start to level out, can then use this to justify only using a few values in the main text
+
 ```
 
 
