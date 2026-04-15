@@ -332,7 +332,7 @@ orchard_out_props[2,] <- c(1) # from second lab treatment to each orchard
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
 
 # lab capacities
-lab_max <- 3100 # total number of tiles that the lab can accommodate in a year 
+lab_max <- 4000 # total number of tiles that the lab can accommodate in a year 
 lab_retain_max <- 0 # total number of settlers that the lab can keep for a year (must be less than or equal to lab_max; if > 0 then must have at least one "1_" lab treatment, if equal to lab max then must have all treatments be "1_")
 
 tank_min <- 14600 # min number of embryos to put in a tank (reduce number of tanks used if less than this to avoid unrealistically small densities on the tiles)

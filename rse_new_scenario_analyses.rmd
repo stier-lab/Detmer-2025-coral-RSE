@@ -302,7 +302,7 @@ orchard_out_props[2,] <- c(1) # from second lab treatment to each orchard
 
 # sizes allocated to each treatment
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
-lab_max <- 3100 # total number of tiles that the lab can accommodate 
+lab_max <- 4000 # total number of tiles that the lab can accommodate 
 lab_retain_max <- 0 # 3100*0.5 # total number of tiles that the lab can keep for a year (must be less than or equal to lab_max; if > 0 then must have at least one "1_" lab treatment, if equal to lab max then must have all treatments be "1_")
 tank_min <- 14600 # min number of embryos to put in a tank 
 tank_max <- 33333 # max number of embryos to put in a tank
@@ -671,7 +671,9 @@ metrics_dt_fun <- function(sim, max_yr){
   reef_area_out_tot = rep(NA, L1), # total area of reef over which tiles were outplanted 
   reef_recruits_out_tot = rep(NA, L1), # total recruits outplanted to reef
   reef_ROI_mean = rep(NA, L1), # average coral cover on reef per dollar spent, averaged over max_yr years
+  reefI_ROI_mean = rep(NA, L1), # average number of corals on reef per dollar spent, averaged over max_yr years
   tot_ROI_mean = rep(NA, L1), # average total ROI (total area covered by corals on reef and orchard per dollar spent)
+  totI_ROI_mean = rep(NA, L1), # average total ROI in terms of individuals (total number of corals on reef and orchard per dollar spent)
   orch_function_mean = rep(NA, L1), # avg area covered by large/reproductive (size classes 3-5) corals in orchard
  tot_costs = rep(NA, L1), # total amount spent over length of simulation
  c_fixed = rep(NA, L1), # fixed costs
@@ -690,6 +692,9 @@ metrics_dt_fun <- function(sim, max_yr){
       # reef cover
       reef_cover_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
       
+      # reef individuals
+      reef_ind_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+      
       # reef function
       reef_fun_ij <- model_summ(model_sim = sim_ij, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
 
@@ -698,6 +703,9 @@ metrics_dt_fun <- function(sim, max_yr){
       
       # orchard cover
     orch_cover_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+    
+    # orchard individuals
+    orch_ind_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
       # orchard function
 orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
@@ -789,7 +797,9 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       
       dt_i$tot_ROI_mean[j] <- mean((reef_cover_ij[2:max_yr] + orch_cover_ij[2:max_yr])/tot_costs)
       
+      dt_i$reefI_ROI_mean[j] <- mean(reef_ind_ij[2:max_yr]/tot_costs)
       
+      dt_i$totI_ROI_mean[j] <- mean((reef_ind_ij[2:max_yr] + orch_ind_ij[2:max_yr])/tot_costs)
   
   return(dt_i) # return the data frame
   

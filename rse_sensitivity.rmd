@@ -436,7 +436,7 @@ orchard_out_props[1,] <- c(1) # from first lab treatment to each orchard
 
 # sizes allocated to each treatment
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
-lab_max <- 3100 # total number of settlers that the lab can accommodate
+lab_max <- 4000 # total number of settlers that the lab can accommodate
 lab_retain_max <- 0 # total number of settlers that the lab can keep for a year
 tank_min <- 14600 # min number of embryos to put in a tank 
 tank_max <- 33333 # max number of embryos to put in a tank 
@@ -1873,7 +1873,7 @@ orchard_out_props[1,] <- c(1) # from first lab treatment to each orchard
 
 # sizes allocated to each treatment
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
-lab_max <- 3100 # total number of settlers that the lab can accommodate
+lab_max <- 4000 # total number of settlers that the lab can accommodate
 lab_retain_max <- 0 # total number of settlers that the lab can keep for a year
 tank_min <- 14600 # min number of embryos to put in a tank 
 tank_max <- 33333 # max number of embryos to put in a tank 
@@ -2186,7 +2186,7 @@ orchard_out_props[1,] <- c(1) # from first lab treatment to each orchard
 
 # sizes allocated to each treatment
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
-lab_max <- 3100 # total number of settlers that the lab can accommodate
+lab_max <- 4000 # total number of settlers that the lab can accommodate
 lab_retain_max <- 0 # total number of settlers that the lab can keep for a year
 tank_min <- 14600 # min number of embryos to put in a tank 
 tank_max <- 33333 # max number of embryos to put in a tank 
