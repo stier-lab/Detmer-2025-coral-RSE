@@ -945,7 +945,7 @@ illustrate population vulnerability to disturbance
 
 dist_sev.r <- rev(seq(from = 0.001, to = 1, length.out = 25))
 dist_sev.o <- apply(matrix(c(2*dist_sev.r, rep(1, 25)), ncol = 2, byrow = F), 1, function(x) min(x))
-
+dist_sev.o1 <- dist_sev.o
 
 # frequency of 7 years
 dist_yrsX <- dist_yrs7
@@ -1002,6 +1002,7 @@ orch_D3s[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, pr
 
 # repeat with simulations where orchard is equally impacted
 dist_sev.o <- dist_sev.r
+dist_sev.o2 <- dist_sev.o
 
 # frequency of 7 years
 dist_yrsX <- dist_yrs7
@@ -1067,10 +1068,12 @@ orch_D3s2[[i]] <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, p
 ```{r}
 
 # process results
-
-dist_sims <- orch_D7s
-
-for(i in 1:length(dist_sev.r)){
+# dist_sims = list of simulations varying disturbance severity
+# dist_sev.r = list of disturbance severities on the reef
+# dist_sev.o = list of disturbance severities on the orchard
+dist_dt_fun <- function(dist_sims, dist_sev.r, dist_sev.o, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none"){
+  
+  for(i in 1:length(dist_sev.r)){
   
   dt_i <- full_dt_fun(sim_list = dist_sims[[i]], max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
   
@@ -1078,15 +1081,31 @@ for(i in 1:length(dist_sev.r)){
    dt_i$dist_sev_o <- dist_sev.r[i]
 
    if(i == 1){
-     orch_D7s_dt <- dt_i
+     dt_out <- dt_i
    } else{
-     orch_D7s_dt <- rbind(orch_D7s_dt, dt_i)
+     dt_out <- rbind(dt_out, dt_i)
    }
   
+  }
+  
+  return(dt_out)
 }
 
-View(orch_D7s_dt)
 
+orch_D7s_dt <- dist_dt_fun(dist_sims = orch_D7s, dist_sev.r, dist_sev.o = dist_sev.o1, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
+
+orch_D5s_dt <- dist_dt_fun(dist_sims = orch_D5s, dist_sev.r, dist_sev.o = dist_sev.o1, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
+
+orch_D3s_dt <- dist_dt_fun(dist_sims = orch_D3s, dist_sev.r, dist_sev.o = dist_sev.o1, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
+
+#View(orch_D7s_dt)
+
+# repeat for cases where orchard is equally impacted
+orch_D7s2_dt <- dist_dt_fun(dist_sims = orch_D7s2, dist_sev.r, dist_sev.o = dist_sev.o2, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
+
+orch_D5s2_dt <- dist_dt_fun(dist_sims = orch_D5s2, dist_sev.r, dist_sev.o = dist_sev.o2, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
+
+orch_D3s2_dt <- dist_dt_fun(dist_sims = orch_D3s2, dist_sev.r, dist_sev.o = dist_sev.o2, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
 
 # note: hopefully figures will show disturbance severity where things start to level out, can then use this to justify only using a few values in the main text
 
@@ -1208,7 +1227,7 @@ for(j in 1:length(prop_main)){
 
 ```
 
-THOUGHT: for main text time series, maybe just show no orchard investment case (baseline for all other simulations, just to show the different disturbance regimes), then put the figure with all the investment time series in the SM
+for main text time series, maybe just show no orchard investment case (baseline for all other simulations, just to show the different disturbance regimes), then put the figure with all the investment time series in the SM
 
 ```{r}
 # repeat the timeseries with just the 100% outplanting case, adjust axes so full quantiles are shown (don't need that in the SM fig since there the 
@@ -1319,6 +1338,83 @@ j <- p_choice
   dev.off()
 
 ```
+
+-- full disturbance regimes
+
+```{r}
+
+# x-axis = disturbance severity on reef, y-axis = average cover over 50 years
+
+# different panels for different frequencies
+
+# main text: only 100% investment in reef
+
+# SM: different investments in orchard, with and without protection in orchard
+
+# so need to make a function that loops over the disturbance severities and returns vector of mean and quantiles of reef cover
+
+dist_plot_fun <- function(dist_dt, prop_out1){
+  
+dt1 <- dist_dt %>% group_by(prop_out, dist_sev_r) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95)) %>% ungroup() %>% filter(prop_out == prop_out1)
+
+return(dt1)
+  
+}
+
+
+
+
+pdf("TempFigs/dist_sev_main.pdf", height = 3, width = 8)
+
+
+par(mfrow = c(1, 3))
+layout(matrix(c(1, 2, 3), nrow = 1, ncol = 3, byrow = T), widths = rep(1, 3), heights = rep(1, 1))
+#layout.show(2)
+par(mar=c(0, 1, 3.5, 1), oma = c(4.5, 4.5, 0.1, 0))
+
+
+j <- 3
+dt_plot <- dist_plot_fun(dist_dt = orch_D7s_dt, prop_out1 = prop_main[j])
+ymax <- 400
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, las = 1)
+mtext(side = 1, "Severity (prop. reduction in baseline survival)", outer = T, line = 2.5)
+mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"), line = 2.25)
+mtext(side = 3, "a) Disturbance every 7 years", adj = 0)
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+dt_plot <- dist_plot_fun(dist_dt = orch_D5s_dt, prop_out1 = prop_main[j])
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+mtext(side = 3, "b) Disturbance every 5 years", adj = 0)
+#mtext(side = 1, "Severity (prop. reduction in baseline survival)")
+#mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+dt_plot <- dist_plot_fun(dist_dt = orch_D3s_dt, prop_out1 = prop_main[j])
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+mtext(side = 3, "c) Disturbance every 3 years", adj = 0)
+#mtext(side = 1, "Severity (prop. reduction in baseline survival)")
+#mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+  
+# severity = reduction in survival relative to baseline
+
+dev.off()
+
+```
+
+
+
 
 -- trade-off plots (coral cover vs. total ROI) for 5 and 50 yrs and different disturbance regimes AND with/without reference reef supply
 
