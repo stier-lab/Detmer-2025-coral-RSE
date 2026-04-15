@@ -2234,10 +2234,11 @@ plot time series
 ```{r}
 
 # outplanting size classes 1, 2, 3, 4, and 5... maybe go down by factor of 10 each time? 10000, 1000, 100, 10, 1
-# update: outplant the same area (10m2) each year (which will be different numbers of individuals)
-# per-coral area in each size class
-#A_mids*0.0001
-lambda_R_12345 <- round(10/(A_mids*0.0001)) #c(10000, 1000, 100, 10, 1)
+# update: outplant the same area each year (which will be different numbers of individuals)
+# per-coral area in each size class in m2: A_mids*0.0001
+# area outplanted: try to approximate the area of the orchard, so number of reef start in orchard x area per reef star. Estimate area of reef star as 0.337 m2 (from https://onlinelibrary.wiley.com/doi/full/10.1111/rec.12866)
+area_out <- 500*0.337 # 168.5; round up to 170
+lambda_R_12345 <- round(170/(A_mids*0.0001)) #c(10000, 1000, 100, 10, 1)
 out_sizes <- c(1, 2, 3, 4, 5)
 
 
@@ -2270,8 +2271,23 @@ mod_area[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_
 
 }
 
+surv_pars.r[[1]][[1]]*lambda_R_12345#*A_mids*0.0001
+
+
+# final size distributions
+end1 <- mod_out_L[[1]]$reef_pops_pre[[1]][[2]][,years]
+end2 <- mod_out_L[[2]]$reef_pops_pre[[1]][[2]][,years]
+end3 <- mod_out_L[[3]]$reef_pops_pre[[1]][[2]][,years]
+end4 <- mod_out_L[[4]]$reef_pops_pre[[1]][[2]][,years]
+end5 <- mod_out_L[[5]]$reef_pops_pre[[1]][[2]][,years]
+
+end_mat <- matrix(c(end1, end2, end3, end4, end5), nrow = 5, ncol = 5, byrow = F)
+
+end_mat
+
 ```
 
+I think it's just that numbers matter - if you look at final size distributions, you end up with a larger number of large corals if you outplant thousands of size class two corals than if you just outplant a hundred or so giant corals. Basically you can get more large corals by outplanting a ton of little corals than by outplanting a few large corals, provided enough of those little corals survive
 
 plot the results
 
@@ -2291,13 +2307,59 @@ for(j in 1:5){
   lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
 }
 
+
+# look at final size distributions
+
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end2))), xlim = c(0.5, 5.5), las = 1)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+
+# repeat but everything scaled to sum to 1
+
+
+# end11 <- mod_out_L[[1]]$reef_pops_pre[[1]][[2]][,years]/sum(end1)
+# end21 <- mod_out_L[[2]]$reef_pops_pre[[1]][[2]][,years]/sum(end2)
+# end31 <- mod_out_L[[3]]$reef_pops_pre[[1]][[2]][,years]/sum(end3)
+# end41 <- mod_out_L[[4]]$reef_pops_pre[[1]][[2]][,years]/sum(end4)
+# end51 <- mod_out_L[[5]]$reef_pops_pre[[1]][[2]][,years]/sum(end5)
+# 
+# end_mat1 <- matrix(c(end11, end21, end31, end41, end51), nrow = 5, ncol = 5, byrow = F)
+# 
+# plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, 1), xlim = c(0.5, 5.5), las = 1)
+# for(i in 1:5){
+#   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat1[,i]), sum(end_mat1[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+#   for(k in 1:5){
+#     
+#     if(k == 1){
+#       polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat1[k,i], end_mat1[k,i]), col = cols1[k])
+#     } else{
+#       polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat1[1:(k-1),i]), sum(end_mat1[1:(k-1),i]), sum(end_mat1[1:(k-1),i]) + end_mat1[k,i], sum(end_mat1[1:(k-1),i]) + end_mat1[k,i]), col = cols1[k])
+#     }
+#     
+#   }
+#   
+# }
+
+
 ```
 
 
 repeat but outplanting the same number of each size class
 
 ```{r}
-lambda_R_12345 <- c(100, 100, 100, 100, 100)
+lambda_R_12345 <- rep(200, 5)
 out_sizes <- c(1, 2, 3, 4, 5)
 
 
@@ -2329,6 +2391,18 @@ mod_area2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area
 
 
 }
+
+
+end1 <- mod_out_L2[[1]]$reef_pops_pre[[1]][[2]][,years]
+end2 <- mod_out_L2[[2]]$reef_pops_pre[[1]][[2]][,years]
+end3 <- mod_out_L2[[3]]$reef_pops_pre[[1]][[2]][,years]
+end4 <- mod_out_L2[[4]]$reef_pops_pre[[1]][[2]][,years]
+end5 <- mod_out_L2[[5]]$reef_pops_pre[[1]][[2]][,years]
+
+end_mat2 <- matrix(c(end1, end2, end3, end4, end5), nrow = 5, ncol = 5, byrow = F)
+
+end_mat2
+
 ```
 
 
@@ -2345,43 +2419,361 @@ plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area2)), col = NA, x
 for(j in 1:5){
   lines(x = c(1:years), y = mod_area2[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
 }
+
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end5))), xlim = c(0.5, 5.5), las = 1)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat2[,i]), sum(end_mat2[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat2[k,i], end_mat2[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat2[1:(k-1),i]), sum(end_mat2[1:(k-1),i]), sum(end_mat2[1:(k-1),i]) + end_mat2[k,i], sum(end_mat2[1:(k-1),i]) + end_mat2[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+
 ```
 
 
+main text: just the fixed area simulations
 
+```{r}
+# plot
+
+pdf("TempFigs/outplanting_size_main.pdf", height = 4, width = 8)
+
+par(mfrow = c(1,2))
+layout(matrix(c(1,2), nrow = 1, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 1))
+#layout.show(2)
+par(mar=c(0, 5, 2, 0), oma = c(4, 0.1, 0.1, 0.25))
+
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1)
+#mtext(side = 3, expression("a) Outplant 170"*m^2~"each"), adj = 0)
+mtext(side = 3, expression("a) Outplant 170"*m^2~"each year"), adj = 0)
+mtext(side = 1, "Year", line = 2.5)
+mtext(side = 2, expression("Coral cover ("*m^2*")"), line = 3)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+legend("topleft", legend = c("1 (337,000)", "2 (30,636)", "3 (3,370)", "4 (688)", "5 (181)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+
+
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end_mat[,2]))), xlim = c(0.5, 5.5), las = 1, ylab = NA)
+mtext(side = 1, "Size class outplanted", line = 2.5)
+mtext(side = 3, "b) Final size distributions", adj = 0)
+mtext(side = 2, "Number of coral individuals", line = 3.5)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+dev.off()
+
+```
+
+
+plot both simulations together
 ```{r}
 # plot together
 
-pdf("TempFigs/outplanting_size.pdf", height = 6, width = 5)
+# pdf("TempFigs/outplanting_size.pdf", height = 6, width = 5)
+# 
+# par(mfrow = c(1, 2))
+# layout(matrix(c(1, 2), nrow = 2, ncol = 1, byrow = T), widths = rep(1, 1), heights = rep(1, 2))
+# #layout.show(2)
+# par(mar=c(0, 5, 2, 0.1), oma = c(4, 2, 0.1, 0.1))
+# 
+# 
+# plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area2)), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+# mtext(side = 3, "a) Outplant 200 individuals each", adj = 0)
+# axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = NA)
+# for(j in 1:5){
+#   lines(x = c(1:years), y = mod_area2[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+# }
+# legend("topleft", legend = c("1 (200)", "2 (200)", "3 (200)", "4 (200)", "5 (200)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+# 
+# 
+# plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1)
+# mtext(side = 3, expression("b) Outplant 170"*m^2~"each"), adj = 0)
+# mtext(side = 1, "Year", line = 2.5)
+# mtext(side = 2, expression("Coral cover ("*m^2*")"), line = -2, outer = T)
+# for(j in 1:5){
+#   lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+# }
+# legend("topleft", legend = c("1 (337,000)", "2 (30,636)", "3 (3,370)", "4 (688)", "5 (181)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+# 
+# dev.off()
 
-par(mfrow = c(1, 2))
-layout(matrix(c(1, 2), nrow = 2, ncol = 1, byrow = T), widths = rep(1, 1), heights = rep(1, 2))
+
+pdf("TempFigs/outplanting_size.pdf", height = 6, width = 7)
+
+par(mfrow = c(2, 2))
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 2))
 #layout.show(2)
-par(mar=c(0, 5, 2, 0.1), oma = c(4, 2, 0.1, 0.1))
+par(mar=c(0, 5, 2, 0), oma = c(4, 0.25, 0.1, 0.25))
 
 
 plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area2)), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
-mtext(side = 3, "a) Outplant 100 individuals each", adj = 0)
+mtext(side = 3, "a) Outplant 200 individuals each", adj = 0)
 axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = NA)
 for(j in 1:5){
   lines(x = c(1:years), y = mod_area2[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
 }
-legend("topleft", legend = c("1 (100)", "2 (100)", "3 (100)", "4 (100)", "5 (100)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+legend("topleft", legend = c("1 (200)", "2 (200)", "3 (200)", "4 (200)", "5 (200)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
 
 
 plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1)
-mtext(side = 3, expression("b) Outplant 10"*m^2~"each"), adj = 0)
+mtext(side = 3, expression("c) Outplant 170"*m^2~"each"), adj = 0)
 mtext(side = 1, "Year", line = 2.5)
 mtext(side = 2, expression("Coral cover ("*m^2*")"), line = -2, outer = T)
 for(j in 1:5){
   lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
 }
-legend("topleft", legend = c("1 (20,000)", "2 (1,818)", "3 (200)", "4 (41)", "5 (11)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+legend("topleft", legend = c("1 (337,000)", "2 (30,636)", "3 (3,370)", "4 (688)", "5 (181)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+
+# final distributions
+
+# fixed number
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end_mat2[,5]))), xlim = c(0.5, 5.5), las = 1, ylab = NA, xaxt = "n")
+mtext(side = 3, "b) Final size distributions from a)", adj = 0)
+mtext(side = 2, "Number of coral individuals", line = 3.25, adj = -3)
+axis(side = 1, at = c(1, 2, 3, 4, 5), labels = NA)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat2[,i]), sum(end_mat2[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat2[k,i], end_mat2[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat2[1:(k-1),i]), sum(end_mat2[1:(k-1),i]), sum(end_mat2[1:(k-1),i]) + end_mat2[k,i], sum(end_mat2[1:(k-1),i]) + end_mat2[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+# fixed area
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end_mat[,2]))), xlim = c(0.5, 5.5), las = 1, ylab = NA)
+mtext(side = 1, "Size class outplanted", line = 2.5)
+mtext(side = 3, "d) Final size distributions from c)", adj = 0)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
 
 dev.off()
 
-round(10/(A_mids*0.0001))
+
+round(area_out/(A_mids*0.0001))
 
 ```
 
 
+
+
+repeat everything with equal survival
+
+```{r}
+lambda_R_12345 <- round(170/(A_mids*0.0001)) #c(10000, 1000, 100, 10, 1)
+out_sizes <- c(1, 2, 3, 4, 5)
+
+# equal survival
+surv_pars.rE <- surv_pars.r
+surv_pars.rE[[1]][[1]] <- rep(mean(surv_pars.r[[1]][[1]]), 5)
+surv_pars.rE[[1]][[2]] <- rep(mean(surv_pars.r[[1]][[1]]), 5)
+
+# test turning off fragmentation
+# frag_pars.r0 <- frag_pars.r
+# frag_pars.r0[[1]][[2]][[4]] <- 0*frag_pars.r0[[1]][[2]][[4]]
+# frag_pars.r0[[1]][[2]][[5]] <- 0*frag_pars.r0[[1]][[2]][[5]]
+
+# holding list for model output
+mod_out_L_eq <- list()
+
+mod_ind_eq <- matrix(NA, nrow = years, ncol = 5) # total number of individuals on reef
+mod_area_eq <- matrix(NA, nrow = years, ncol = 5) # total area covered on the reef
+
+for(j in 1:5){
+  
+  lambda_R <- lambda_R_12345[j]
+  
+  size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- rep(0, 5) # first lab treatment (0_T1)
+size_props[1, out_sizes[j]] <- 1
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props)
+
+sim_j <- rse_mod1(years, n, A_mids, surv_pars.rE, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+  
+mod_out_L_eq[[j]] <- sim_j
+
+
+mod_ind_eq[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+mod_area_eq[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+
+}
+
+surv_pars.rE[[1]][[1]]*lambda_R_12345#*A_mids*0.0001
+
+
+# final size distributions
+end1 <- mod_out_L_eq[[1]]$reef_pops_pre[[1]][[2]][,years]
+end2 <- mod_out_L_eq[[2]]$reef_pops_pre[[1]][[2]][,years]
+end3 <- mod_out_L_eq[[3]]$reef_pops_pre[[1]][[2]][,years]
+end4 <- mod_out_L_eq[[4]]$reef_pops_pre[[1]][[2]][,years]
+end5 <- mod_out_L_eq[[5]]$reef_pops_pre[[1]][[2]][,years]
+
+end_mat_eq <- matrix(c(end1, end2, end3, end4, end5), nrow = 5, ncol = 5, byrow = F)
+
+end_mat_eq
+```
+
+```{r}
+lambda_R_12345 <- rep(200, 5)
+out_sizes <- c(1, 2, 3, 4, 5)
+
+
+# holding list for model output
+
+mod_out_L2_eq <- list()
+
+mod_ind2_eq <- matrix(NA, nrow = years, ncol = 5) # total number of individuals on reef
+mod_area2_eq <- matrix(NA, nrow = years, ncol = 5) # total area covered on the reef
+
+for(j in 1:5){
+  
+  lambda_R <- lambda_R_12345[j]
+  
+  size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- rep(0, 5) # first lab treatment (0_T1)
+size_props[1, out_sizes[j]] <- 1
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props)
+
+sim_j <- rse_mod1(years, n, A_mids, surv_pars.rE, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+  
+mod_out_L2_eq[[j]] <- sim_j
+
+
+mod_ind2_eq[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+mod_area2_eq[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+
+}
+
+
+end1 <- mod_out_L2_eq[[1]]$reef_pops_pre[[1]][[2]][,years]
+end2 <- mod_out_L2_eq[[2]]$reef_pops_pre[[1]][[2]][,years]
+end3 <- mod_out_L2_eq[[3]]$reef_pops_pre[[1]][[2]][,years]
+end4 <- mod_out_L2_eq[[4]]$reef_pops_pre[[1]][[2]][,years]
+end5 <- mod_out_L2_eq[[5]]$reef_pops_pre[[1]][[2]][,years]
+
+end_mat2_eq <- matrix(c(end1, end2, end3, end4, end5), nrow = 5, ncol = 5, byrow = F)
+
+end_mat2_eq
+
+```
+
+
+```{r}
+# plot together
+
+
+pdf("TempFigs/outplanting_sizeE.pdf", height = 6, width = 7)
+
+par(mfrow = c(2, 2))
+layout(matrix(c(1,2,3,4), nrow = 2, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 2))
+#layout.show(2)
+par(mar=c(0, 5, 2, 0), oma = c(4, 0.25, 0.1, 0.25))
+
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area2_eq)), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+mtext(side = 3, "a) Outplant 200 individuals each", adj = 0)
+axis(side = 1, at = c(0, 10, 20, 30, 40, 50), labels = NA)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area2_eq[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+legend("topright", legend = c("1 (200)", "2 (200)", "3 (200)", "4 (200)", "5 (200)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9, inset = c(0,0.1))
+
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area_eq)), col = NA, xlab = NA, ylab = NA, las = 1)
+mtext(side = 3, expression("c) Outplant 170"*m^2~"each"), adj = 0)
+mtext(side = 1, "Year", line = 2.5)
+mtext(side = 2, expression("Coral cover ("*m^2*")"), line = -2, outer = T)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area_eq[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+legend("topright", legend = c("1 (337,000)", "2 (30,636)", "3 (3,370)", "4 (688)", "5 (181)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9, inset = c(0,0.1))
+
+# final distributions
+
+# fixed number
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end_mat2_eq[,5]))), xlim = c(0.5, 5.5), las = 1, ylab = NA, xaxt = "n")
+mtext(side = 3, "b) Final size distributions from a)", adj = 0)
+mtext(side = 2, "Number of coral individuals", line = 3.25, adj = -3)
+axis(side = 1, at = c(1, 2, 3, 4, 5), labels = NA)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat2_eq[,i]), sum(end_mat2_eq[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat2_eq[k,i], end_mat2_eq[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat2_eq[1:(k-1),i]), sum(end_mat2_eq[1:(k-1),i]), sum(end_mat2_eq[1:(k-1),i]) + end_mat2_eq[k,i], sum(end_mat2_eq[1:(k-1),i]) + end_mat2_eq[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+# fixed area
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end_mat_eq[,1]))), xlim = c(0.5, 5.5), las = 1, ylab = NA)
+mtext(side = 1, "Size class outplanted", line = 2.5)
+mtext(side = 3, "d) Final size distributions from c)", adj = 0)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat_eq[,i]), sum(end_mat_eq[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat_eq[k,i], end_mat_eq[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat_eq[1:(k-1),i]), sum(end_mat_eq[1:(k-1),i]), sum(end_mat_eq[1:(k-1),i]) + end_mat_eq[k,i], sum(end_mat_eq[1:(k-1),i]) + end_mat_eq[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+
+dev.off()
+
+
+```
+note: If you turn off fragmentation, for the outplanting fixed number case you still get higher area when outplanting size class 5 (because they are larger), but you get similar total numbers of individuals across all outplanting size classes
