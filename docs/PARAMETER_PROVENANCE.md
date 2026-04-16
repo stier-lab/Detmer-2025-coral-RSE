@@ -164,9 +164,9 @@ Summary of all data files loaded from the `Detmer-2025-coral-parameters` repo.
 | `parameter_lists/nurs_growth_pars.rds` | R list | Same structure as field_growth | Orchard SC1-SC2 growth/shrinkage |
 | `parameter_lists/lab_surv_pars.rds` | R list | Lab survival data | Loaded but not used in default parameter setup |
 | `parameter_lists/lab_growth_pars.rds` | R list | Lab growth data | Loaded but not used in default parameter setup |
-| `standardized_data/apal_fragmentation_summ.csv` | CSV | Summary fragmentation rates by type (F4_SC1, F5_SC2, etc.) | Reef fragmentation (deterministic runs) |
-| `standardized_data/apal_fragmentation.csv` | CSV | Individual fragmentation observations | Reef fragmentation (stochastic/Monte Carlo runs via `rand_pars_fun`) |
-| `standardized_data/apal_surv_lab_short.csv` | CSV | Short-term lab survival | Loaded but not used in default parameter setup |
+| `05_data/standardized/apal_fragmentation_summ.csv` | CSV | Summary fragmentation rates by type (F4_SC1, F5_SC2, etc.) | Reef fragmentation (deterministic runs) |
+| `05_data/standardized/apal_fragmentation.csv` | CSV | Individual fragmentation observations | Reef fragmentation (stochastic/Monte Carlo runs via `rand_pars_fun`) |
+| `05_data/standardized/apal_surv_lab_short.csv` | CSV | Short-term lab survival | Loaded but not used in default parameter setup |
 | `data/Fundemar/Adicion_Sustratos_Unificada.xlsx` | Excel | Tank-level spawning data: embryos/mL, volume, substrate counts | Settlement rate estimation in `rest_pars.rmd` |
 | `data/Fundemar/Matriz_Asentamiento_Unificada.xlsx` | Excel | Settler counts per substrate per tank | Settlement rate estimation in `rest_pars.rmd` |
 | `data/Fundemar/Matriz_Supervivencia_Reclutas_Unificada.xlsx` | Excel | Recruit survival over time | Not yet used in model parameterization |

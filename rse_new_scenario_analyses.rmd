@@ -41,8 +41,8 @@ read in the parameter data and set default parameter values
 DATA_PATH <- "../Detmer-2025-coral-parameters"
 
 # fragmentation data
-apal_frag_summ <- read.csv(file.path(DATA_PATH, "standardized_data/apal_fragmentation_summ.csv"))
-apal_frag <- read.csv(file.path(DATA_PATH, "standardized_data/apal_fragmentation.csv"))
+apal_frag_summ <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_fragmentation_summ.csv"))
+apal_frag <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_fragmentation.csv"))
 
 # survival data
 field_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/field_surv_pars.rds"))
@@ -56,7 +56,7 @@ nurs_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/nurs_growth_pars.rd
 lab_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_growth_pars.rds"))
 
 # short-term lab survival data
-apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "standardized_data/apal_surv_lab_short.csv"))
+apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_surv_lab_short.csv"))
 
 
 ```

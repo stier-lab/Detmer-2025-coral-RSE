@@ -5,7 +5,15 @@ date: "2025-07-22"
 ---
 
 
-README: sensitivity analyses and population viability analyses (how much do you have to outplant (and of what sizes) to get a growing/persistent population, how long does it take to reach this point, and once there can you stop outplanting?)
+README: Population viability analyses — how much do you have to outplant (and of
+what sizes) to get a growing/persistent population, how long does it take to reach
+this point, and once there can you stop outplanting?
+
+- MODEL FUNCTION: popvi_mod() from rse_funs.R (simplified single-reef PVA model)
+- DEPENDS ON: coral_demographic_funs.R, rse_funs.R
+- STATUS: Current
+- NOTE: Uses popvi_mod(), NOT rse_mod1(). popvi_mod() is a stripped-down version
+  that takes outplant numbers directly as input without modeling the lab pipeline.
 
 
 NOTE: need to go through and reset the growth/shrinkage parameters in all the Rmd files because I think I set them before I added fragmentation to the model, so they were all standardized from the matrix that included fragmentation oin the Vardi paper?

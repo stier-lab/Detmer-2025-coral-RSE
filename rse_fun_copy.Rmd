@@ -5,7 +5,12 @@ date: "2025-07-02"
 output: html_document
 ---
 
-README: place to copy paste the model function for debugging and to think through model additions
+README: SCRATCH FILE — copy-paste workspace for debugging and thinking through
+model additions. Not part of the analysis pipeline.
+
+- STATUS: Scratch/development only — do not use for analyses
+- NOTE: Contains an older, simplified version of the model function without a
+  dynamic reference reef. May be out of date with rse_funs.R.
 
 more simplified function without a dynamic reference reef
 

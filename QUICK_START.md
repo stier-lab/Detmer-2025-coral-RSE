@@ -114,11 +114,11 @@ Where:
 4. **Reef** -- Restoration site (outplanting target)
 
 ### Five Size Classes
-- **SC1**: 1-20 cm2 (tiny)
-- **SC2**: 20-100 cm2 (small)
-- **SC3**: 100-300 cm2 (medium)
-- **SC4**: 300-600 cm2 (large)
-- **SC5**: 600+ cm2 (huge)
+- **SC1**: 0-10 cm2 (recruit)
+- **SC2**: 10-100 cm2 (small)
+- **SC3**: 100-900 cm2 (medium)
+- **SC4**: 900-4000 cm2 (large)
+- **SC5**: >4000 cm2 (very large)
 
 ### Key Parameters to Know
 1. **mu** -- Size-specific mortality rates

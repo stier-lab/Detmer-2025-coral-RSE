@@ -4,7 +4,14 @@ output: html_document
 date: "2025-08-29"
 ---
 
-README: updated scenario analyses using the simplified version of the model with parameters informed by literature search
+README: Original scenario analyses using parameters informed by literature search.
+
+- MODEL FUNCTION: rse_mod1() from rse_funs.R
+- DEPENDS ON: coral_demographic_funs.R, rse_funs.R, Detmer-2025-coral-parameters repo
+- STATUS: SUPERSEDED by rse_new_scenario_analyses.rmd (updated after Jan 2026
+  Fundemar meeting with empirical parameter values). Retained for reference.
+- ANALYSES: Orchard expansion optimization, disturbance regime comparisons,
+  sensitivity to orchard size/lab capacity/orchard survival/initial conditions
 
 
 from Fundemar data
@@ -27,24 +34,26 @@ library("tidyverse")
 
 
 ```{r}
-# fragmentation data
-apal_frag_summ <- read.csv("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/standardized_data/apal_fragmentation_summ.csv")
-apal_frag <- read.csv("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/standardized_data/apal_fragmentation.csv")
+# NOTE: Data files are stored in the separate Detmer-2025-coral-parameters repository.
+# Update DATA_PATH to point to your local copy of that repository.
+DATA_PATH <- "../Detmer-2025-coral-parameters"
 
+# fragmentation data
+apal_frag_summ <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_fragmentation_summ.csv"))
+apal_frag <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_fragmentation.csv"))
 
 # survival data
-field_surv <- readRDS("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/parameter_lists/field_surv_pars.rds")
-nurs_surv <- readRDS("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/parameter_lists/nurs_surv_pars.rds")
-lab_surv <- readRDS("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/parameter_lists/lab_surv_pars.rds")
-
+field_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/field_surv_pars.rds"))
+nurs_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/nurs_surv_pars.rds"))
+lab_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_surv_pars.rds"))
 
 # growth data
-field_growth <- readRDS("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/parameter_lists/field_growth_pars.rds")
-nurs_growth <- readRDS("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/parameter_lists/nurs_growth_pars.rds")
-lab_growth <- readRDS("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/parameter_lists/lab_growth_pars.rds")
+field_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/field_growth_pars.rds"))
+nurs_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/nurs_growth_pars.rds"))
+lab_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_growth_pars.rds"))
 
 # short-term lab survival data
-apal_lab_short_surv <- read.csv("/Users/rainedetmer/Desktop/coral RSE/Detmer-2025-coral-parameters/standardized_data/apal_surv_lab_short.csv")
+apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_surv_lab_short.csv"))
 
 
 ```
