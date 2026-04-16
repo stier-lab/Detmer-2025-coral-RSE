@@ -1424,6 +1424,155 @@ dev.off()
 ```
 
 
+-- full disturbance regimes with orchard
+
+```{r}
+# 3 x 3 plot, where each row is different orchard investment, and rows two and three have dashed and solid lines for cases where orchard is vs. isn't impacted the same as the reef
+
+
+
+
+
+
+pdf("TempFigs/dist_sev_full.pdf", height = 8, width = 8)
+
+
+par(mfrow = c(3, 3))
+layout(matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9), nrow = 3, ncol = 3, byrow = T), widths = rep(1, 3), heights = rep(1, 3))
+#layout.show(2)
+par(mar=c(0, 1, 2, 1), oma = c(4.5, 4.5, 0.1, 0))
+
+
+j <- 3
+dt_plot <- dist_plot_fun(dist_dt = orch_D7s_dt, prop_out1 = prop_main[j])
+ymax <- 400
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, las = 1)
+mtext(side = 1, "Severity on reef (prop. reduction in baseline survival)", outer = T, line = 2.5)
+mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"), line = 2.25, outer = T)
+mtext(side = 3, "a) 7 years, 100% to reef", adj = 0.2, line = -1.25)
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+dt_plot <- dist_plot_fun(dist_dt = orch_D5s_dt, prop_out1 = prop_main[j])
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+mtext(side = 3, "b) 5 years, 100% to reef", adj = 0.2, line = -1.25)
+#mtext(side = 1, "Severity (prop. reduction in baseline survival)")
+#mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+dt_plot <- dist_plot_fun(dist_dt = orch_D3s_dt, prop_out1 = prop_main[j])
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+mtext(side = 3, "c) 3 years, 100% to reef", adj = 0.2, line = -1.25)
+#mtext(side = 1, "Severity (prop. reduction in baseline survival)")
+#mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+  
+# next orchard investment level
+
+
+j <- 2
+dt_plot <- dist_plot_fun(dist_dt = orch_D7s_dt, prop_out1 = prop_main[j])
+ymax <- 400
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, las = 1)
+mtext(side = 3, "d) 7 years, 90% to reef", adj = 0.2, line = -1.25)
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+# ADD SECOND ORCHARD CASE
+dt_plot <- dist_plot_fun(dist_dt = orch_D7s2_dt, prop_out1 = prop_main[j])
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j], lty = 2, lwd = 2)
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+
+dt_plot <- dist_plot_fun(dist_dt = orch_D5s_dt, prop_out1 = prop_main[j])
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+mtext(side = 3, "e) 5 years, 90% to reef", adj = 0.2, line = -1.25)
+#mtext(side = 1, "Severity (prop. reduction in baseline survival)")
+#mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+# ADD SECOND ORCHARD CASE
+dt_plot <- dist_plot_fun(dist_dt = orch_D5s2_dt, prop_out1 = prop_main[j])
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j], lty = 2, lwd = 2)
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+dt_plot <- dist_plot_fun(dist_dt = orch_D3s_dt, prop_out1 = prop_main[j])
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+mtext(side = 3, "f) 3 years, 90% to reef", adj = 0.2, line = -1.25)
+#mtext(side = 1, "Severity (prop. reduction in baseline survival)")
+#mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+# ADD SECOND ORCHARD CASE
+dt_plot <- dist_plot_fun(dist_dt = orch_D3s2_dt, prop_out1 = prop_main[j])
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j], lty = 2, lwd = 2)
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+  
+j <- 3
+dt_plot <- dist_plot_fun(dist_dt = orch_D7s_dt, prop_out1 = prop_main[j])
+ymax <- 400
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, las = 1)
+mtext(side = 3, "g) 7 years, 50% to reef", adj = 0.2, line = -1.25)
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+# ADD SECOND ORCHARD CASE
+dt_plot <- dist_plot_fun(dist_dt = orch_D7s2_dt, prop_out1 = prop_main[j])
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j], lty = 2, lwd = 2)
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+
+dt_plot <- dist_plot_fun(dist_dt = orch_D5s_dt, prop_out1 = prop_main[j])
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+mtext(side = 3, "h) 5 years, 50% to reef", adj = 0.2, line = -1.25)
+#mtext(side = 1, "Severity (prop. reduction in baseline survival)")
+#mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+# ADD SECOND ORCHARD CASE
+dt_plot <- dist_plot_fun(dist_dt = orch_D5s2_dt, prop_out1 = prop_main[j])
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j], lty = 2, lwd = 2)
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+dt_plot <- dist_plot_fun(dist_dt = orch_D3s_dt, prop_out1 = prop_main[j])
+
+plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+mtext(side = 3, "i) 3 years, 50% to reef", adj = 0.2, line = -1.25)
+#mtext(side = 1, "Severity (prop. reduction in baseline survival)")
+#mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
+axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+# ADD SECOND ORCHARD CASE
+dt_plot <- dist_plot_fun(dist_dt = orch_D3s2_dt, prop_out1 = prop_main[j])
+lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j], lty = 2, lwd = 2)
+polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, rev(dt_plot$q95)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+
+dev.off()
+
+```
 
 
 -- trade-off plots (coral cover vs. total ROI) for 5 and 50 yrs and different disturbance regimes AND with/without reference reef supply
