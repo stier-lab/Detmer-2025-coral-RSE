@@ -67,6 +67,8 @@ field_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/field_surv_pars.rds"
 nurs_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/nurs_surv_pars.rds"))
 lab_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_surv_pars.rds"))
 
+# recruit survival
+recruit_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/recruit_surv_pars.rds"))
 
 # growth data
 field_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/field_growth_pars.rds"))
@@ -76,7 +78,51 @@ lab_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_growth_pars.rds"
 # short-term lab survival data
 apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_surv_lab_short.csv"))
 
+
+# change 1: format the growth data to be formatted as transition matrices and add these to the growth lists
+field_Tmats <- growth_format(growth_dt = field_growth)
+field_growth$mat_list <- field_Tmats$mat_list
+field_growth$summ_list <- field_Tmats$summ_list
+
+# nurs_Tmats <- growth_format(growth_dt = nurs_growth)
+# nurs_growth$mat_list <- nurs_Tmats$mat_list
+# nurs_growth$summ_list <- nurs_Tmats$summ_list
+
+# TEMPORARY NEED TO FIX: currently don't have a trans_summary for the nursery data so just sub the field data for now
+nurs_growth$mat_list <- field_Tmats$mat_list
+nurs_growth$summ_list <- field_Tmats$summ_list
+
+
+#nurs_growth$trans_summary
+#field_growth$trans_summary
+  
+# change 2: replace size class 1 survival with recruit survival
+  
+#recruit_surv$survival_summary
+
+# change the bootstrap replicates into a data frame
+
 ```
+
+
+change format to make them work with the par_list_fun
+
+
+```{r}
+#View(field_surv$SC_surv_df)
+#View(nurs_surv$SC_surv_df) # these are both ok
+#lab_surv # this format would need to be updated to match the field and nursery, but it's not used currently
+
+#View(field_surv$SC_surv_summ_df)
+
+#class(recruit_surv$survival_boot) # this needs to be changed into a data frame; use it to replace all the size class 1 survival values in field_surv$SC_surv_df
+
+# structure needed: list of matrices (called mat_list), one matrix for each size class, in the matrix for the ith size class the rows are the replicates (so should be 1000) and the columns correspond to the rows in the ith column of the transition matrix. So for size class 1, the columns would be 1) stay in SC1, 2) grow to SC2, 3) grow to SC3, 4) grow to SC4, and 5) grow to SC5
+
+# for the summarized values: list of matrices called summ_list, one matrix for each size class, here the ROWS correspond to the ith column of the transition matrix and the columns are for the mean, Q05, and Q95 (need to be named) 
+
+```
+
 
 # Define the simulation structure
 
@@ -118,11 +164,11 @@ nurs_surv1 <- nurs_surv # survival rates in nursery (= orchard)
 nurs_growth1 <- nurs_growth # growth rates in nursery
 
 # nursery data only available for size classes 1-2, so use the field data for the larger size classes
-nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
-
-nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
-nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
-nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
+# nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
+# 
+# nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
+# nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
+# nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
 
 # calculate mean parameter values (survival, growth, shrinkage, fragmentation) for each location 
 all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
@@ -332,7 +378,7 @@ orchard_out_props[2,] <- c(1) # from second lab treatment to each orchard
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
 
 # lab capacities
-lab_max <- 4000 # total number of tiles that the lab can accommodate in a year 
+lab_max <- 3100 # 4000 # total number of tiles that the lab can accommodate in a year 
 lab_retain_max <- 0 # total number of settlers that the lab can keep for a year (must be less than or equal to lab_max; if > 0 then must have at least one "1_" lab treatment, if equal to lab max then must have all treatments be "1_")
 
 tank_min <- 14600 # min number of embryos to put in a tank (reduce number of tanks used if less than this to avoid unrealistically small densities on the tiles)

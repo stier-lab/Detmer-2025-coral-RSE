@@ -21,17 +21,81 @@
 # DEPENDS ON: coral_demographic_funs.R (Surv_fun, G_fun, Rep_fun, Ext_fun)
 #
 # FUNCTION INDEX:
-#   mat_pars_fun      (line ~25)   Assemble demographic parameters for each year
-#   dist_pars_fun     (line ~69)   Create disturbance parameter lists
-#   par_list_fun      (line ~129)  Sample parameters from empirical data
-#   default_pars_fun  (line ~307)  Build default parameter sets for all subpops
-#   rand_pars_fun     (line ~385)  Generate random parameter ensembles
-#   rse_mod1          (line ~571)  *** MAIN MODEL (current, with density dep.) ***
-#   pop_lambda_fun    (line ~1464) Calculate asymptotic population growth rate
-#   model_summ        (line ~1493) Summarize model output (individuals, area, reproduction)
-#   rse_mod           (line ~1707) Legacy model (no density dep., area-based constraints)
-#   popvi_mod         (line ~2478) Simplified population viability model
+#   growth_format     (line ~37)   Format the growth data into transition matrices
+#   mat_pars_fun      (line ~101)   Assemble demographic parameters for each year
+#   dist_pars_fun     (line ~168)   Create disturbance parameter lists
+#   par_list_fun      (line ~228)  Sample parameters from empirical data
+#   default_pars_fun  (line ~434)  Build default parameter sets for all subpops
+#   rand_pars_fun     (line ~546)  Generate random parameter ensembles
+#   rse_mod1          (line ~732)  *** MAIN MODEL (current, with density dep.) ***
+#   pop_lambda_fun    (line ~1844) Calculate asymptotic population growth rate
+#   model_summ        (line ~1874) Summarize model output (individuals, area, reproduction)
+#   rse_mod           (line ~2105) Legacy model (no density dep., area-based constraints)
+#   popvi_mod         (line ~2872) Simplified population viability model
 # =============================================================================
+
+#' @title Growth formatting function
+#' @description takes data frames with size class transition data and turns them 
+#' into the lists of transition matrices that are needed for par_list_fun()
+#' @param growth_dt growth data frame
+#' @param n_boot number of bootstrap replicates in the data
+growth_format <- function(growth_dt, n_boot = 1000){
+  
+  #n_boot <- 1000
+  
+  #growth_dt <- field_growth
+  
+  dt_all <- growth_dt$growth_trans_df
+  
+  matn <- matrix(NA, nrow = n_boot, ncol = 5) # rows = bootstrap sample
+  
+  mat_list <- list(matn, matn, matn, matn, matn)
+  
+  for(i in 1:n_boot){
+    
+    dt_sub <- dt_all[which(dt_all$replicate==i),]
+    
+    
+    for(k in 1:5){ # for each size class
+      dt_sub2 <- dt_sub[which(dt_sub$from_class==paste("SC", as.character(k), sep = "")),]
+      
+      mat_list[[k]][i,] <- c(dt_sub2$prob[which(dt_sub2$to_class=="SC1")], 
+                             dt_sub2$prob[which(dt_sub2$to_class=="SC2")],
+                             dt_sub2$prob[which(dt_sub2$to_class=="SC3")],
+                             dt_sub2$prob[which(dt_sub2$to_class=="SC4")],
+                             dt_sub2$prob[which(dt_sub2$to_class=="SC5")])
+      
+    } # end of k loop
+    
+  } # end of i loop
+  
+  # repeat for summarized data
+  matn <- matrix(NA, nrow = 5, ncol = 3) 
+  colnames(matn) <- c("mean", "Q05", "Q95")
+  
+  summ_list <- list(matn, matn, matn, matn, matn)
+  
+  dt_all <- growth_dt$trans_summary
+  
+  for(k in 1:5){ # for each size class
+    dt_sub2 <- dt_all[which(dt_sub$from_class==paste("SC", as.character(k), sep = "")),]
+    
+    for(j in 1:5){ # for each to_class
+      
+      to_j <- paste("SC", as.character(j), sep = "")
+      
+      summ_list[[k]][j,] <- c(dt_sub2$mean_prob[which(dt_sub2$to_class==to_j)],
+                              dt_sub2$Q05[which(dt_sub2$to_class==to_j)],
+                              dt_sub2$Q95[which(dt_sub2$to_class==to_j)])
+    } # end of j loop
+    
+  } # end of k loop
+  
+  # return outputs
+  
+  return(list(mat_list = mat_list, summ_list = summ_list))
+  
+}
 
 
 #' @title Matrix Parameters Function
