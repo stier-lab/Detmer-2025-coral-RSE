@@ -86,6 +86,8 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
   G_list <- list() # for transition matrices at each timepoint
   Fr_list <- list() # for fragmentation matrices at each timepoint
 
+  warnings <- rep(0, years) # vector for whether the columns exceeded one
+  
   for(i in 1:years){ # for each year in the simulation
 
     # holding matrix
@@ -126,8 +128,9 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
 
     # check that diagonal elements (staying probabilities) are non-negative
     if(any(diag(Ti_mat) < 0)) {
-      warning("Growth + shrinkage probabilities exceed 1 for some size classes. Clamping to valid range.")
+     # warning("Growth + shrinkage probabilities exceed 1 for some size classes. Clamping to valid range.")
       diag(Ti_mat) <- pmax(0, diag(Ti_mat))
+      warnings[i] <- 1
     }
 
     G_list[[i]] <- Ti_mat # store the transition matrix for the ith year
@@ -152,6 +155,9 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
   } # end of loop over years
 
 
+  if(length(which(warnings == 1)) > 0){
+    warning("Growth + shrinkage probabilities exceed 1 for some size classes. Clamping to valid range.")
+  }
 
   return(list(G_list = G_list, Fr_list = Fr_list))
 
