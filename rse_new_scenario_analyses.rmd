@@ -36,19 +36,20 @@ read in the parameter data and set default parameter values
 ```{r}
 # read in the APAL data
 
-# NOTE: Data files are stored in the separate Detmer-2025-coral-parameters repository.
-# Update DATA_PATH to point to your local copy of that repository.
 DATA_PATH <- "../Detmer-2025-coral-parameters"
 
 # fragmentation data
 apal_frag_summ <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_fragmentation_summ.csv"))
 apal_frag <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_fragmentation.csv"))
 
+
 # survival data
 field_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/field_surv_pars.rds"))
 nurs_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/nurs_surv_pars.rds"))
 lab_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_surv_pars.rds"))
 
+# recruit survival
+recruit_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/recruit_surv_pars.rds"))
 
 # growth data
 field_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/field_growth_pars.rds"))
@@ -57,6 +58,36 @@ lab_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_growth_pars.rds"
 
 # short-term lab survival data
 apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_surv_lab_short.csv"))
+
+
+# change 1: format the growth data to be formatted as transition matrices and add these to the growth lists
+field_Tmats <- growth_format(growth_dt = field_growth)
+field_growth$mat_list <- field_Tmats$mat_list
+field_growth$summ_list <- field_Tmats$summ_list
+
+# nurs_Tmats <- growth_format(growth_dt = nurs_growth)
+# nurs_growth$mat_list <- nurs_Tmats$mat_list
+# nurs_growth$summ_list <- nurs_Tmats$summ_list
+
+# TEMPORARY NEED TO FIX: currently don't have a trans_summary for the nursery data so just sub the field data for now
+nurs_growth$mat_list <- field_Tmats$mat_list
+nurs_growth$summ_list <- field_Tmats$summ_list
+
+
+# change 2: replace size class 1 survival with recruit survival
+  
+# change the bootstrap replicates into a data frame
+recruit_surv_df <- data.frame(
+  prop_survived = recruit_surv$survival_boot,
+  size_class = rep(1, length(recruit_surv$survival_boot)),
+  replicate = c(1:length(recruit_surv$survival_boot))
+)
+
+field_surv$SC_surv_df <- field_surv$SC_surv_df %>% filter(size_class != 1) %>% rbind(recruit_surv_df)
+
+recruit_surv_summ <- recruit_surv$survival_summary %>% rename(mean = mean_survival, sd = sd_survival) %>% select(-ci_lower, -ci_upper)
+
+field_surv$SC_surv_summ_df[1, c(-1)] <- recruit_surv_summ
 
 
 ```
@@ -78,31 +109,12 @@ field_growth1 <- field_growth
 nurs_surv1 <- nurs_surv
 nurs_growth1 <- nurs_growth
 
-# nursery data only available for size classes 1-2, so use the field data for the larger size classes
-nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
-
-nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
-nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
-nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
-
 # calculate mean parameter values (survival, growth, shrinkage, fragmentation) for each 
 all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
 
-
 # calculate random parameter sets
 n_sample1 <- 100 # number of parameter sets
-
-field_surv1 <- field_surv
-field_growth1 <- field_growth
-nurs_surv1 <- nurs_surv
-nurs_growth1 <- nurs_growth
-
-nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
-
-nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
-nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
-nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
 
 set.seed(500)
 all_pars_R <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
@@ -120,10 +132,13 @@ for(i in 1:n_sample1){
 
 #unique(s1_rand)
 
-hist(s1_rand, las = 1, xaxt = "n", xlab = NA, main = NA) # , breaks = 20
-axis(side = 1, at = c(0 + 0.01, 0.05, 0.1-0.01, 0.15), labels = sort(unique(s1_rand)))
+hist(s1_rand, las = 1, xlab = NA, main = NA) # xaxt = "n",, breaks = 20
+#axis(side = 1, at = c(0 + 0.01, 0.05, 0.1-0.01, 0.15), labels = sort(unique(s1_rand)))
 mtext(side = 1, "Survival of size class 1", line = 2)
 mtext(side = 3, "Histogram of size class 1 survival")
+
+min(s1_rand)
+max(s1_rand)
 
 ```
 
@@ -405,10 +420,10 @@ dist_yrs3 <- c(1:max(years))[c(F, F,T)] # years when disturbance occurs: once ev
 
 # list where elements are for each group, each element is matrix where rows are time points with disturbances and columns are size classes
 
-dist_mat.r <- matrix(0.25, nrow = length(dist_yrs3), ncol = 5)
+dist_mat.r <- matrix(0.2, nrow = length(dist_yrs3), ncol = 5)
 dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
 
-dist_mat.o <- matrix(0.5, nrow = length(dist_yrs3), ncol = 5)
+dist_mat.o <- matrix(0.4, nrow = length(dist_yrs3), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list3 <- list(dist.r = dist.r, dist.o = dist.o)
@@ -419,10 +434,10 @@ dist_yrs5 <- c(1:max(years))[c(F, F, T, F, F)] # years when disturbance occurs: 
 
 # list where elements are for each group, each element is matrix where rows are time points with disturbances and columns are size classes
 
-dist_mat.r <- matrix(0.25, nrow = length(dist_yrs5), ncol = 5)
+dist_mat.r <- matrix(0.2, nrow = length(dist_yrs5), ncol = 5)
 dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
 
-dist_mat.o <- matrix(0.5, nrow = length(dist_yrs5), ncol = 5)
+dist_mat.o <- matrix(0.4, nrow = length(dist_yrs5), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list5 <- list(dist.r = dist.r, dist.o = dist.o)
@@ -433,10 +448,10 @@ dist_yrs7 <- c(1:max(years))[c(F, F,T, F, F, F, F)] # years when disturbance occ
 
 # list where elements are for each group, each element is matrix where rows are time points with disturbances and columns are size classes
 
-dist_mat.r <- matrix(0.25, nrow = length(dist_yrs7), ncol = 5)
+dist_mat.r <- matrix(0.2, nrow = length(dist_yrs7), ncol = 5)
 dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
 
-dist_mat.o <- matrix(0.5, nrow = length(dist_yrs7), ncol = 5)
+dist_mat.o <- matrix(0.4, nrow = length(dist_yrs7), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list7 <- list(dist.r = dist.r, dist.o = dist.o)
@@ -917,7 +932,7 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name)
 
 varying proportion outplanted
 
-```{r}
+```{r, warning=FALSE}
 prop_main <- c(0.5, 0.9, 1) # main strategies to focus on
 
 lambda_Rs <- c(0, 1255111)
@@ -949,7 +964,7 @@ orch_D3_dt50 <- full_dt_fun(sim_list = orch_D3, max_yr = 51, n_pars = n_sample1,
 
 illustrate population vulnerability to disturbance
 
-```{r}
+```{r, warning=FALSE}
 
 # vary disturbance severity (proportional reduction in survival), repeat with different frequencies (every 3, 5, and 7 yrs)
 
@@ -1125,7 +1140,7 @@ orch_D3s2_dt <- dist_dt_fun(dist_sims = orch_D3s2, dist_sev.r, dist_sev.o = dist
 
 simulations for petal plots
 
-```{r}
+```{r, warning=FALSE}
 # using mean parameters only (?), show 80% and 100% investment relative to 90% investment. Petal plots will have circles for 1x default, 2x, etc.
 
 # simulations
@@ -1165,10 +1180,12 @@ prop_cols <- c("#FEC44F", "#CC4C02", "#662506")
 
 plot_list <- orch_D0
 
+lab_cx <- 0.9
+
 xlab1 <- "Proportion substrates initially outplanted to reef"
 ylab1 <- expression("Reef cover ("*m^2*")")
 #plotlab <- "c) Reef ROI"
-plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA)
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 2000), las = 1, xlab = NA, ylab = NA)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
 mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
 #mtext(side = 3, plotlab, adj = 0)
@@ -1182,29 +1199,29 @@ for(j in 1:length(prop_main)){
 legend("topleft", legend = c("80", "90", "100"), col = prop_cols, lwd = c(2, 2, 2), lty = c(1, 1, 1), title = "% Initially \noutplanted to reef", bty = "n", cex = 0.85, inset = c(0, 0.1), fill = c(adjustcolor(prop_cols[1], alpha.f = 0.2), adjustcolor(prop_cols[2], alpha.f = 0.2), adjustcolor(prop_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 3))
 
 
-plot_list <- orch_D5
-
-xlab1 <- NA
-ylab1 <- expression("Reef cover ("*m^2*")")
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-#mtext(side = 3, plotlab, adj = 0)
-for(j in 1:length(prop_main)){
-  plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
-  
-  lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = prop_cols[j], lwd = 2)
-  polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
-  
-}
+# plot_list <- orch_D5
+# 
+# xlab1 <- NA
+# ylab1 <- expression("Reef cover ("*m^2*")")
+# #plotlab <- "c) Reef ROI"
+# plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA)
+# mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+# mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+# #mtext(side = 3, plotlab, adj = 0)
+# for(j in 1:length(prop_main)){
+#   plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
+#   
+#   lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = prop_cols[j], lwd = 2)
+#   polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+#   
+# }
 
 plot_list <- orch_D3
 
 xlab1 <- "Proportion substrates initially outplanted to reef"
 ylab1 <- expression("Reef cover ("*m^2*")")
 #plotlab <- "c) Reef ROI"
-plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA)
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 500), las = 1, xlab = NA, ylab = NA)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
 mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
 #mtext(side = 3, plotlab, adj = 0)
@@ -1252,19 +1269,25 @@ plot_list <- orch_D0
 pdf("TempFigs/def_ts.pdf", height = 6, width = 5)
 
 
-par(mfrow = c(3, 1))
-layout(matrix(c(1, 2, 3), nrow = 3, ncol = 1, byrow = T), widths = rep(1, 2), heights = rep(1, 2))
+# par(mfrow = c(3, 1))
+# layout(matrix(c(1, 2, 3), nrow = 3, ncol = 1, byrow = T), widths = rep(1, 2), heights = rep(1, 2))
+# #layout.show(2)
+# par(mar=c(0, 2.5, 2.5, 1), oma = c(4.5, 2.5, 0.1, 0))
+
+par(mfrow = c(2, 1))
+layout(matrix(c(1, 2), nrow = 2, ncol = 1, byrow = T), widths = rep(1, 2), heights = rep(1, 2))
 #layout.show(2)
 par(mar=c(0, 2.5, 2.5, 1), oma = c(4.5, 2.5, 0.1, 0))
+
 
 
 xlab1 <- "Year in simulation"
 ylab1 <- expression("Reef cover ("*m^2*")")
 #plotlab <- "c) Reef ROI"
-plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 600), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 5000), las = 1, xlab = NA, ylab = NA, xaxt = "n")
 axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 0, cex = lab_cx, outer = T)
+mtext(side = 2, ylab1, line = 1, cex = lab_cx, outer = T)
 mtext(side = 3, "a) No disturbance", adj = 0.025, line = -1.5)
 j <- p_choice
   plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
@@ -1286,46 +1309,35 @@ j <- p_choice
 #   polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$orch_fun_low, rev(plot_dt$orch_fun_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
 
 
-plot_list <- orch_D5
-
-xlab1 <- NA
-ylab1 <- NA
-#plotlab <- "c) Reef ROI"
-plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA, xaxt = "n")
-axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
-mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-mtext(side = 3, "b) Disturbance every 5 years", adj = 0.025, line = -1.5)
-j <- p_choice
-  plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
-  
-  lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = prop_cols[j], lwd = 2)
-  polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
-  
-
-# xlab1 <- "Proportion substrates initially outplanted to reef"
-# ylab1 <- expression("Orchard function ("*m^2~"adults)")
-# plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 5000), las = 1, xlab = NA, ylab = NA)
+# plot_list <- orch_D5
+# 
+# xlab1 <- NA
+# ylab1 <- NA
+# #plotlab <- "c) Reef ROI"
+# plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+# axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
 # mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
 # mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-# #mtext(side = 3, plotlab, adj = 0)
+# mtext(side = 3, "b) Disturbance every 5 years", adj = 0.025, line = -1.5)
 # j <- p_choice
 #   plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
 #   
-#   lines(x = c(1:years), y = plot_dt$orch_fun_mn, col = prop_cols[j], lwd = 2)
-#   polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$orch_fun_low, rev(plot_dt$orch_fun_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
-  
+#   lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = prop_cols[j], lwd = 2)
+#   polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(prop_cols[j], alpha.f = 0.2), border = NA)
+#   
+
   
 plot_list <- orch_D3
 
 xlab1 <- NA
 ylab1 <- NA
 #plotlab <- "c) Reef ROI"
-plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 120), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 5000), las = 1, xlab = NA, ylab = NA, xaxt = "n")
 axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
 mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
 mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
-mtext(side = 3, "c) Disturbance every 3 years", adj = 0.025, line = -1.5)
+#mtext(side = 3, "c) Disturbance every 3 years", adj = 0.025, line = -1.5)
+mtext(side = 3, "b) Severe disturbance", adj = 0.025, line = -1.5)
 j <- p_choice
   plot_dt <- ts_fun(sim_list = plot_list, n_pars = n_sample1, max_yr = years, prop_choice = j, par2_choice = 2)
   
@@ -1385,11 +1397,11 @@ par(mar=c(0, 1, 3.5, 1), oma = c(4.5, 4.5, 0.1, 0))
 
 j <- 3
 dt_plot <- dist_plot_fun(dist_dt = orch_D7s_dt, prop_out1 = prop_main[j])
-ymax <- 400
+ymax <- 2500
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, las = 1)
 mtext(side = 1, "Severity (prop. reduction in baseline survival)", outer = T, line = 2.5)
-mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"), line = 2.25)
+mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"), line = 2.5)
 mtext(side = 3, "a) Disturbance every 7 years", adj = 0)
 axis(side = 1, at = seq(0, 1, 0.2), labels = seq(0, 1, 0.2))
 lines(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = prop_cols[j])
@@ -1398,7 +1410,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 dt_plot <- dist_plot_fun(dist_dt = orch_D5s_dt, prop_out1 = prop_main[j])
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
-axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+axis(side = 2, at = seq(0, ymax, 500), labels = NA)
 mtext(side = 3, "b) Disturbance every 5 years", adj = 0)
 #mtext(side = 1, "Severity (prop. reduction in baseline survival)")
 #mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
@@ -1409,7 +1421,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 dt_plot <- dist_plot_fun(dist_dt = orch_D3s_dt, prop_out1 = prop_main[j])
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
-axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+axis(side = 2, at = seq(0, ymax, 500), labels = NA)
 mtext(side = 3, "c) Disturbance every 3 years", adj = 0)
 #mtext(side = 1, "Severity (prop. reduction in baseline survival)")
 #mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
@@ -1430,10 +1442,6 @@ dev.off()
 # 3 x 3 plot, where each row is different orchard investment, and rows two and three have dashed and solid lines for cases where orchard is vs. isn't impacted the same as the reef
 
 
-
-
-
-
 pdf("TempFigs/dist_sev_full.pdf", height = 8, width = 8)
 
 
@@ -1445,7 +1453,7 @@ par(mar=c(0, 1, 2, 1), oma = c(4.5, 4.5, 0.1, 0))
 
 j <- 3
 dt_plot <- dist_plot_fun(dist_dt = orch_D7s_dt, prop_out1 = prop_main[j])
-ymax <- 400
+ymax <- 2500
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, las = 1)
 mtext(side = 1, "Severity on reef (prop. reduction in baseline survival)", outer = T, line = 2.5)
@@ -1458,7 +1466,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 dt_plot <- dist_plot_fun(dist_dt = orch_D5s_dt, prop_out1 = prop_main[j])
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
-axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+axis(side = 2, at = seq(0, ymax, 500), labels = NA)
 mtext(side = 3, "b) 5 years, 100% to reef", adj = 0.2, line = -1.25)
 #mtext(side = 1, "Severity (prop. reduction in baseline survival)")
 #mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
@@ -1469,7 +1477,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 dt_plot <- dist_plot_fun(dist_dt = orch_D3s_dt, prop_out1 = prop_main[j])
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
-axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+axis(side = 2, at = seq(0, ymax, 500), labels = NA)
 mtext(side = 3, "c) 3 years, 100% to reef", adj = 0.2, line = -1.25)
 #mtext(side = 1, "Severity (prop. reduction in baseline survival)")
 #mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
@@ -1482,7 +1490,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 
 j <- 2
 dt_plot <- dist_plot_fun(dist_dt = orch_D7s_dt, prop_out1 = prop_main[j])
-ymax <- 400
+# ymax <- 2500
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, las = 1)
 mtext(side = 3, "d) 7 years, 90% to reef", adj = 0.2, line = -1.25)
@@ -1498,7 +1506,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 dt_plot <- dist_plot_fun(dist_dt = orch_D5s_dt, prop_out1 = prop_main[j])
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
-axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+axis(side = 2, at = seq(0, ymax, 500), labels = NA)
 mtext(side = 3, "e) 5 years, 90% to reef", adj = 0.2, line = -1.25)
 #mtext(side = 1, "Severity (prop. reduction in baseline survival)")
 #mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
@@ -1513,7 +1521,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 dt_plot <- dist_plot_fun(dist_dt = orch_D3s_dt, prop_out1 = prop_main[j])
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
-axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+axis(side = 2, at = seq(0, ymax, 500), labels = NA)
 mtext(side = 3, "f) 3 years, 90% to reef", adj = 0.2, line = -1.25)
 #mtext(side = 1, "Severity (prop. reduction in baseline survival)")
 #mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
@@ -1527,7 +1535,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
   
 j <- 3
 dt_plot <- dist_plot_fun(dist_dt = orch_D7s_dt, prop_out1 = prop_main[j])
-ymax <- 400
+#ymax <- 500
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, las = 1)
 mtext(side = 3, "g) 7 years, 50% to reef", adj = 0.2, line = -1.25)
@@ -1543,7 +1551,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 dt_plot <- dist_plot_fun(dist_dt = orch_D5s_dt, prop_out1 = prop_main[j])
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
-axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+axis(side = 2, at = seq(0, ymax, 500), labels = NA)
 mtext(side = 3, "h) 5 years, 50% to reef", adj = 0.2, line = -1.25)
 #mtext(side = 1, "Severity (prop. reduction in baseline survival)")
 #mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
@@ -1558,7 +1566,7 @@ polygon(x = c(rev(dt_plot$dist_sev_r), dt_plot$dist_sev_r), y = c(dt_plot$q05, r
 dt_plot <- dist_plot_fun(dist_dt = orch_D3s_dt, prop_out1 = prop_main[j])
 
 plot(x = rev(dt_plot$dist_sev_r), y = dt_plot$mn, col = NA, type = "l", ylim = c(0, ymax), xaxt = "n", xlab = NA, ylab = NA, yaxt = "n")
-axis(side = 2, at = seq(0, ymax, 100), labels = NA)
+axis(side = 2, at = seq(0, ymax, 500), labels = NA)
 mtext(side = 3, "i) 3 years, 50% to reef", adj = 0.2, line = -1.25)
 #mtext(side = 1, "Severity (prop. reduction in baseline survival)")
 #mtext(side = 2, expression("Mean coral cover over 50 yrs ("*m^2*")"))
@@ -1577,7 +1585,7 @@ dev.off()
 
 -- trade-off plots (coral cover vs. total ROI) for 5 and 50 yrs and different disturbance regimes AND with/without reference reef supply
 
-```{r}
+```{r, warning=FALSE}
 
 # 4 panels: 5 and 50 years crossed with reference reef supply
 # each panel: 3 disturbance scenarios (shape), 3 outplanting proportions (color)
@@ -1600,7 +1608,7 @@ par(mar=c(0, 1, 3.5, 1), oma = c(4.5, 4.5, 0.1, 0))
 
 
 # 5 years, with reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 25), ylim = c(0, 0.0005), las = 1)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.0025), las = 1)
 mtext(side = 3, "a) 5 years, with reference reef")
 mtext(side = 1, expression("Coral cover on reef ("*m^2*")"), outer = T, line = 2.75, cex = 1.1)
 mtext(side = 2, expression("Total ROI ("*m^2~"reef and orchard coral/$)"), outer = T, line = 2.75, cex = 1.1)
@@ -1628,8 +1636,8 @@ arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, l
 
 
 # 5 years, no reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 25), ylim = c(0, 0.0005), las = 1, yaxt = "n")
-axis(side = 2, at = seq(0, 0.0005, 0.0001), labels = NA)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.0025), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.0025, 0.0005), labels = NA)
 mtext(side = 3, "b) 5 years, no reference reef")
 for(i in 1:3){ # for each disturbance type
 
@@ -1652,12 +1660,12 @@ arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, l
 arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
 }
 }
-legend("topright", legend = c("0.8", "0.9", "1"), col = prop_cols, pch = 16, title = "Reef investment", bty = "n")
+legend("topright", legend = c("0.5", "0.9", "1"), col = prop_cols, pch = 16, title = "Reef investment", bty = "n")
 legend("bottomright", legend = c("none", "every 3 yrs", "every 5 yrs"), pch = d_shapes, title = "Disturbance", bty = "n", inset = c(0, 0.2))
 
 
 # 50 years, with reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 400), ylim = c(0, 0.0005), las = 1)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.00026), las = 1)
 mtext(side = 3, "c) 50 years, with reference reef")
 for(i in 1:3){ # for each disturbance type
 
@@ -1683,8 +1691,8 @@ arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, l
 
 
 # 5 years, no reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 400), ylim = c(0, 0.0005), las = 1, yaxt = "n")
-axis(side = 2, at = seq(0, 0.0005, 0.0001), labels = NA)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.00026), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.00025, 0.0005), labels = NA)
 mtext(side = 3, "d) 50 years, no reference reef")
 for(i in 1:3){ # for each disturbance type
 
@@ -1701,6 +1709,265 @@ for(j in 1:length(prop_main)){
   dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
 
 dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(tot_ROI_mean), q05 = quantile(tot_ROI_mean, 0.05), q95 = quantile(tot_ROI_mean, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+}
+}
+
+dev.off()
+
+```
+
+
+
+repeat with only 2 disturbance points
+```{r, warning=FALSE}
+
+prop_cols <- c("#FEC44F", "#CC4C02", "#662506")
+d_shapes <- c(16, 2, 5) # none, every 5 years, every 3 years
+
+pdf("TempFigs/orch_tradeoffs_main.pdf", height = 6, width = 7)
+
+
+par(mfrow = c(2, 2))
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 2))
+#layout.show(2)
+par(mar=c(0, 1, 3.5, 1), oma = c(4.5, 4.5, 0.1, 0))
+
+
+# 5 years, with reference reef supply
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.0025), las = 1)
+mtext(side = 3, "a) 5 years, with reference reef")
+mtext(side = 1, expression("Coral cover on reef ("*m^2*")"), outer = T, line = 2.75, cex = 1.1)
+mtext(side = 2, expression("Total ROI ("*m^2~"reef and orchard coral/$)"), outer = T, line = 2.75, cex = 1.1)
+for(i in c(1,3)){ # for each disturbance type
+
+  if(i == 1){
+    dt_plot <- orch_D0_dt5 %>% filter(par2 == lambda_R)
+  } else if(i == 2){
+    dt_plot <- orch_D5_dt5 %>% filter(par2 == lambda_R)
+  } else{
+    dt_plot <- orch_D3_dt5 %>% filter(par2 == lambda_R)
+  }
+
+for(j in 1:length(prop_main)){
+  
+  dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
+
+dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(tot_ROI_mean), q05 = quantile(tot_ROI_mean, 0.05), q95 = quantile(tot_ROI_mean, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+}
+}
+
+
+# 5 years, no reference reef supply
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.0025), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.0025, 0.0005), labels = NA)
+mtext(side = 3, "b) 5 years, no reference reef")
+for(i in c(1,3)){ # for each disturbance type
+
+  if(i == 1){
+    dt_plot <- orch_D0_dt5 %>% filter(par2 == 0)
+  } else if(i == 2){
+    dt_plot <- orch_D5_dt5 %>% filter(par2 == 0)
+  } else{
+    dt_plot <- orch_D3_dt5 %>% filter(par2 == 0)
+  }
+
+for(j in 1:length(prop_main)){
+  
+  dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
+
+dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(tot_ROI_mean), q05 = quantile(tot_ROI_mean, 0.05), q95 = quantile(tot_ROI_mean, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+}
+}
+legend("topright", legend = c("0.5", "0.9", "1"), col = prop_cols, pch = 16, title = "Reef investment", bty = "n")
+legend("bottomright", legend = c("none", "every 3 yrs"), pch = d_shapes[c(1,3)], title = "Disturbance", bty = "n", inset = c(0, 0.2))
+
+
+# 50 years, with reference reef supply
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.00026), las = 1)
+mtext(side = 3, "c) 50 years, with reference reef")
+for(i in c(1,3)){ # for each disturbance type
+
+  if(i == 1){
+    dt_plot <- orch_D0_dt50 %>% filter(par2 == lambda_R)
+  } else if(i == 2){
+    dt_plot <- orch_D5_dt50 %>% filter(par2 == lambda_R)
+  } else{
+    dt_plot <- orch_D3_dt50 %>% filter(par2 == lambda_R)
+  }
+
+for(j in 1:length(prop_main)){
+  
+  dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
+
+dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(tot_ROI_mean), q05 = quantile(tot_ROI_mean, 0.05), q95 = quantile(tot_ROI_mean, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+}
+}
+
+
+# 5 years, no reference reef supply
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.00026), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.00025, 0.0005), labels = NA)
+mtext(side = 3, "d) 50 years, no reference reef")
+for(i in c(1,3)){ # for each disturbance type
+
+  if(i == 1){
+    dt_plot <- orch_D0_dt50 %>% filter(par2 == 0)
+  } else if(i == 2){
+    dt_plot <- orch_D5_dt50 %>% filter(par2 == 0)
+  } else{
+    dt_plot <- orch_D3_dt50 %>% filter(par2 == 0)
+  }
+
+for(j in 1:length(prop_main)){
+  
+  dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
+
+dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(tot_ROI_mean), q05 = quantile(tot_ROI_mean, 0.05), q95 = quantile(tot_ROI_mean, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+}
+}
+
+dev.off()
+
+```
+
+
+
+```{r, warning=FALSE}
+
+prop_cols <- c("#FEC44F", "#CC4C02", "#662506")
+d_shapes <- c(16, 2, 5) # none, every 5 years, every 3 years
+
+pdf("TempFigs/orch_tradeoffs_ROI_ind.pdf", height = 6, width = 7)
+
+
+par(mfrow = c(2, 2))
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = T), widths = rep(1, 2), heights = rep(1, 2))
+#layout.show(2)
+par(mar=c(0, 1, 3.5, 1), oma = c(4.5, 4.5, 0.1, 0))
+
+
+# 5 years, with reference reef supply
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.15), las = 1)
+mtext(side = 3, "a) 5 years, with reference reef")
+mtext(side = 1, expression("Coral cover on reef ("*m^2*")"), outer = T, line = 2.75, cex = 1.1)
+mtext(side = 2, "Total ROI (reef and orchard corals/$)", outer = T, line = 2.75, cex = 1.1)
+for(i in c(1,3)){ # for each disturbance type
+
+  if(i == 1){
+    dt_plot <- orch_D0_dt5 %>% filter(par2 == lambda_R)
+  } else if(i == 2){
+    dt_plot <- orch_D5_dt5 %>% filter(par2 == lambda_R)
+  } else{
+    dt_plot <- orch_D3_dt5 %>% filter(par2 == lambda_R)
+  }
+
+for(j in 1:length(prop_main)){
+  
+  dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
+
+dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(totI_ROI_mean), q05 = quantile(totI_ROI_mean, 0.05), q95 = quantile(totI_ROI_mean, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+}
+}
+
+
+# 5 years, no reference reef supply
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.15), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.15, 0.05), labels = NA)
+mtext(side = 3, "b) 5 years, no reference reef")
+for(i in c(1,3)){ # for each disturbance type
+
+  if(i == 1){
+    dt_plot <- orch_D0_dt5 %>% filter(par2 == 0)
+  } else if(i == 2){
+    dt_plot <- orch_D5_dt5 %>% filter(par2 == 0)
+  } else{
+    dt_plot <- orch_D3_dt5 %>% filter(par2 == 0)
+  }
+
+for(j in 1:length(prop_main)){
+  
+  dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
+
+dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(totI_ROI_mean), q05 = quantile(totI_ROI_mean, 0.05), q95 = quantile(totI_ROI_mean, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+}
+}
+legend("topright", legend = c("0.5", "0.9", "1"), col = prop_cols, pch = 16, title = "Reef investment", bty = "n")
+legend("bottomright", legend = c("none", "every 3 yrs"), pch = d_shapes[c(1,3)], title = "Disturbance", bty = "n", inset = c(0, 0.2))
+
+
+# 50 years, with reference reef supply
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.004), las = 1)
+mtext(side = 3, "c) 50 years, with reference reef")
+for(i in c(1,3)){ # for each disturbance type
+
+  if(i == 1){
+    dt_plot <- orch_D0_dt50 %>% filter(par2 == lambda_R)
+  } else if(i == 2){
+    dt_plot <- orch_D5_dt50 %>% filter(par2 == lambda_R)
+  } else{
+    dt_plot <- orch_D3_dt50 %>% filter(par2 == lambda_R)
+  }
+
+for(j in 1:length(prop_main)){
+  
+  dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
+
+dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(totI_ROI_mean), q05 = quantile(totI_ROI_mean, 0.05), q95 = quantile(totI_ROI_mean, 0.95))
+  
+points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
+arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
+}
+}
+
+
+# 5 years, no reference reef supply
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.004), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.004, 0.001), labels = NA)
+mtext(side = 3, "d) 50 years, no reference reef")
+for(i in c(1,3)){ # for each disturbance type
+
+  if(i == 1){
+    dt_plot <- orch_D0_dt50 %>% filter(par2 == 0)
+  } else if(i == 2){
+    dt_plot <- orch_D5_dt50 %>% filter(par2 == 0)
+  } else{
+    dt_plot <- orch_D3_dt50 %>% filter(par2 == 0)
+  }
+
+for(j in 1:length(prop_main)){
+  
+  dt_pt1 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(reef_cover_mean), q05 = quantile(reef_cover_mean, 0.05), q95 = quantile(reef_cover_mean, 0.95))
+
+dt_pt2 <- dt_plot %>% filter(prop_out == prop_main[j]) %>% summarize(mn = mean(totI_ROI_mean), q05 = quantile(totI_ROI_mean, 0.05), q95 = quantile(totI_ROI_mean, 0.95))
   
 points(x = dt_pt1$mn, y = dt_pt2$mn, pch = d_shapes[i], col = prop_cols[j])
 arrows(x0 = dt_pt1$mn, y0 = dt_pt2$q05, y1 = dt_pt2$q95, code = 3, angle = 90, length = 0.025, col = prop_cols[j])
@@ -1855,8 +2122,8 @@ polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r
 
 
 dt_plot0 <- orch_D0_mn_dt5[which(orch_D0_mn_dt5$par2 == lambda_R),]
-pdf("TempFigs/petal_5_D0_08.pdf", height = 8, width = 8)
-petal_fun(dt_plot = dt_plot0, prop_choice = 0.8)
+pdf("TempFigs/petal_5_D0_05.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.5)
 dev.off()
 
 pdf("TempFigs/petal_5_D0_1.pdf", height = 8, width = 8)
@@ -1864,8 +2131,8 @@ petal_fun(dt_plot = dt_plot0, prop_choice = 1)
 dev.off()
 
 dt_plot0 <- orch_D0_mn_dt50[which(orch_D0_mn_dt50$par2 == lambda_R),]
-pdf("TempFigs/petal_50_D0_08.pdf", height = 8, width = 8)
-petal_fun(dt_plot = dt_plot0, prop_choice = 0.8)
+pdf("TempFigs/petal_50_D0_05.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.5)
 dev.off()
 
 pdf("TempFigs/petal_50_D0_1.pdf", height = 8, width = 8)
@@ -1875,8 +2142,8 @@ dev.off()
 
 # repeat without external recruitment
 dt_plot0 <- orch_D0_mn_dt5[which(orch_D0_mn_dt5$par2 == 0),]
-pdf("TempFigs/petal_5_D0_08_noR.pdf", height = 8, width = 8)
-petal_fun(dt_plot = dt_plot0, prop_choice = 0.8)
+pdf("TempFigs/petal_5_D0_05_noR.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.5)
 dev.off()
 
 pdf("TempFigs/petal_5_D0_1_noR.pdf", height = 8, width = 8)
@@ -1884,8 +2151,8 @@ petal_fun(dt_plot = dt_plot0, prop_choice = 1)
 dev.off()
 
 dt_plot0 <- orch_D0_mn_dt50[which(orch_D0_mn_dt50$par2 == 0),]
-pdf("TempFigs/petal_50_D0_08_noR.pdf", height = 8, width = 8)
-petal_fun(dt_plot = dt_plot0, prop_choice = 0.8)
+pdf("TempFigs/petal_50_D0_05_noR.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.5)
 dev.off()
 
 pdf("TempFigs/petal_50_D0_1_noR.pdf", height = 8, width = 8)
@@ -1903,14 +2170,12 @@ dev.off()
 ```
 
 
--- sensitivity analyses (which could be here or in SM depending on usefulness)
-
 ## SM simulations
 
 supplemental figures
 -- full metrics for full proportions outplanted
 -- time to full orchard figure
--- any sensitivity analyses not in main text
+-- sensitivity analyses 
 
 
 
