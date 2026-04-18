@@ -93,14 +93,36 @@ nurs_growth$mat_list <- field_Tmats$mat_list
 nurs_growth$summ_list <- field_Tmats$summ_list
 
 
-#nurs_growth$trans_summary
-#field_growth$trans_summary
-  
 # change 2: replace size class 1 survival with recruit survival
   
+# change the bootstrap replicates into a data frame
+recruit_surv_df <- data.frame(
+  prop_survived = recruit_surv$survival_boot,
+  size_class = rep(1, length(recruit_surv$survival_boot)),
+  replicate = c(1:length(recruit_surv$survival_boot))
+)
+
+field_surv$SC_surv_df <- field_surv$SC_surv_df %>% filter(size_class != 1) %>% rbind(recruit_surv_df)
+
+recruit_surv_summ <- recruit_surv$survival_summary %>% rename(mean = mean_survival, sd = sd_survival) %>% select(-ci_lower, -ci_upper)
+
+#colnames(recruit_surv_summ)
+#colnames(field_surv$SC_surv_summ_df[-1])
+
+field_surv$SC_surv_summ_df[1, c(-1)] <- recruit_surv_summ
+#View(field_surv$SC_surv_summ_df)
+
 #recruit_surv$survival_summary
 
-# change the bootstrap replicates into a data frame
+# repeat for summarized values
+
+#field_surv$n_bootstrap
+
+#length(recruit_surv$survival_boot)
+
+#unique(recruit_surv$survival_boot - recruit_surv$s_recruit_boot)
+
+#max(field_growth$growth_trans_df$replicate)
 
 ```
 
@@ -119,7 +141,7 @@ change format to make them work with the par_list_fun
 
 # structure needed: list of matrices (called mat_list), one matrix for each size class, in the matrix for the ith size class the rows are the replicates (so should be 1000) and the columns correspond to the rows in the ith column of the transition matrix. So for size class 1, the columns would be 1) stay in SC1, 2) grow to SC2, 3) grow to SC3, 4) grow to SC4, and 5) grow to SC5
 
-# for the summarized values: list of matrices called summ_list, one matrix for each size class, here the ROWS correspond to the ith column of the transition matrix and the columns are for the mean, Q05, and Q95 (need to be named) 
+# for the summarized values: list of matrices called summ_list, one matrix for each size class, here the rows correspond to the ith column of the transition matrix and the columns are for the mean, Q05, and Q95 (need to be named) 
 
 ```
 
@@ -575,7 +597,7 @@ lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lt
 legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 
 # plot each reef population separately
-plot(x = c(1:years), y = apply(sim1$reef_pops_pre[[1]][[1]], MARGIN = 2, sum), type = "l", las = 1, ylim = c(0, 1000), xlab = "year", ylab = "Pop'n size", lwd = 2)
+plot(x = c(1:years), y = apply(sim1$reef_pops_pre[[1]][[1]], MARGIN = 2, sum), type = "l", las = 1, ylim = c(0, 5000), xlab = "year", ylab = "Pop'n size", lwd = 2)
 lines(x = c(1:years), y = apply(sim1$reef_pops_pre[[1]][[2]], MARGIN = 2, sum), lty = 2)
 lines(x = c(1:years), y = apply(sim1$reef_pops_pre[[1]][[3]], MARGIN = 2, sum), lty = 3)
 
@@ -594,11 +616,13 @@ lines(x = c(1:years), y = apply(sim1$orchard_pops_pre[[1]][[2]], MARGIN = 2, sum
 dist_yrs <- NA # no disturbance
 
 # coral transplanting
-transplant <- rep(0, years) # years in which corals get transplanted from the orchard
-transplant[50] <- 1 # in 50th year, move corals from orchard to reef
+#transplant <- rep(0, years) # years in which corals get transplanted from the orchard
+#transplant[50] <- 1 # in 50th year, move corals from orchard to reef
+
+transplant <- rep(1, years)
 
 null_mat <- matrix(0, nrow = years, ncol = n)
-null_mat[which(transplant!=0)[1],] <- c(0, 0, 100, 100,0) # move 100 corals each from size classes 3 and 4
+null_mat[which(transplant!=0),] <- c(0, 1000, 0, 0, 0) # move 100 corals each from size class 2
 trans_mats <- list()
 trans_mats[[1]] <- list() # first orchard 
 trans_mats[[1]][[1]] <- null_mat # number of corals in each size class that originated from the first source of colonies for this orchard to transplant at each timepoint
@@ -637,7 +661,7 @@ lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lt
 legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 
 # plot each reef population separately
-plot(x = c(1:years), y = apply(sim1$reef_pops_pre[[1]][[1]], MARGIN = 2, sum), type = "l", las = 1, ylim = c(0, 1000), xlab = "year", ylab = "Pop'n size", lwd = 2)
+plot(x = c(1:years), y = apply(sim1$reef_pops_pre[[1]][[1]], MARGIN = 2, sum), type = "l", las = 1, ylim = c(0, 10000), xlab = "year", ylab = "Pop'n size", lwd = 2)
 lines(x = c(1:years), y = apply(sim1$reef_pops_pre[[1]][[2]], MARGIN = 2, sum), lty = 2)
 lines(x = c(1:years), y = apply(sim1$reef_pops_pre[[1]][[3]], MARGIN = 2, sum), lty = 3)
 
@@ -658,18 +682,6 @@ orchard_treatments <- c("orchard1")
 reef_treatments <- c("reef1") 
 lab_treatments <- c("0_T1") 
 
-# demographic parameters for each orchard and reef treatment/subpopulation
-field_surv1 <- field_surv
-field_growth1 <- field_growth
-nurs_surv1 <- nurs_surv
-nurs_growth1 <- nurs_growth
-
-# nursery data only available for size classes 1-2, so use the field data for the larger size classes
-nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
-
-nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
-nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
-nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
 
 all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
@@ -996,19 +1008,6 @@ lambda_set <- rep(NA, n_sample1)
 # holding matrix for population sizes
 Nmat <- matrix(NA, nrow = years, ncol = n_sample1)
 
-# get the parameter sets
-field_surv1 <- field_surv
-field_growth1 <- field_growth
-nurs_surv1 <- nurs_surv
-nurs_growth1 <- nurs_growth
-
-# nursery data only available for size classes 1-2, so use the field data for larger size classes
-nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
-
-nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
-nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
-nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
-
 
 set.seed(500)
 all_pars <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
@@ -1016,6 +1015,7 @@ all_pars <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(o
 
 for(i in 1:n_sample1){
   
+ # i <- 34
   
   sim_i <- rse_mod1(years, n, A_mids, surv_pars.r = all_pars$surv_pars_L.r[[i]], dens_pars.r, growth_pars.r = all_pars$growth_pars_L.r[[i]], shrink_pars.r = all_pars$shrink_pars_L.r[[i]], frag_pars.r = all_pars$frag_pars_L.r[[i]], fec_pars.r, surv_pars.o = all_pars$surv_pars_L.o[[i]], dens_pars.o, growth_pars.o = all_pars$growth_pars_L.o[[i]], shrink_pars.o = all_pars$shrink_pars_L.o[[i]], frag_pars.o = all_pars$frag_pars_L.o[[i]], fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
   
@@ -1025,6 +1025,8 @@ for(i in 1:n_sample1){
   
 }
 
+
+#G_fun(years, n, growth_pars = all_pars$growth_pars_L.r[[i]][[1]][[1]], shrink_pars = all_pars$shrink_pars_L.r[[i]][[1]][[1]], frag_pars = all_pars$frag_pars_L.r[[i]][[1]][[1]])$G_list[[1]]
 
 ```
 
@@ -1037,11 +1039,11 @@ layout(matrix(c(1, 2), nrow = 1, ncol = 2, byrow = T), widths = rep(1, 2), heigh
 par(mar=c(0, 3, 3, 0.1), oma = c(4.5, 1, 2, 0.1))
 
 
-plot(x = c(1:years), y = Nmat[,1], type = "l", col = adjustcolor("black", alpha.f = 0.25), las = 1, ylim = c(0, max(Nmat)), xlab = NA, ylab = NA)
+plot(x = c(1:years), y = log(Nmat[,1] + 1), type = "l", col = adjustcolor("black", alpha.f = 0.25), las = 1, ylim = c(0, max(log(Nmat + 1))), xlab = NA, ylab = NA)
 mtext(side = 1, "Year", line = 2)
-mtext(side = 2, "Population size", line = 2.25)
+mtext(side = 2, "Log Population size", line = 2.25)
 for(i in 2:n_sample1){
-  lines(x = c(1:years), y = Nmat[,i], col = adjustcolor("black", alpha.f = 0.25))
+  lines(x = c(1:years), y = log(Nmat[,i] + 1), col = adjustcolor("black", alpha.f = 0.25))
 }
 
 hist(lambda_set, main = NA, xlab = NA, ylab = NA, las = 1)
