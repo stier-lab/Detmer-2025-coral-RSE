@@ -1994,9 +1994,13 @@ metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833"
 Lcol <- "gray"
 lab_cex <- 0.9
 
-ref_vals <- dt_plot %>% filter(prop_out == 0.9) %>% rename(prop_out_ref = prop_out, reef_cover_ref = reef_cover_mean, orch_function_ref = orch_function_mean, reef_ROI_ref = reef_ROI_mean, tot_ROI_ref = tot_ROI_mean, tot_costs_ref = tot_costs, recruits_out_ref = reef_recruits_out_tot) %>% select(prop_out_ref, reef_cover_ref, orch_function_ref, reef_ROI_ref, tot_ROI_ref, tot_costs_ref, recruits_out_ref, par_rep, par2)
+#ref_vals <- dt_plot %>% filter(prop_out == 0.9) %>% rename(prop_out_ref = prop_out, reef_cover_ref = reef_cover_mean, orch_function_ref = orch_function_mean, reef_ROI_ref = reef_ROI_mean, tot_ROI_ref = tot_ROI_mean, tot_costs_ref = tot_costs, recruits_out_ref = reef_recruits_out_tot) %>% select(prop_out_ref, reef_cover_ref, orch_function_ref, reef_ROI_ref, tot_ROI_ref, tot_costs_ref, recruits_out_ref, par_rep, par2)
+
+#View(dt_plot)
   
-dt_plot2 <- dt_plot %>% filter(prop_out == prop_choice) %>% left_join(ref_vals, by = c("par_rep", "par2"))
+#dt_plot2 <- dt_plot %>% filter(prop_out == prop_choice) %>% left_join(ref_vals, by = c("par_rep", "par2"))
+
+dt_plot2 <- dt_plot %>% filter(prop_out == prop_choice)
 
   
 par(pty = "s")
@@ -2008,7 +2012,8 @@ polygon(x = c(test_x, rev(test_x)), y = c(sqrt((r_in)^2 - test_x^2), rev(-1*sqrt
 test_x <- seq(from = -r_out0, to = r_out0, length.out = 100)
 polygon(x = c(test_x, rev(test_x)), y = c(sqrt((r_out0)^2 - test_x^2), rev(-1*sqrt(r_out0^2 - test_x^2))), border = Lcol)
 #text(x = 0, y = 0, paste(as.character(round(opt_prop1*100,0)), "%", sep = ""))
-text(x = 0, y = 0, paste(as.character(prop_choice), as.character(0.9), sep = "/")) 
+#text(x = 0, y = 0, paste(as.character(prop_choice), as.character(0.9), sep = "/")) 
+text(x = 0, y = 0, as.character(prop_choice)) 
 
 # add background lines
 th1_set <- seq(from = 0, to = 300, by = 60)
@@ -2028,7 +2033,7 @@ if(i < 4){
 # value to plot: on average, how far was each metric from it's max possible value for that parameter set? (outer ring is one); actual value to show in text is the average of the raw values at the proportion outplanted?
 
 # coral cover
-r_out <- mean(dt_plot2$reef_cover_mean/dt_plot2$reef_cover_ref) + r_in
+r_out <- mean(dt_plot2$reef_cover_mean/max(dt_plot$reef_cover_mean)) + r_in
 th1 <- 0 # starting angle (in degrees)
 th2 <- 60 # ending angle (in degrees)
 r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
@@ -2043,7 +2048,7 @@ polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_o
 
 
 # orchard function
-r_out <- mean(dt_plot2$orch_function_mean/dt_plot2$orch_function_ref) + r_in
+r_out <- mean(dt_plot2$orch_function_mean/max(dt_plot$orch_function_mean)) + r_in
 th1 <- 60 # starting angle (in degrees)
 th2 <- 120 # ending angle (in degrees)
 r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
@@ -2056,7 +2061,7 @@ polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_o
 #text(x = 0, y =1.15*r_out0*sin((th1 + th2)/2*pi/180), bquote(.(labs1)~m^2), cex = lab_cex)
 
 # reef ROI
-r_out <- mean(dt_plot2$reef_ROI_mean/dt_plot2$reef_ROI_ref) + r_in
+r_out <- mean(dt_plot2$reef_ROI_mean/max(dt_plot$reef_ROI_mean)) + r_in
 th1 <- 120 # starting angle (in degrees)
 th2 <- 180 # ending angle (in degrees)
 r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
@@ -2071,7 +2076,7 @@ polygon(x = c(r_in_x, rev(r_out_x)), y = c(sqrt(r_in^2 - r_in_x^2), rev(sqrt(r_o
 
 # past 180: need to switch to negative square root
 # tot ROI
-r_out <- mean(dt_plot2$tot_ROI_mean/dt_plot2$tot_ROI_ref) + r_in
+r_out <- mean(dt_plot2$tot_ROI_mean/max(dt_plot$tot_ROI_mean)) + r_in
 th1 <- 180 # starting angle (in degrees)
 th2 <- 240 # ending angle (in degrees)
 r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
@@ -2086,7 +2091,7 @@ polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r
 
 # tot costs saved
 # r_out <- 1- (mean(dt_plot2$tot_costs/dt_plot2$tot_costs_min))^(-1) + r_in
-r_out <- mean(dt_plot2$tot_costs/dt_plot2$tot_costs_ref) + r_in
+r_out <- mean(dt_plot2$tot_costs/max(dt_plot$tot_costs)) + r_in
 th1 <- 240 # starting angle (in degrees)
 th2 <- 300 # ending angle (in degrees)
 r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
@@ -2100,7 +2105,7 @@ polygon(x = c(r_in_x, rev(r_out_x)), y = c(-sqrt(r_in^2 - r_in_x^2), rev(-sqrt(r
 
 
 # recruits outplanted to reef
-r_out <- mean(dt_plot2$reef_recruits_out_tot/dt_plot2$recruits_out_ref) + r_in
+r_out <- mean(dt_plot2$reef_recruits_out_tot/max(dt_plot$reef_recruits_out_tot)) + r_in
 th1 <- 300 # starting angle (in degrees)
 th2 <- 360 # ending angle (in degrees)
 r_in_x <- seq(from = r_in*cos(th1*pi/180), to = r_in*cos(th2*pi/180), length.out = 100)
@@ -2126,6 +2131,10 @@ pdf("TempFigs/petal_5_D0_05.pdf", height = 8, width = 8)
 petal_fun(dt_plot = dt_plot0, prop_choice = 0.5)
 dev.off()
 
+pdf("TempFigs/petal_5_D0_09.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.9)
+dev.off()
+
 pdf("TempFigs/petal_5_D0_1.pdf", height = 8, width = 8)
 petal_fun(dt_plot = dt_plot0, prop_choice = 1)
 dev.off()
@@ -2133,6 +2142,10 @@ dev.off()
 dt_plot0 <- orch_D0_mn_dt50[which(orch_D0_mn_dt50$par2 == lambda_R),]
 pdf("TempFigs/petal_50_D0_05.pdf", height = 8, width = 8)
 petal_fun(dt_plot = dt_plot0, prop_choice = 0.5)
+dev.off()
+
+pdf("TempFigs/petal_5_D0_09.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.9)
 dev.off()
 
 pdf("TempFigs/petal_50_D0_1.pdf", height = 8, width = 8)
@@ -2146,6 +2159,10 @@ pdf("TempFigs/petal_5_D0_05_noR.pdf", height = 8, width = 8)
 petal_fun(dt_plot = dt_plot0, prop_choice = 0.5)
 dev.off()
 
+pdf("TempFigs/petal_50_D0_09.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.9)
+dev.off()
+
 pdf("TempFigs/petal_5_D0_1_noR.pdf", height = 8, width = 8)
 petal_fun(dt_plot = dt_plot0, prop_choice = 1)
 dev.off()
@@ -2153,6 +2170,10 @@ dev.off()
 dt_plot0 <- orch_D0_mn_dt50[which(orch_D0_mn_dt50$par2 == 0),]
 pdf("TempFigs/petal_50_D0_05_noR.pdf", height = 8, width = 8)
 petal_fun(dt_plot = dt_plot0, prop_choice = 0.5)
+dev.off()
+
+pdf("TempFigs/petal_50_D0_09_noR.pdf", height = 8, width = 8)
+petal_fun(dt_plot = dt_plot0, prop_choice = 0.9)
 dev.off()
 
 pdf("TempFigs/petal_50_D0_1_noR.pdf", height = 8, width = 8)
