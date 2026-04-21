@@ -329,7 +329,7 @@ transplant <- rep(0, years) # years in which corals get transplanted from the or
 #transplant[10] <- 1 # in 10th year, move corals from orchard to reef
 
 # null_mat <- matrix(0, nrow = years, ncol = n)
-null_mat <- matrix(c(0, 0, 0.25*orchard_size, 0, 0), nrow = years, ncol = n, byrow = T)
+null_mat <- matrix(c(0, 0.75*orchard_size, 0, 0, 0), nrow = years, ncol = n, byrow = T)
 #trans_mats[[1]][[1]][which(transplant!=0)[1],] <- c(0, 0, 0, 2,0)# max number of colonies of each size class to move to reef in first transplant event
 trans_mats <- list()
 trans_mats[[1]] <- list() # first orchard 
@@ -1152,11 +1152,19 @@ simulations for petal plots
 
 # simulations
 orch_D0_mn <- orch_exp_fun1(dem_pars = all_pars, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+orch_D3_mn <- orch_exp_fun1(dem_pars = all_pars, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = T, dist_yrs = dist_yrs3, dist_pars_list = dist_pars_list3)
  
 # process output
 orch_D0_mn_dt5 <- full_dt_fun(sim_list = orch_D0_mn, max_yr = 6, n_pars = 1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R")
 
 orch_D0_mn_dt50 <- full_dt_fun(sim_list = orch_D0_mn, max_yr = 51, n_pars = 1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R")
+
+
+orch_D3_mn_dt5 <- full_dt_fun(sim_list = orch_D3_mn, max_yr = 6, n_pars = 1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R")
+
+orch_D3_mn_dt50 <- full_dt_fun(sim_list = orch_D3_mn, max_yr = 51, n_pars = 1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R")
+
 
 ```
 
@@ -2220,7 +2228,7 @@ need to make another function that includes iterations over lab survival, lab gr
 
 # function for running orchard expansion simulations with different restoration parameter values
 # growth_set = vector with growth of babies kept in lab or in orchard (proportion that transition from size class 1 to 2 after one year)
-# surv_set = matrix with survival rates of each size class after outplanting/transplanting to reef
+# surv_set = vector with survival rates after outplanting/transplanting to reef
 # out_par_type = either "lab_growth" (growing out babies in lab for a year) or "orch_trans" (transplanting corals from the orchard to the reef)
 # dem_pars = set of demographic parameters to use
 # par_set2 = values of the second parameter to iterate over
@@ -2368,11 +2376,20 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
     if(out_par_type == "lab_growth"){
     
     surv_pars.r_j <- surv_pars.r
-    surv_pars.r_j[[1]][[3]][c(1,2)] <- surv_set[h,]
     
-    lab_pars_j$size_props1[2, ] <- c(1-growth_set[j], growth_set[j], 0, 0,0)
+   #LS_mat <- matrix(NA, nrow = length(LS_set), ncol = 2)
+   #LS_mat[,2] <- LS_set # SC2 survival rates
+   #LS_mat[,1] <- LS_set*surv_pars.r[[1]][[2]][1]/surv_pars.r[[1]][[2]][2]
+   # #surv_pars.r_j[[1]][[3]][c(1,2)] <- LS_mat[h,]
+   
+   # SC1 survival rates: preserve same ratio between SC1 and SC2 survival as in field parameters
+    surv_pars.r_j[[1]][[3]][1] <- LS_set[h]*surv_pars.r[[1]][[2]][1]/surv_pars.r[[1]][[2]][2]
+    # SC2 survival rates:
+    surv_pars.r_j[[1]][[3]][2] <- LS_set[h]
+    
+    lab_pars_ij$size_props1[2, ] <- c(1-growth_set[j], growth_set[j], 0, 0,0)
       
-    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_ij, rest_pars_ij, N0.r, N0.o, N0.l)
+    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r_j, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_ij, rest_pars_ij, N0.r, N0.o, N0.l)
     }
     
     if(out_par_type == "orch_trans"){
@@ -2449,7 +2466,11 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par
       
       for(h in 1:length(surv_set)){
         
-        sim_ijk <- sim_list[[i]][[j]][[k]][[h]]
+        if(n_pars == 1){
+          sim_ijk <- sim_list[[j]][[k]][[h]]
+        } else{
+          sim_ijk <- sim_list[[i]][[j]][[k]][[h]]
+        }
       
       dt_ijk <- metrics_dt_fun(sim_ijk, max_yr)
       
@@ -2503,24 +2524,32 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par
 ## main simulations
 
 
-```{r}
+```{r, warning = F}
 
 # parameter sets
+L_HM <- 10 # number of parameter values for each axis of heatmaps
+
+# for lab grow out:
 # post-outplanting survival of recruits kept in lab for a year
-LS_set <- seq(from = 0, to = 1, length.out = 10) 
-
+LS_set <- seq(from = 0, to = 1, length.out = L_HM) 
 # growth of recruits kept in lab for a year
-LG_set <- seq(from = 0, to = 1, length.out = 10) 
+LG_set <- seq(from = 0, to = 1, length.out = L_HM) 
 
+# for orchard transplanting:
 # post-transplanting survival of orchard colonies moved to reef
-TS_set <- seq(from = 0, to = 1, length.out = 10) 
+TS_set <- seq(from = 0, to = 1, length.out = L_HM) 
+# growth of size class 1 colonies in orchard
+TG_set <- seq(from = 0, to = 1, length.out = L_HM) 
 
 # lab simulations: update lab_retain_max
 rest_pars$lab_retain_max <- 0.5*lab_max
 
-labS_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, out_set = LS_set, out_par_type = "lab_surv", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+# just use mean parameters for heatmaps
+labG_hm_D0 <- lab_trans_fun1(dem_pars = all_pars, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
 
-labG_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, out_set = LG_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+labG_hm_D3 <- lab_trans_fun1(dem_pars = all_pars, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrs3, dist_pars_list = dist_pars_list3)
+
+# labG_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
 
 rest_pars$lab_retain_max <- 0 # reset lab_retain_max
 
@@ -2528,29 +2557,117 @@ rest_pars$lab_retain_max <- 0 # reset lab_retain_max
 # transplanting simulations: update the transplanting parameters
 rest_pars$transplant <- rep(1, years) # years in which corals get transplanted from the orchard
 
-trans_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, out_set = TS_set, out_par_type = "trans_surv", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+trans_hm_D0 <- lab_trans_fun1(dem_pars = all_pars, growth_set = TG_set, surv_set = TS_set, out_par_type = "orch_trans", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
 
+trans_hm_D3 <- lab_trans_fun1(dem_pars = all_pars, growth_set = TG_set, surv_set = TS_set, out_par_type = "orch_trans", par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrs3, dist_pars_list = dist_pars_list3)
+
+#trans_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, growth_set = TG_set, surv_set = TS_set, out_par_type = "orch_trans", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
 
 # reset transplanting parameters
 rest_pars$transplant <- rep(0, years)
 
 
 # get the reference values
-orch_D0_ref5 <- orch_D0_dt5 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean)
+orch_D0_ref5 <- orch_D0_mn_dt5 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean,totI_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean, totI_ROI_ref = totI_ROI_mean)
 
-orch_D0_ref50 <- orch_D0_dt50 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean)
+orch_D0_ref50 <- orch_D0_mn_dt50 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean,totI_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean, totI_ROI_ref = totI_ROI_mean)
+
+orch_D3_ref5 <- orch_D3_mn_dt5 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean,totI_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean, totI_ROI_ref = totI_ROI_mean)
+
+orch_D3_ref50 <- orch_D3_mn_dt50 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean,totI_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean, totI_ROI_ref = totI_ROI_mean)
+
+#View(orch_D0_mn_dt5)
+
+#orch_D0_ref5 <- orch_D0_dt5 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean)
+
+#orch_D0_ref50 <- orch_D0_dt50 %>% filter(prop_out == 0.9, par2 == lambda_Rs[2]) %>% select(par_rep, reef_cover_mean, tot_ROI_mean) %>% rename(reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean)
 
 # make the data frames
 
-labS_D0_dt5 <- full_dt_fun2(sim_list = labS_D0, max_yr = 6, n_pars = n_sample1, out_set = LS_set, out_par_type = "lab_surv", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5, by = c("par_rep"))
-labS_D0_dt50 <- full_dt_fun2(sim_list = labS_D0, max_yr = 51, n_pars = n_sample1, out_set = LS_set, out_par_type = "lab_surv", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref50, by = c("par_rep"))
+labG_D0_dt5 <- full_dt_fun2(sim_list = labG_hm_D0, max_yr = 6, n_pars = 1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5)
 
-labG_D0_dt5 <- full_dt_fun2(sim_list = labG_D0, max_yr = 6, n_pars = n_sample1, out_set = LG_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5, by = c("par_rep"))
-labG_D0_dt50 <- full_dt_fun2(sim_list = labG_D0, max_yr = 51, n_pars = n_sample1, out_set = LG_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")  %>% left_join(orch_D0_ref50, by = c("par_rep"))
+labG_D0_dt50 <- full_dt_fun2(sim_list = labG_hm_D0, max_yr = 51, n_pars = 1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")  %>% left_join(orch_D0_ref50)
 
-trans_D0_dt5 <- full_dt_fun2(sim_list = trans_D0, max_yr = 6, n_pars = n_sample1, out_set = TS_set, out_par_type = "trans_surv", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5, by = c("par_rep"))
-trans_D0_dt50 <- full_dt_fun2(sim_list = trans_D0, max_yr = 51, n_pars = n_sample1, out_set = TS_set, out_par_type = "trans_surv", par_set2 = NA, par2_name = "none")  %>% left_join(orch_D0_ref50, by = c("par_rep"))
+labG_D3_dt5 <- full_dt_fun2(sim_list = labG_hm_D3, max_yr = 6, n_pars = 1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none") %>% left_join(orch_D3_ref5)
 
+labG_D3_dt50 <- full_dt_fun2(sim_list = labG_hm_D3, max_yr = 51, n_pars = 1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")  %>% left_join(orch_D3_ref50)
+
+# repeat for transplanting
+trans_D0_dt5 <- full_dt_fun2(sim_list = trans_hm_D0, max_yr = 6, n_pars = 1, growth_set = TG_set, surv_set = TS_set, out_par_type = "orch_trans", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5)
+
+trans_D0_dt50 <- full_dt_fun2(sim_list = trans_hm_D0, max_yr = 51, n_pars = 1, growth_set = TG_set, surv_set = TS_set, out_par_type = "orch_trans", par_set2 = NA, par2_name = "none")  %>% left_join(orch_D0_ref50)
+
+trans_D3_dt5 <- full_dt_fun2(sim_list = trans_hm_D3, max_yr = 6, n_pars = 1, growth_set = TG_set, surv_set = TS_set, out_par_type = "orch_trans", par_set2 = NA, par2_name = "none") %>% left_join(orch_D3_ref5)
+
+trans_D3_dt50 <- full_dt_fun2(sim_list = trans_hm_D3, max_yr = 51, n_pars = 1, growth_set = TG_set, surv_set = TS_set, out_par_type = "orch_trans", par_set2 = NA, par2_name = "none")  %>% left_join(orch_D3_ref50)
+
+
+#labG_D0_dt5 <- full_dt_fun2(sim_list = labG_hm_D0, max_yr = 6, n_pars = 1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5, by = c("par_rep"))
+
+#trans_D0_dt5 <- full_dt_fun2(sim_list = trans_D0, max_yr = 6, n_pars = n_sample1, out_set = TS_set, out_par_type = "trans_surv", par_set2 = NA, par2_name = "none") %>% left_join(orch_D0_ref5, by = c("par_rep"))
+
+
+```
+
+
+plot heatmaps
+
+```{r}
+#View(trans_D0_dt50)
+
+#View(labG_D0_dt50)
+
+# color palette
+
+nHalf <- 100
+rc1 <- colorRampPalette(colors = c("#2166AC","#F7F7F7", "#B2182B"), space = "Lab")(nHalf)
+rampcols1 <- c(rc1) # all the colors
+
+rampcolsL <- rampcols1[1:(nHalf/2)]
+rampcolsU <- rampcols1[(nHalf/2):nHalf]
+
+#col_vals <- seq(from = 0, to = 20, length.out = nHalf)
+
+col_valsL <- seq(from = 0, to = 1, length.out = nHalf/2)
+col_valsU <- seq(from = 1, to = 20, length.out = nHalf/2)
+
+
+
+# reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean, totI_ROI_ref = totI_ROI_mean
+
+dt_plot <- labG_D0_dt5 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+#View(dt_plot)
+
+xset <- LG_set
+yset <- LS_set
+
+par(pty = "s")
+plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
+axis(side = 1, at = seq(0.5, L_HM - 0.5, 1), labels = NA, tick = F, line = -0.5)
+axis(side = 2, at = seq(0.5, L_HM - 0.5, 1), labels = NA, las = 1, tick = F, line = -0.5)
+mtext(side = 1, "Growth rate", line = 1.75)
+mtext(side = 2, "Survival rate", line = 1.5)
+for(i in 1:L_HM){ # x value
+  for(j in 1:L_HM){ # y value
+    
+    # get point to plot
+    plot_pt <- dt_plot$reef_cover_prop[which(dt_plot$growth_par==xset[i] & dt_plot$surv_par == yset[j])]
+    
+    # get closest color
+    if(plot_pt < 1){
+      index_ij <- which(abs(plot_pt-col_valsL) == min(abs(plot_pt-col_valsL)))
+      
+      polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = rampcolsL[index_ij], border = NA) 
+    
+    } else{
+      index_ij <- which(abs(plot_pt-col_valsU) == min(abs(plot_pt-col_valsU)))
+      
+      polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = rampcolsU[index_ij], border = NA) 
+    }
+    
+  }
+}
 
 ```
 
