@@ -472,7 +472,7 @@ Note these functions are defined here rather than in rse_funs.R because they dep
 # prop_set = vector with proportions of substrates to outplant to orchard
 # dem_pars = set of demographic parameters to use
 # par_set2 = values of the second parameter to iterate over
-# par2_name = name of the second parameter to iterate over (NOTE: function currently only allows for parameters that are in rest_pars list or "lambda_R", "frag_pars.o", fec_pars.o, "surv_pars.o_1", and "surv_pars.r_1")
+# par2_name = name of the second parameter to iterate over (NOTE: function currently only allows for parameters that are in rest_pars list, lab_pars list, or "lambda_R", "frag_pars.o", fec_pars.o, "surv_pars.o_1", and "surv_pars.r_1")
 # dist = whether or not there is a disturbance regime (T or F)
 orch_exp_fun1 <- function(dem_pars, prop_set, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
   
@@ -594,19 +594,26 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
   
   for(j in 1:length(prop_set)){ # for each proportion outplanted to reef
     
+    lab_pars_ij <- lab_pars
     rest_pars_ij <- rest_pars
     
     rest_pars_ij$reef_prop <- c(prop_set[j], 1) # proportion of tiles outplanted to reef for each treatment
     
     if(par2_name %in% names(rest_pars_ij)){
       rest_pars_ij[[which(names(rest_pars_ij) == par2_name)]] <- par_set2[i]
-    } else if(par2_name == "lambda_R"){
+    } 
+    
+    if(par2_name %in% names(lab_pars_ij)){
+      lab_pars_ij[[which(names(lab_pars_ij) == par2_name)]] <- par_set2[i]
+    } 
+    
+    
+    if(par2_name == "lambda_R"){
       lambda_R <- par_set2[i]
-      
     } 
     
     # run the model
-    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars_ij, N0.r, N0.o, N0.l)
+    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_ij, rest_pars_ij, N0.r, N0.o, N0.l)
     
     # save the output
     mod_list[[j]] <- sim_ij
@@ -2212,20 +2219,20 @@ need to make another function that includes iterations over lab survival, lab gr
 
 
 # function for running orchard expansion simulations with different restoration parameter values
-# out_set = vector or matrix with either postoutplanting survival of babies kept in lab, growth of babies kept in lab (size at outplanting), or post-transplant survival of corals moved from orchard
-# out_par_type = either "lab_surv", "lab_growth", or "trans_surv"
+# growth_set = vector with growth of babies kept in lab or in orchard (proportion that transition from size class 1 to 2 after one year)
+# surv_set = matrix with survival rates of each size class after outplanting/transplanting to reef
+# out_par_type = either "lab_growth" (growing out babies in lab for a year) or "orch_trans" (transplanting corals from the orchard to the reef)
 # dem_pars = set of demographic parameters to use
 # par_set2 = values of the second parameter to iterate over
 # par2_name = name of the second parameter to iterate over (NOTE: function currently only allows for parameters that are in rest_pars list or "lambda_R", "frag_pars.o", fec_pars.o, "surv_pars.o_1", and "surv_pars.r_1")
 # dist = whether or not there is a disturbance regime (T or F)
-lab_trans_fun1 <- function(dem_pars, out_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
+lab_trans_fun1 <- function(dem_pars, growth_set, surv_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
   
   out_list <- list()
 
 
 # outer loop = demographic parameter values
 # inner loop = proportion to outplant to the reef
-
 
 L_outer <- ifelse(par2_name == "none", 1, length(par_set2))  
 
@@ -2336,50 +2343,60 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
   # holding list for model simulations with this parameter set
   mod_list <- list()
   
-  for(j in 1:length(out_set)){ # for each proportion outplanted to reef
+  for(j in 1:length(growth_set)){ # for each growth rate
     
-    lab_pars_j <- lab_pars
+     mod_list_h <- list()
+    
+    for(h in 1:length(surv_set)){ # for each survival rate
+    
+    lab_pars_ij <- lab_pars
     rest_pars_ij <- rest_pars
     
     if(par2_name %in% names(rest_pars_ij)){
       rest_pars_ij[[which(names(rest_pars_ij) == par2_name)]] <- par_set2[i]
-    } else if(par2_name == "lambda_R"){
-      lambda_R <- par_set2[i]
-      
     } 
     
-    if(out_par_type == "lab_surv"){
-      surv_pars.r_j <- surv_pars.r
-      surv_pars.r_j[[1]][[3]][1] <- out_set[j]
-      
-      # run the model
-    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r_j, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_j, rest_pars_ij, N0.r, N0.o, N0.l)
-    }
+    if(par2_name %in% names(lab_pars_ij)){
+      lab_pars_ij[[which(names(lab_pars_ij) == par2_name)]] <- par_set2[i]
+    } 
     
+    if(par2_name == "lambda_R"){
+      lambda_R <- par_set2[i]
+    } 
+    
+  
     if(out_par_type == "lab_growth"){
     
-    lab_pars_j$size_props1[2, ] <- c(1-out_set[j], out_set[j], 0, 0,0)
+    surv_pars.r_j <- surv_pars.r
+    surv_pars.r_j[[1]][[3]][c(1,2)] <- surv_set[h,]
+    
+    lab_pars_j$size_props1[2, ] <- c(1-growth_set[j], growth_set[j], 0, 0,0)
       
-    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_j, rest_pars_ij, N0.r, N0.o, N0.l)
+    sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_ij, rest_pars_ij, N0.r, N0.o, N0.l)
     }
     
-    if(out_par_type == "trans_surv"){
+    if(out_par_type == "orch_trans"){
       
+      growth_pars.o_j <- growth_pars.o
+      growth_pars.o_j[[1]][[1]][[1]][1] <- growth_set[j]
       
-      trans_surv_j <- rep(out_set[j], 5)
+      trans_surv_j <- rep(surv_set[h], 5)
       rest_pars_ij$trans_surv <- trans_surv_j
     
-      sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_j, rest_pars_ij, N0.r, N0.o, N0.l)
+      sim_ij <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o_j, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_ij, rest_pars_ij, N0.r, N0.o, N0.l)
     }
-    
-    
     
     
     
     # save the output
-    mod_list[[j]] <- sim_ij
+    mod_list_h[[h]] <- sim_ij
     
-  } # end of iterations over outplanting proportions
+  } # end of iterations over survival rates
+    
+     # save the output
+    mod_list[[j]] <- mod_list_h
+     
+  } # end of iterations over growth rates
   
   
   out_list[[i]] <- mod_list
@@ -2394,7 +2411,7 @@ return(out_list)
 # wrapper function for iterating over multiple demographic parameter sets
 # dem_pars_all = list with all sets of demographic parameters
 # n_pars = number of parameter sets in dem_pars_all
-lab_trans_fun2 <- function(dem_pars_all, n_pars, out_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
+lab_trans_fun2 <- function(dem_pars_all, n_pars, growth_set, surv_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
   
   out_list2 <- list() # holding list
   
@@ -2422,28 +2439,40 @@ lab_trans_fun2 <- function(dem_pars_all, n_pars, out_set, out_par_type, par_set2
 # prop_set = vector with proportions of substrates to outplant to orchard
 # par_set2 = values of the second parameter to iterate over
 # par2_name = name of the second parameter iterated over in sim_list
-full_dt_fun2 <- function(sim_list, max_yr, n_pars, out_set, out_par_type, par_set2, par2_name){
+full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par_type, par_set2, par2_name){
   
   for(i in 1:n_pars){
   
   for(j in 1:length(par_set2)){
     
-    for(k in 1:length(out_set)){
+    for(k in 1:length(growth_set)){
       
-      sim_ijk <- sim_list[[i]][[j]][[k]]
+      for(h in 1:length(surv_set)){
+        
+        sim_ijk <- sim_list[[i]][[j]][[k]][[h]]
       
       dt_ijk <- metrics_dt_fun(sim_ijk, max_yr)
       
       dt_ijk$par_rep <- i
-      dt_ijk$out_par <- out_set[k]
+      dt_ijk$growth_par <- growth_set[k]
+      dt_ijk$surv_par <- surv_set[h]
       dt_ijk$par2 <- par_set2[j]
+        
+        if(h == 1){
+        dt_h <- dt_ijk
+      } else{
+        dt_h <- rbind(dt_h, dt_ijk)
+      }
+      
+      } # end of h loop
+      
       
       if(k == 1){
-        dt_k <- dt_ijk
+        dt_k <- dt_h
       } else{
-        dt_k <- rbind(dt_k, dt_ijk)
+        dt_k <- rbind(dt_k, dt_h)
       }
-    }
+    } # end of k loop
     
     if(j == 1){
       dt_j <- dt_k
@@ -2451,7 +2480,7 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, out_set, out_par_type, par_se
       dt_j <- rbind(dt_j, dt_k)
     }
     
-  }
+  } # end of j loop
   
   if(i == 1){
     dt_i <- dt_j
@@ -2459,7 +2488,7 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, out_set, out_par_type, par_se
     dt_i <- rbind(dt_i, dt_j)
   }
   
-  }
+  } # end of i loop
   
   
   dt_i$par_name2 <- par2_name
