@@ -29,8 +29,8 @@ source("rse_funs.R")
 
 
 ```{r}
-# NOTE: Data files are stored in the separate Detmer-2025-coral-parameters repository.
-# Update DATA_PATH to point to your local copy of that repository.
+# read in the APAL data
+
 DATA_PATH <- "../Detmer-2025-coral-parameters"
 
 # fragmentation data
@@ -43,6 +43,8 @@ field_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/field_surv_pars.rds"
 nurs_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/nurs_surv_pars.rds"))
 lab_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_surv_pars.rds"))
 
+# recruit survival
+recruit_surv <- readRDS(file.path(DATA_PATH, "parameter_lists/recruit_surv_pars.rds"))
 
 # growth data
 field_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/field_growth_pars.rds"))
@@ -51,6 +53,36 @@ lab_growth <- readRDS(file.path(DATA_PATH, "parameter_lists/lab_growth_pars.rds"
 
 # short-term lab survival data
 apal_lab_short_surv <- read.csv(file.path(DATA_PATH, "05_data/standardized/apal_surv_lab_short.csv"))
+
+
+# change 1: format the growth data to be formatted as transition matrices and add these to the growth lists
+field_Tmats <- growth_format(growth_dt = field_growth)
+field_growth$mat_list <- field_Tmats$mat_list
+field_growth$summ_list <- field_Tmats$summ_list
+
+# nurs_Tmats <- growth_format(growth_dt = nurs_growth)
+# nurs_growth$mat_list <- nurs_Tmats$mat_list
+# nurs_growth$summ_list <- nurs_Tmats$summ_list
+
+# TEMPORARY NEED TO FIX: currently don't have a trans_summary for the nursery data so just sub the field data for now
+nurs_growth$mat_list <- field_Tmats$mat_list
+nurs_growth$summ_list <- field_Tmats$summ_list
+
+
+# change 2: replace size class 1 survival with recruit survival
+  
+# change the bootstrap replicates into a data frame
+recruit_surv_df <- data.frame(
+  prop_survived = recruit_surv$survival_boot,
+  size_class = rep(1, length(recruit_surv$survival_boot)),
+  replicate = c(1:length(recruit_surv$survival_boot))
+)
+
+field_surv$SC_surv_df <- field_surv$SC_surv_df %>% filter(size_class != 1) %>% rbind(recruit_surv_df)
+
+recruit_surv_summ <- recruit_surv$survival_summary %>% rename(mean = mean_survival, sd = sd_survival) %>% select(-ci_lower, -ci_upper)
+
+field_surv$SC_surv_summ_df[1, c(-1)] <- recruit_surv_summ
 
 
 ```
@@ -71,13 +103,6 @@ field_surv1 <- field_surv
 field_growth1 <- field_growth
 nurs_surv1 <- nurs_surv
 nurs_growth1 <- nurs_growth
-
-# nursery data only available for size classes 1-2, so use the field data for the larger size classes
-nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
-
-nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
-nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
-nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
 
 all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
@@ -284,13 +309,6 @@ field_surv1 <- field_surv
 field_growth1 <- field_growth
 nurs_surv1 <- nurs_surv
 nurs_growth1 <- nurs_growth
-
-# nursery data only available for size classes 1-2, so use the field data for the larger size classes
-nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
-
-nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
-nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
-nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
 
 all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q95", field_growth = "Q95", field_shrink = "Q05", field_frag = "Q95", nurs_surv = "Q95", nurs_growth = "Q95", nurs_shrink = "Q05"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
@@ -1135,13 +1153,6 @@ field_growth1 <- field_growth
 nurs_surv1 <- nurs_surv
 nurs_growth1 <- nurs_growth
 
-# nursery data only available for size classes 1-2, so use the field data for larger size classes
-nurs_surv1$SC_surv_df <- nurs_surv1$SC_surv_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_df[field_surv1$SC_surv_df$size_class > 2,])
-
-nurs_growth1$mat_list[[3]] <- field_growth1$mat_list[[3]]
-nurs_growth1$mat_list[[4]] <- field_growth1$mat_list[[4]]
-nurs_growth1$mat_list[[5]] <- field_growth1$mat_list[[5]]
-
 
 set.seed(500)
 all_parsR <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
@@ -1743,14 +1754,6 @@ field_growth1 <- field_growth
 nurs_surv1 <- nurs_surv
 nurs_growth1 <- nurs_growth
 
-# nursery data only available for size classes 1-2, so use the field data for the larger size classes
-nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
-
-nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
-nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
-nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
-
-
 
 all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
@@ -2052,13 +2055,6 @@ field_surv1 <- field_surv
 field_growth1 <- field_growth
 nurs_surv1 <- nurs_surv
 nurs_growth1 <- nurs_growth
-
-# nursery data only available for size classes 1-2, so use the field data for the larger size classes
-nurs_surv1$SC_surv_summ_df <- nurs_surv1$SC_surv_summ_df %>% filter(size_class < 3) %>% rbind(field_surv1$SC_surv_summ_df[field_surv1$SC_surv_summ_df$size_class > 2,])
-
-nurs_growth1$summ_list[[3]] <- field_growth1$summ_list[[3]]
-nurs_growth1$summ_list[[4]] <- field_growth1$summ_list[[4]]
-nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
 
 
 all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
@@ -2470,7 +2466,7 @@ legend("topleft", legend = c("1 (337,000)", "2 (30,636)", "3 (3,370)", "4 (688)"
 plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end_mat[,2]))), xlim = c(0.5, 5.5), las = 1, ylab = NA)
 mtext(side = 1, "Size class outplanted", line = 2.5)
 mtext(side = 3, "b) Final size distributions", adj = 0)
-mtext(side = 2, "Number of coral individuals", line = 3.5)
+mtext(side = 2, "Number of coral individuals", line = 3.75)
 for(i in 1:5){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
   for(k in 1:5){
@@ -2554,7 +2550,7 @@ legend("topleft", legend = c("1 (337,000)", "2 (30,636)", "3 (3,370)", "4 (688)"
 # fixed number
 plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end_mat2[,5]))), xlim = c(0.5, 5.5), las = 1, ylab = NA, xaxt = "n")
 mtext(side = 3, "b) Final size distributions from a)", adj = 0)
-mtext(side = 2, "Number of coral individuals", line = 3.25, adj = -3)
+mtext(side = 2, "Number of coral individuals", line = 3.75, adj = -3)
 axis(side = 1, at = c(1, 2, 3, 4, 5), labels = NA)
 for(i in 1:5){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat2[,i]), sum(end_mat2[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
@@ -2741,7 +2737,7 @@ legend("topright", legend = c("1 (337,000)", "2 (30,636)", "3 (3,370)", "4 (688)
 # fixed number
 plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(sum(end_mat2_eq[,5]))), xlim = c(0.5, 5.5), las = 1, ylab = NA, xaxt = "n")
 mtext(side = 3, "b) Final size distributions from a)", adj = 0)
-mtext(side = 2, "Number of coral individuals", line = 3.25, adj = -3)
+mtext(side = 2, "Number of coral individuals", line = 3.5, adj = -3)
 axis(side = 1, at = c(1, 2, 3, 4, 5), labels = NA)
 for(i in 1:5){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat2_eq[,i]), sum(end_mat2_eq[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
