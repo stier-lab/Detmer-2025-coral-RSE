@@ -129,7 +129,13 @@ G_fun <- function(years, n, growth_pars, shrink_pars, frag_pars){
     # check that diagonal elements (staying probabilities) are non-negative
     if(any(diag(Ti_mat) < 0)) {
      # warning("Growth + shrinkage probabilities exceed 1 for some size classes. Clamping to valid range.")
-      diag(Ti_mat) <- pmax(0, diag(Ti_mat))
+      diag_old <- diag(Ti_mat) # store original diagonal values
+      diag(Ti_mat) <- pmax(0, diag(Ti_mat)) # change any negative diagonals to zero
+      
+      for(ddd in 1:length(which(diag_old < 0))){
+        Ti_mat[,ddd] <- Ti_mat[,ddd]/sum(Ti_mat[,ddd]) # make sure the column sums to 1
+      }
+      
       warnings[i] <- 1
     }
 
