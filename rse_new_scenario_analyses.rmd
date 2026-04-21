@@ -2617,9 +2617,19 @@ plot heatmaps
 
 #View(labG_D0_dt50)
 
-# color palette
 
-nHalf <- 100
+
+# reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean, totI_ROI_ref = totI_ROI_mean
+
+#View(dt_plot)
+
+xset <- LG_set
+yset <- LS_set
+
+hm_fun <- function(dt_plot, xset, yset, max_val){
+  
+  # color palette
+  nHalf <- 100
 rc1 <- colorRampPalette(colors = c("#2166AC","#F7F7F7", "#B2182B"), space = "Lab")(nHalf)
 rampcols1 <- c(rc1) # all the colors
 
@@ -2629,25 +2639,18 @@ rampcolsU <- rampcols1[(nHalf/2):nHalf]
 #col_vals <- seq(from = 0, to = 20, length.out = nHalf)
 
 col_valsL <- seq(from = 0, to = 1, length.out = nHalf/2)
-col_valsU <- seq(from = 1, to = 20, length.out = nHalf/2)
+col_valsU <- seq(from = 1, to = max_val, length.out = nHalf/2)
 
-
-
-# reef_cover_ref = reef_cover_mean, tot_ROI_ref = tot_ROI_mean, totI_ROI_ref = totI_ROI_mean
-
-dt_plot <- labG_D0_dt5 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
-
-#View(dt_plot)
-
-xset <- LG_set
-yset <- LS_set
-
-par(pty = "s")
+  
+  L_HM <- length(LG_set)
+  
+  par(pty = "s")
 plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
-axis(side = 1, at = seq(0.5, L_HM - 0.5, 1), labels = NA, tick = F, line = -0.5)
-axis(side = 2, at = seq(0.5, L_HM - 0.5, 1), labels = NA, las = 1, tick = F, line = -0.5)
-mtext(side = 1, "Growth rate", line = 1.75)
-mtext(side = 2, "Survival rate", line = 1.5)
+#axis(side = 1, at = seq(0.5, L_HM - 0.5, 1), tick = F, line = -0.5, labels = seq(0.5, L_HM - 0.5, 1)/L_HM, cex.axis = 0.8)
+axis(side = 1, at = seq(0, L_HM, 2), tick = F, line = -0.5, labels = seq(0, L_HM, 2)/L_HM, cex.axis = 0.8, padj = -1)
+axis(side = 2, at = seq(0, L_HM, 2), tick = F, line = -0.5, labels = seq(0, L_HM, 2)/L_HM, cex.axis = 0.8, las = 1)
+mtext(side = 1, "Growth to size class 2", line = 1)
+mtext(side = 2, "Survival rate of \nsize class 2 outplants", line = 1.5)
 for(i in 1:L_HM){ # x value
   for(j in 1:L_HM){ # y value
     
@@ -2669,8 +2672,70 @@ for(i in 1:L_HM){ # x value
   }
 }
 
+}
+
+
+
+
 ```
 
+
+```{r}
+# heatmaps: no disturbance
+
+dt_plot <- labG_D0_dt5 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+hm_fun(dt_plot, xset = LG_set, yset = LS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
+
+dt_plot <- trans_D0_dt5 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+#max(dt_plot$reef_cover_prop)
+
+hm_fun(dt_plot, xset = TG_set, yset = TS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
+
+
+dt_plot <- labG_D0_dt50 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+#max(dt_plot$reef_cover_prop)
+
+hm_fun(dt_plot, xset = LG_set, yset = LS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
+
+dt_plot <- trans_D0_dt50 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+#max(dt_plot$reef_cover_prop)
+
+hm_fun(dt_plot, xset = TG_set, yset = TS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
+
+```
+
+
+```{r}
+# heatmaps: with disturbance
+
+dt_plot <- labG_D3_dt5 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+hm_fun(dt_plot, xset = LG_set, yset = LS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
+
+dt_plot <- trans_D3_dt5 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+#max(dt_plot$reef_cover_prop)
+
+hm_fun(dt_plot, xset = TG_set, yset = TS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
+
+
+dt_plot <- labG_D3_dt50 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+#max(dt_plot$reef_cover_prop)
+
+hm_fun(dt_plot, xset = LG_set, yset = LS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
+
+dt_plot <- trans_D3_dt50 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
+
+#max(dt_plot$reef_cover_prop)
+
+hm_fun(dt_plot, xset = TG_set, yset = TS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
+
+```
 
 
 ```{r}
