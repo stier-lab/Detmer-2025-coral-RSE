@@ -2716,6 +2716,26 @@ dt_plot <- labG_D3_dt5 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_r
 
 hm_fun(dt_plot, xset = LG_set, yset = LS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
 
+# make the legend
+xl <- 1
+yb <- 1
+xr <- 1.25
+yt <- 2
+
+plot(NA, type = "n", ann = F, xlim = c(1, 2), ylim = c(1, 2), xaxt = "n", yaxt = "n", bty = "n")
+text(x = 1.27, y = 1, "0")
+text(x = 1.27, y = 1.5, "1")
+text(x = 1.27, y = 2, as.character(ceiling(max(dt_plot$reef_cover_prop))))
+rect(
+  xl,
+  head(seq(yb, yt, (yt-yb)/nHalf), -1), # the denominator needs to match the length of the color vector
+  xr,
+  tail(seq(yb, yt, (yt - yb)/nHalf), -1),
+  col = rampcols1,
+  border = NA
+)
+
+
 dt_plot <- trans_D3_dt5 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover_ref, tot_ROI_prop = tot_ROI_mean/tot_ROI_ref, totI_ROI_prop = totI_ROI_mean/totI_ROI_ref) %>% select(growth_par, surv_par, reef_cover_prop, tot_ROI_prop, totI_ROI_prop)
 
 #max(dt_plot$reef_cover_prop)
