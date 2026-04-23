@@ -93,23 +93,42 @@ nurs_growth$mat_list <- field_Tmats$mat_list
 nurs_growth$summ_list <- field_Tmats$summ_list
 
 
-# change 2: replace size class 1 survival with recruit survival
-  
-# change the bootstrap replicates into a data frame
-recruit_surv_df <- data.frame(
+# update formatting of the recruit survival to match field survival data
+recruit_surv$SC_surv_df <- data.frame(
   prop_survived = recruit_surv$survival_boot,
   size_class = rep(1, length(recruit_surv$survival_boot)),
   replicate = c(1:length(recruit_surv$survival_boot))
 )
 
-field_surv$SC_surv_df <- field_surv$SC_surv_df %>% filter(size_class != 1) %>% rbind(recruit_surv_df)
+recruit_surv$SC_surv_summ_df <- recruit_surv$survival_summary %>% rename(mean = mean_survival, sd = sd_survival) %>% select(-ci_lower, -ci_upper)
+size_class_col <- data.frame(
+  size_class = rep(1, nrow(recruit_surv$SC_surv_summ_df))
+)
 
-recruit_surv_summ <- recruit_surv$survival_summary %>% rename(mean = mean_survival, sd = sd_survival) %>% select(-ci_lower, -ci_upper)
+recruit_surv$SC_surv_summ_df <- cbind(size_class_col, recruit_surv$SC_surv_summ_df)
+
+#View(field_surv$SC_surv_df)
+
+#View(field_surv$SC_surv_summ_df)
+#View(recruit_surv$SC_surv_summ_df)
+
+# change 2: replace size class 1 survival with recruit survival (UPDATE: treat recruit survival separately)
+  
+# change the bootstrap replicates into a data frame
+# recruit_surv_df <- data.frame(
+#   prop_survived = recruit_surv$survival_boot,
+#   size_class = rep(1, length(recruit_surv$survival_boot)),
+#   replicate = c(1:length(recruit_surv$survival_boot))
+# )
+# 
+# field_surv$SC_surv_df <- field_surv$SC_surv_df %>% filter(size_class != 1) %>% rbind(recruit_surv_df)
+# 
+# recruit_surv_summ <- recruit_surv$survival_summary %>% rename(mean = mean_survival, sd = sd_survival) %>% select(-ci_lower, -ci_upper)
 
 #colnames(recruit_surv_summ)
 #colnames(field_surv$SC_surv_summ_df[-1])
 
-field_surv$SC_surv_summ_df[1, c(-1)] <- recruit_surv_summ
+#field_surv$SC_surv_summ_df[1, c(-1)] <- recruit_surv_summ
 #View(field_surv$SC_surv_summ_df)
 
 #recruit_surv$survival_summary
@@ -181,6 +200,7 @@ lab_treatments <- c("0_T1", "0_T2") # lab treatments (e.g., cement = T1, ceramic
 
 # demographic parameters for each orchard and reef treatment/subpopulation
 field_surv1 <- field_surv # survival rates in field (= reef)
+recruit_surv1 <- recruit_surv # recruit survival rates in field (= reef)
 field_growth1 <- field_growth # growth rates in field
 nurs_surv1 <- nurs_surv # survival rates in nursery (= orchard)
 nurs_growth1 <- nurs_growth # growth rates in nursery
@@ -193,10 +213,11 @@ nurs_growth1 <- nurs_growth # growth rates in nursery
 # nurs_growth1$summ_list[[5]] <- field_growth1$summ_list[[5]]
 
 # calculate mean parameter values (survival, growth, shrinkage, fragmentation) for each location 
-all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", recruit_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, recruit_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
 # reef parameters: survival
 surv_pars.r <- all_pars$surv_pars.r
+surv_pars.rc <- all_pars$surv_pars.rc
 
 # reef parameters: growth
 growth_pars.r <- all_pars$growth_pars.r
@@ -305,11 +326,11 @@ dist_pars.r <- list()
 # first reef population
 dist_pars.r[[1]] <- list() 
 # first source to first reef subpop
-dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) # list of disturbance parameters for the first source to the first reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
+dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_surv_rc0 = list(surv_pars.rc[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) # list of disturbance parameters for the first source to the first reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
 # second source to first reef subpop
-dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_surv_rc0 = list(surv_pars.rc[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
 # third source to first reef subpop
-dist_pars.r[[1]][[3]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[3]], dist_surv0 = list(surv_pars.r[[1]][[3]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+dist_pars.r[[1]][[3]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[3]], dist_surv0 = list(surv_pars.r[[1]][[3]]*0.1), dist_surv_rc0 = list(surv_pars.rc[[1]][[3]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
 
 # disturbance effects for each orchard subpop
 dist_effects.o <- list()
@@ -475,7 +496,8 @@ We call `rse_mod1()` with all parameters defined above. The function returns a
 allocations at each time step (see the return value documentation in `rse_funs.R`).
 
 ```{r}
-sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
 
 ```
 
@@ -561,12 +583,12 @@ dist_pars.r <- list()
 # first reef population
 dist_pars.r[[1]] <- list() 
 # first source to first reef subpop
-dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)# list of disturbance parameters for the first source to the first reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
+dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_surv_rc0 = list(surv_pars.rc[[1]][[1]]*0.1),dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)# list of disturbance parameters for the first source to the first reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
 # dist_surv0 = list where ith element is the survival probabilities for the ith disturbance
 # second source to first reef subpop
-dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_surv_rc0 = list(surv_pars.rc[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
 # third source to first reef subpop
-dist_pars.r[[1]][[3]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[3]], dist_surv0 = list(surv_pars.r[[1]][[3]]*1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+dist_pars.r[[1]][[3]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[3]], dist_surv0 = list(surv_pars.r[[1]][[3]]*1),dist_surv_rc0 = list(surv_pars.rc[[1]][[3]]*1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
 
 
 # disturbance parameters for each orchard 
@@ -580,7 +602,7 @@ dist_pars.o[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
 dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][[2]], dist_surv0 = list(surv_pars.o[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
 
 
-sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 ```
 
@@ -641,7 +663,7 @@ trans_reef[[1]][[2]] <- matrix(c(1, 3), nrow = years, ncol = 2, byrow = T) # sec
 rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
-sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 
 ```
@@ -682,11 +704,11 @@ orchard_treatments <- c("orchard1")
 reef_treatments <- c("reef1") 
 lab_treatments <- c("0_T1") 
 
-
-all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", recruit_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, recruit_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
 # reef parameters: survival
 surv_pars.r <- all_pars$surv_pars.r
+surv_pars.rc <- all_pars$surv_pars.rc
 
 # reef parameters: growth
 growth_pars.r <- all_pars$growth_pars.r
@@ -772,9 +794,9 @@ dist_pars.r <- list()
 # first reef population
 dist_pars.r[[1]] <- list() 
 # first source to second reef subpop
-dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) 
+dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = list(surv_pars.r[[1]][[1]]*0.1), dist_surv_rc0 = list(surv_pars.rc[[1]][[1]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL) 
 # second source to second reef subpop
-dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
+dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = list(surv_pars.r[[1]][[2]]*0.1), dist_surv_rc0 = list(surv_pars.rc[[1]][[2]]*0.1), dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL)
 
 # disturbance effects for each orchard subpop
 dist_effects.o <- list()
@@ -838,10 +860,10 @@ trans_reef[[1]][[1]] <- matrix(c(1, 2), nrow = years, ncol = 2, byrow = T)
 rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
 
-sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 # calculate lambda
-mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
+mats <- mat_pars_fun(years, n, surv_pars.rc[[1]][[1]], surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
 
 Tmat.i <- mats$growth[[1]]
 Fmat.i <- mats$fragmentation[[1]]
@@ -855,10 +877,11 @@ lambda_1
 
 # add confidence intervals
 # highest survival, growth, and fragmentation; lowest shrinkage
-all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q95", field_growth = "Q95", field_shrink = "Q05", field_frag = "Q95", nurs_surv = "Q95", nurs_growth = "Q95", nurs_shrink = "Q05"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q95", recruit_surv = "Q95", field_growth = "Q95", field_shrink = "Q05", field_frag = "Q95", nurs_surv = "Q95", nurs_growth = "Q95", nurs_shrink = "Q05"), field_surv1, recruit_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
 # reef parameters
 surv_pars.r <- all_pars$surv_pars.r
+surv_pars.rc <- all_pars$surv_pars.rc
 growth_pars.r <- all_pars$growth_pars.r
 shrink_pars.r <- all_pars$shrink_pars.r
 frag_pars.r <- all_pars$frag_pars.r
@@ -870,10 +893,10 @@ shrink_pars.o <- all_pars$shrink_pars.o
 frag_pars.o <- all_pars$frag_pars.o
 
 
-sim1_up <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1_up <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 # calculate lambda
-mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
+mats <- mat_pars_fun(years, n, surv_pars.rc[[1]][[1]], surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
 
 Tmat.i <- mats$growth[[1]]
 Fmat.i <- mats$fragmentation[[1]]
@@ -887,10 +910,11 @@ lambda_1
 
 
 # lowest survival, growth, and fragmentation; highest shrinkage
-all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q05", field_growth = "Q05", field_shrink = "Q95", field_frag = "Q05", nurs_surv = "Q05", nurs_growth = "Q05", nurs_shrink = "Q95"), field_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+all_pars <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q05", recruit_surv = "Q05", field_growth = "Q05", field_shrink = "Q95", field_frag = "Q05", nurs_surv = "Q05", nurs_growth = "Q05", nurs_shrink = "Q95"), field_surv1, recruit_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
 
 # reef parameters
 surv_pars.r <- all_pars$surv_pars.r
+surv_pars.rc <- all_pars$surv_pars.rc
 growth_pars.r <- all_pars$growth_pars.r
 shrink_pars.r <- all_pars$shrink_pars.r
 frag_pars.r <- all_pars$frag_pars.r
@@ -902,10 +926,10 @@ shrink_pars.o <- all_pars$shrink_pars.o
 frag_pars.o <- all_pars$frag_pars.o
 
 
-sim1_low <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1_low <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 # calculate lambda
-mats <- mat_pars_fun(years, n, surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
+mats <- mat_pars_fun(years, n, surv_pars.rc[[1]][[1]], surv_pars.r[[1]][[1]], growth_pars.r[[1]][[1]], shrink_pars.r[[1]][[1]], frag_pars.r[[1]][[1]], fec_pars.r[[1]][[1]], sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[1]][[1]],dist_effects.r[[1]][[1]])
 
 Tmat.i <- mats$growth[[1]]
 Fmat.i <- mats$fragmentation[[1]]
@@ -1010,14 +1034,14 @@ Nmat <- matrix(NA, nrow = years, ncol = n_sample1)
 
 
 set.seed(500)
-all_pars <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
+all_pars <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = n_sample1, field_surv = field_surv1, recruit_surv = recruit_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
 
 
 for(i in 1:n_sample1){
   
  # i <- 34
   
-  sim_i <- rse_mod1(years, n, A_mids, surv_pars.r = all_pars$surv_pars_L.r[[i]], dens_pars.r, growth_pars.r = all_pars$growth_pars_L.r[[i]], shrink_pars.r = all_pars$shrink_pars_L.r[[i]], frag_pars.r = all_pars$frag_pars_L.r[[i]], fec_pars.r, surv_pars.o = all_pars$surv_pars_L.o[[i]], dens_pars.o, growth_pars.o = all_pars$growth_pars_L.o[[i]], shrink_pars.o = all_pars$shrink_pars_L.o[[i]], frag_pars.o = all_pars$frag_pars_L.o[[i]], fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+  sim_i <- rse_mod1(years, n, A_mids, surv_pars.rc = all_pars$surv_pars_L.rc[[i]], surv_pars.r = all_pars$surv_pars_L.r[[i]], dens_pars.r, growth_pars.r = all_pars$growth_pars_L.r[[i]], shrink_pars.r = all_pars$shrink_pars_L.r[[i]], frag_pars.r = all_pars$frag_pars_L.r[[i]], fec_pars.r, surv_pars.o = all_pars$surv_pars_L.o[[i]], dens_pars.o, growth_pars.o = all_pars$growth_pars_L.o[[i]], shrink_pars.o = all_pars$shrink_pars_L.o[[i]], frag_pars.o = all_pars$frag_pars_L.o[[i]], fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
   
   Nmat[,i] <- model_summ(model_sim = sim_i, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
@@ -1072,12 +1096,15 @@ for(i in 1:length(dist_yrs)){
 
 
 set.seed(1)
-all_pars <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = length(dist_yrs), field_surv = field_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
+all_pars <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), n_sample = length(dist_yrs), field_surv = field_surv1, recruit_surv = recruit_surv1, field_growth = field_growth1, nurs_surv = nurs_surv1, nurs_growth = nurs_growth1, apal_frag)
 
 # need to rearrange the list structures
 surv_pars.r1 <- list() # first source (external recruits)
 surv_pars.r2 <- list() # second source
 #surv_pars.r3 <- list() # third source
+
+surv_pars.rc1 <- list() # first source (external recruits)
+surv_pars.rc2 <- list() # second source
 
 growth_pars.r1 <- list()
 growth_pars.r2 <- list()
@@ -1091,6 +1118,9 @@ for(i in 1:length(dist_yrs)){
   surv_pars.r1[[i]] <- all_pars$surv_pars_L.r[[i]][[1]][[1]]
   surv_pars.r2[[i]] <- all_pars$surv_pars_L.r[[i]][[1]][[2]]
   #surv_pars.r3[[i]] <- all_pars$surv_pars_L.r[[i]][[1]][[3]]
+  
+  surv_pars.rc1[[i]] <- all_pars$surv_pars_L.rc[[i]][[1]][[1]]
+  surv_pars.rc2[[i]] <- all_pars$surv_pars_L.rc[[i]][[1]][[2]]
   
   mats1 <- G_fun(years = 1, n = 5, growth_pars = all_pars$growth_pars_L.r[[i]][[1]][[1]], shrink_pars = all_pars$shrink_pars_L.r[[i]][[1]][[1]], frag_pars = all_pars$frag_pars_L.r[[i]][[1]][[1]])
   
@@ -1114,10 +1144,10 @@ dist_pars.r <- list()
 # first reef population
 dist_pars.r[[1]] <- list() 
 # first source to second reef subpop
-dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = surv_pars.r1, dist_Tmat0 = growth_pars.r1, dist_Fmat0 = frag_pars.r1, dist_fec0 = NULL)# list of disturbance parameters for the first source to the first reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
+dist_pars.r[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[1]], dist_surv0 = surv_pars.r1, dist_surv_rc0 = surv_pars.rc1, dist_Tmat0 = growth_pars.r1, dist_Fmat0 = frag_pars.r1, dist_fec0 = NULL)# list of disturbance parameters for the first source to the first reef population (defaults for each parameter type are NULL unless the disturbance affects them, as specified in dist_effects)
 # dist_surv0 = list where ith element is the survival probabilities for the ith disturbance
 # second source to second reef subpop
-dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = surv_pars.r2, dist_Tmat0 = growth_pars.r2, dist_Fmat0 = frag_pars.r2, dist_fec0 = NULL)
+dist_pars.r[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[2]], dist_surv0 = surv_pars.r2, dist_surv_rc0 = surv_pars.rc2, dist_Tmat0 = growth_pars.r2, dist_Fmat0 = frag_pars.r2, dist_fec0 = NULL)
 # third source to second reef subpop
 #dist_pars.r[[1]][[3]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.r[[1]][[3]], dist_surv0 = surv_pars.r3, dist_Tmat0 = growth_pars.r3, dist_Fmat0 = frag_pars.r3, dist_fec0 = NULL)
 
@@ -1147,7 +1177,7 @@ dist_pars.o[[1]][[1]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
 
 
 
-sim1 <- rse_mod1(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+sim1 <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
 
 ```
 

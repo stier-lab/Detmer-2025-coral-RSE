@@ -119,11 +119,17 @@ growth_format <- function(growth_dt, n_boot = 1000){
 #' @return List with four elements: survival, growth, fragmentation, fecundity - each containing
 #'   parameter values/matrices for each year of the simulation
 #' @export
-mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_pars, fec_pars,
+mat_pars_fun <- function(years, n, recruit_surv_pars, surv_pars, growth_pars, shrink_pars, frag_pars, fec_pars,
                          sigma_s, sigma_f, seeds, dist_yrs, dist_pars, dist_effects){
 
   # survival parameters — SEE: coral_demographic_funs.R::Surv_fun()
   S_list <- Surv_fun(years, n, surv_pars, sigma_s, seed1 = seeds[1])
+  
+  if(is.na(recruit_surv_pars) == F){
+    Src_list <- Surv_fun(years, 1, recruit_surv_pars, sigma_s, seed1 = seeds[1])
+  } else{
+    Src_list <- NA
+  }
 
   # growth/shrinkage and fragmentation matrices — SEE: coral_demographic_funs.R::G_fun()
   all_mats <- G_fun(years, n, growth_pars, shrink_pars, frag_pars)
@@ -142,6 +148,9 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
 
       if("survival" %in% dist_effects[[which(dist_yrs==i)]]){ # if the ith disturbance affected survival
         S_list[[i]] <- dist_pars$dist_surv[[which(dist_yrs==i)]]
+        if(is.na(recruit_surv_pars) == F){
+        Src_list[[i]] <- dist_pars$dist_surv_rc[[which(dist_yrs==i)]]
+        }
       }
 
       if("Tmat" %in% dist_effects[[which(dist_yrs==i)]]){ # if the ith disturbance affected growth or shrinkage (transition matrix)
@@ -161,7 +170,7 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
   }
 
 
-  return(list(survival = S_list, growth = G_list, fragmentation = Fr_list, fecundity = F_list))
+  return(list(survival = S_list, recruit_survial = Src_list, growth = G_list, fragmentation = Fr_list, fecundity = F_list))
 
 }
 
@@ -183,9 +192,11 @@ mat_pars_fun <- function(years, n, surv_pars, growth_pars, shrink_pars, frag_par
 #' @return List with four elements: dist_surv, dist_Tmat, dist_Fmat, dist_fec - each containing
 #'   the disturbance parameters (or NULL if not affected) for each disturbance year
 #' @export
-dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL){
+dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_surv_rc0 = NULL, 
+                          dist_Tmat0 = NULL, dist_Fmat0 = NULL, dist_fec0 = NULL){
 
   dist_surv <- list()
+  dist_surv_rc <- list()
   dist_Tmat <- list()
   dist_Fmat <- list()
   dist_fec <- list()
@@ -194,6 +205,7 @@ dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 
 
     if("survival" %in% dist_effects[[i]]){ # if the ith disturbance affected survival
       dist_surv[[i]] <- dist_surv0[[i]]
+      dist_surv_rc[[i]] <- dist_surv_rc0[[i]]
     } else{
       dist_surv[[i]] <- NULL
     }
@@ -219,7 +231,8 @@ dist_pars_fun <- function(dist_yrs, dist_effects, dist_surv0 = NULL, dist_Tmat0 
   } # end of loop over disturbance years
 
 
-  dist_pars <- list(dist_surv = dist_surv, dist_Tmat = dist_Tmat, dist_Fmat = dist_Fmat, dist_fec = dist_fec)
+  dist_pars <- list(dist_surv = dist_surv, dist_surv_rc = dist_surv_rc, 
+                    dist_Tmat = dist_Tmat, dist_Fmat = dist_Fmat, dist_fec = dist_fec)
 
   return(dist_pars)
 
@@ -472,16 +485,18 @@ if(par_type == "survival"){ # survival data
 #' @seealso \code{\link{rand_pars_fun}} for stochastic parameter sampling,
 #'   \code{\link{par_list_fun}} for the underlying parameter extraction.
 #' @export
-default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_surv, field_growth, nurs_surv, nurs_growth, apal_frag_summ){
+default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_surv, recruit_surv, field_growth, nurs_surv, nurs_growth, apal_frag_summ){
   
   # reef
   surv_pars.r <- list() # reef survival
+  surv_pars.rc <- list() # recruit survival on reef
   growth_pars.r <- list() # reef growth
   shrink_pars.r <- list() # reef shrinkage 
   frag_pars.r <- list() # reef fragmentation 
   
   # get the parameter values
   surv_pars1 <- par_list_fun(par_type = "survival", sample_dt = F, summ_df = field_surv$SC_surv_summ_df, summ_metric = summ_metric_list$field_surv, full_df = NA, n_sample = NA)$surv_pars
+  surv_pars_rc1 <- par_list_fun(par_type = "survival", sample_dt = F, summ_df = recruit_surv$SC_surv_summ_df, summ_metric = summ_metric_list$recruit_surv, full_df = NA, n_sample = NA)$surv_pars
   growth_pars1 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = field_growth$summ_list, summ_metric = summ_metric_list$field_growth, full_df = NA, n_sample = NA)$growth_pars
   shrink_pars1 <- par_list_fun(par_type = "growth", sample_dt = F, summ_df = field_growth$summ_list, summ_metric = summ_metric_list$field_shrink, full_df = NA, n_sample = NA)$shrink_pars
   frag_pars1 <- par_list_fun(par_type = "fragmentation", sample_dt = F, summ_df = apal_frag_summ, summ_metric = summ_metric_list$field_frag, full_df = NA, n_sample = NA)$frag_pars
@@ -489,6 +504,7 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
   for(i in 1:n_reef){ # for each reef
     
     surv_pars.r[[i]] <- list() # ith reef treatment/subpop
+    surv_pars.rc[[i]] <- list()
     growth_pars.r[[i]] <- list()
     shrink_pars.r[[i]] <- list()
     frag_pars.r[[i]] <- list()
@@ -496,6 +512,7 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
     for(j in 1:(n_lab + 1)){ # for each source to each reef
       
       surv_pars.r[[i]][[j]] <- surv_pars1 # survival probabilities for jth source of recruits to ith reef subpop (external recruits)
+      surv_pars.rc[[i]][[j]] <- surv_pars_rc1
       growth_pars.r[[i]][[j]] <- growth_pars1
       shrink_pars.r[[i]][[j]] <- shrink_pars1
       frag_pars.r[[i]][[j]] <- frag_pars1
@@ -537,7 +554,7 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
     
   }
   
-  return(list(surv_pars.r = surv_pars.r, growth_pars.r = growth_pars.r, shrink_pars.r = shrink_pars.r,
+  return(list(surv_pars.r = surv_pars.r, surv_pars.rc = surv_pars.rc, growth_pars.r = growth_pars.r, shrink_pars.r = shrink_pars.r,
               frag_pars.r = frag_pars.r, surv_pars.o = surv_pars.o, growth_pars.o = growth_pars.o, 
               shrink_pars.o = shrink_pars.o, frag_pars.o = frag_pars.o))
   
@@ -581,11 +598,12 @@ default_pars_fun <- function(n_reef, n_orchard, n_lab, summ_metric_list, field_s
 #'   to \code{rse_mod1()}, and likewise for all 8 elements.
 #' @seealso \code{\link{default_pars_fun}} for deterministic parameter assembly.
 #' @export
-rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_growth, nurs_surv, nurs_growth, apal_frag){
+rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, recruit_surv, field_growth, nurs_surv, nurs_growth, apal_frag){
 
   
   # reef
   surv_pars_L.r <- list() # outermost holding lists for random iterations
+  surv_pars_L.rc <- list() # outermost holding lists for random iterations
   growth_pars_L.r <- list() # outermost holding lists for random iterations
   shrink_pars_L.r <- list() # outermost holding lists for random iterations
   frag_pars_L.r <- list() # outermost holding lists for random iterations 
@@ -600,12 +618,14 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
   
   # get the parameter sets for each reef
   surv_pars1 <- list() # reef survival
+  surv_pars_rc1 <- list() # reef recruit survival
   growth_pars1 <- list() # reef growth
   shrink_pars1 <- list() # reef shrinkage 
   frag_pars1 <- list() # reef fragmentation 
   
   for(i in 1:n_reef){
     surv_pars1[[i]] <- par_list_fun(par_type = "survival", sample_dt = T, summ_df = NA, summ_metric = NA, full_df = field_surv$SC_surv_df, n_sample = n_sample)$surv_pars
+    surv_pars_rc1[[i]] <- par_list_fun(par_type = "survival", sample_dt = T, summ_df = NA, summ_metric = NA, full_df = recruit_surv$SC_surv_df, n_sample = n_sample)$surv_pars
     growth_pars1[[i]] <- par_list_fun(par_type = "growth", sample_dt = T, summ_df = NA, summ_metric = NA, full_df = field_growth$mat_list, n_sample= n_sample)$growth_pars
     shrink_pars1[[i]] <- par_list_fun(par_type = "growth", sample_dt = T, summ_df = NA, summ_metric = NA, full_df = field_growth$mat_list, n_sample= n_sample)$shrink_pars
     frag_pars1[[i]] <- par_list_fun(par_type = "fragmentation", sample_dt = T, summ_df = NA, summ_metric = NA, full_df = apal_frag, n_sample = n_sample)$frag_pars
@@ -613,6 +633,7 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
   }
   
     surv_pars.r <- list() # reef survival
+    surv_pars.rc <- list() # reef recruit survival
     growth_pars.r <- list() # reef growth
     shrink_pars.r <- list() # reef shrinkage 
     frag_pars.r <- list() # reef fragmentation 
@@ -630,6 +651,7 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
         
         # holding list for each source to each reef
         surv_pars.r[[i]] <- list() # ith reef treatment/subpop
+        surv_pars.rc[[i]] <- list() 
         growth_pars.r[[i]] <- list()
         shrink_pars.r[[i]] <- list()
         frag_pars.r[[i]] <- list()
@@ -637,6 +659,7 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
         for(j in 1:(n_lab + 1)){ # for each source to each reef
           
           surv_pars.r[[i]][[j]] <- surv_pars1[[i]][nn,] # survival probabilities for jth source of recruits to ith reef subpop (external recruits)
+          surv_pars.rc[[i]][[j]] <- surv_pars_rc1[[i]][nn]
           growth_pars.r[[i]][[j]] <- growth_pars1[[i]][[nn]]
           shrink_pars.r[[i]][[j]] <- shrink_pars1[[i]][[nn]]
           frag_pars.r[[i]][[j]] <- frag_pars1[[i]][[nn]]
@@ -647,6 +670,7 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
       
       
       surv_pars_L.r[[nn]] <- surv_pars.r # nn^th random iteration for i^th reef
+      surv_pars_L.rc[[nn]] <- surv_pars.rc
       growth_pars_L.r[[nn]] <- growth_pars.r
       shrink_pars_L.r[[nn]] <- shrink_pars.r
       frag_pars_L.r[[nn]] <- frag_pars.r
@@ -713,7 +737,7 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
     
   } # end of random iterations
   
- return(list(surv_pars_L.r = surv_pars_L.r, growth_pars_L.r = growth_pars_L.r, shrink_pars_L.r = shrink_pars_L.r,
+ return(list(surv_pars_L.r = surv_pars_L.r, surv_pars_L.rc = surv_pars_L.rc, growth_pars_L.r = growth_pars_L.r, shrink_pars_L.r = shrink_pars_L.r,
            frag_pars_L.r = frag_pars_L.r, surv_pars_L.o = surv_pars_L.o, growth_pars_L.o = growth_pars_L.o, 
            shrink_pars_L.o = shrink_pars_L.o, frag_pars_L.o = frag_pars_L.o))
  # return(list(surv_pars.r = surv_pars_L.r, growth_pars.r = growth_pars_L.r, shrink_pars.r = shrink_pars_L.r,
@@ -840,7 +864,7 @@ rand_pars_fun <- function(n_reef, n_orchard, n_lab, n_sample, field_surv, field_
 #' @param N0.o initial population sizes in each orchard subpopulation
 #' @param N0.l initial population sizes in each lab subpopulation
 
-rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, 
+rse_mod1 <- function(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, 
                      frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, 
                      shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, 
                      ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, 
@@ -990,6 +1014,8 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
   reef_out <- list()      # number outplanted [[ss]][[rr]][i]
   reef_pops_pre <- list() # population sizes BEFORE outplanting (so the just-outplanted recruits aren't counted in that year's population size)
   
+  reef_recruits <- list() # population size of recruits [[ss]][[rr]][i]
+  
   for(ss in 1:s_reef){
     
     # sublists for all the different sources of recruits to this reef
@@ -998,27 +1024,32 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     reef_out_ss <- list() # numbers outplanted
     reef_pops_pre_ss <- list() # population sizes before outplanting
     reef_mat_pars_ss <- list() # matrix parameters
-      
+    reef_recruits_ss <- list() # recruits
+    
       for(rr in 1:source_reef){ # for each possible source of recruits to this reef subpop
         
         # holding matrix for number of individuals in each size class of the ss^th reef subpop from the rr^th source in each year
         reef_pops_ss[[rr]] <- matrix(NA, nrow = n, ncol = years)
         
-        # holding matrix for total reproductive output by individuals in the ss^th reef subpop from the rr^th source each year
+        # holding vector for total reproductive output by individuals in the ss^th reef subpop from the rr^th source each year
         reef_rep_ss[[rr]] <- rep(NA, years)
         
-        # holding matrix for number of recruits outplanted
+        # holding vector for number of recruits outplanted
         reef_out_ss[[rr]] <- rep(NA, years)
         
         # holding matrix reef population size before outplanting
         reef_pops_pre_ss[[rr]] <- matrix(NA, nrow = n, ncol = years)
         
+        # holding vector for new recruits
+        reef_recruits_ss[[rr]] <- rep(NA, years)
+        
         # add initial conditions
         reef_pops_ss[[rr]][,1] <- N0.r[[ss]][[rr]]
         reef_pops_pre_ss[[rr]][,1] <- N0.r[[ss]][[rr]]
+        reef_recruits_ss[[rr]][1] <- N0.r[[ss]][[rr]][1] 
         
         # and get the list with the transition matrix parameters
-        reef_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, surv_pars.r[[ss]][[rr]], growth_pars.r[[ss]][[rr]],
+        reef_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, surv_pars.rc[[ss]][[rr]], surv_pars.r[[ss]][[rr]], growth_pars.r[[ss]][[rr]],
                                                shrink_pars.r[[ss]][[rr]], frag_pars.r[[ss]][[rr]], fec_pars.r[[ss]][[rr]],
                                                sigma_s, sigma_f, seeds, dist_yrs, dist_pars.r[[ss]][[rr]],
                                                dist_effects.r[[ss]][[rr]])
@@ -1035,7 +1066,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     reef_rep[[ss]] <- reef_rep_ss
     reef_out[[ss]] <- reef_out_ss
     reef_mat_pars[[ss]] <- reef_mat_pars_ss
-    
+    reef_recruits[[ss]] <- reef_recruits_ss
     
   }
   
@@ -1078,7 +1109,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
       orchard_pops_pre_ss[[rr]][,1] <- N0.o[[ss]][[rr]]
       
       # and calculate the data frames with the transition matrix parameters
-      orchard_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, surv_pars.o[[ss]][[rr]], growth_pars.o[[ss]][[rr]],
+      orchard_mat_pars_ss[[rr]] <- mat_pars_fun(years, n, recruit_surv_pars = NA, surv_pars.o[[ss]][[rr]], growth_pars.o[[ss]][[rr]],
                                                 shrink_pars.o[[ss]][[rr]], frag_pars.o[[ss]][[rr]],
                                                 fec_pars.o[[ss]][[rr]], sigma_s, sigma_f, seeds, dist_yrs,
                                                 dist_pars.o[[ss]][[rr]], dist_effects.o[[ss]][[rr]])
@@ -1191,12 +1222,21 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
 
           reef_pops[[ss]][[rr]][ ,i] <- (T_mat + F_mat) %*% matrix(N_mat, nrow = n, ncol = 1)
 
-          # snapshot before outplanting (used to measure natural dynamics separately)
-          reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
+          # update recruit population size
+          reef_recruits[[ss]][[rr]][i] <- reef_recruits[[ss]][[rr]][i-1]*surv_pars.rc[[ss]][[rr]]*T_mat[1,1]
+          # add the recruits that grew out of size class 1 to the reef population
+          # NOTE: should all one year old recruits (even those in SC1) move to the reef pop'n? 
+          # or should the higher SC1 survival be reserved for fragments and larger corals that shrink back to SC1? (current assumption)
+          reef_pops[[ss]][[rr]][2:n ,i] <- reef_pops[[ss]][[rr]][2:n ,i] + reef_recruits[[ss]][[rr]][i-1]*surv_pars.rc[[ss]][[rr]]*T_mat[2:n,1]
+          
+          # snapshot before this year's outplanting (used to measure natural dynamics separately)
+          reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] 
+          reef_pops_pre[[ss]][[rr]][1 ,i] <- reef_pops_pre[[ss]][[rr]][1 ,i] + reef_recruits[[ss]][[rr]][i]
 
           # reproductive output this year (larvae produced)
           reef_rep[[ss]][[rr]][i] <- sum(reef_pops[[ss]][[rr]][ ,i]*reef_mat_pars[[ss]][[rr]]$fecundity[[i]])
 
+          
           if(rr ==1){ # WHY only rr==1: only external/wild recruits settle naturally
             # add the external recruits if they fit
             # tot_area1 <- rest_pars$reef_areas[ss] # total area devoted to the ss^th reef treatment
@@ -1215,8 +1255,9 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
             # reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]*prop_rec
             # 
             
-            # record the population size before new recruitment
+            # record the population size before new recruits are outplanted
             reef_pops_pre[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i]
+            reef_pops_pre[[ss]][[rr]][1 ,i] <- reef_pops_pre[[ss]][[rr]][1 ,i] + reef_recruits[[ss]][[rr]][i]
             
             # add external recruits
             reef_pops[[ss]][[rr]][1 ,i] <- reef_pops[[ss]][[rr]][1 ,i] + ext_rec[i]*ext_props[ss]
@@ -1684,12 +1725,16 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
 
         for(rr in 2:source_reef){ # rr starts at 2: skip external recruits (rr=1)
           if(substr(lab_treatments[rr-1], start = 1, stop = 1)=="0"){
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,]
+            # babies:
+            reef_recruits[[ss]][[rr]][i] <- reef_recruits[[ss]][[rr]][i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,1]
+            # larger size classes:
+            reef_pops[[ss]][[rr]][2:n ,i] <- reef_pops[[ss]][[rr]][2:n ,i] + reef_outplants[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props[rr-1,2:n]
           }
           
           # add the recruits from the previous year
           if(substr(lab_treatments[rr-1], start = 1, stop = 1)=="1"){
-          reef_pops[[ss]][[rr]][ ,i] <- reef_pops[[ss]][[rr]][ ,i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props1[rr-1,] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
+            reef_recruits[[ss]][[rr]][i] <- reef_recruits[[ss]][[rr]][i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props1[rr-1,1] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
+            reef_pops[[ss]][[rr]][2:n ,i] <- reef_pops[[ss]][[rr]][2:n ,i] + reef_outplants1[rr-1,ss]*exp(-dd_pars.r[,rr-1]*dens_out[rr-1])*lab_pars$size_props1[rr-1,2:n] # size_props1 specifies the fractions of last years lab recruits that are now in each size class
           }
           
           # store the numbers being outplanted
@@ -1808,6 +1853,18 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.r, dens_pars.r, growth_pars.r, 
     } # end of if statement for transplanting colonies
     
   } # end of iteration over each year
+  
+  # LAST STEP: combine reef recruits with reef populations
+  # don't need to do this for the pre-outplanting populations since it was already done each year
+  for(ss in 1:s_reef){ # for each reef subpopulation
+    
+    for(rr in 1:source_reef){ # for each source of recruits to this reef
+      reef_pops[[ss]][[rr]][1,] <- reef_pops[[ss]][[rr]][1,] + reef_recruits[[ss]][[rr]]
+    }
+    
+  }
+  
+  
   
   # RETURN VALUE: List with 17 elements
   #   reef_pops         — reef population sizes [[ss]][[rr]][size_class, year]
