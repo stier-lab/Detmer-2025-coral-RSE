@@ -668,7 +668,8 @@ function for processing the output
 # function for extracting performance metrics from the simulations
 # sim = model simulation output
 # max_yr = end of time interval over which to calculate the metrics
-metrics_dt_fun <- function(sim, max_yr){
+# annual costs = whether or not to also return vector with total costs each year from year 2 to max_yr
+metrics_dt_fun <- function(sim, max_yr, annual_costs = F){
   
       r_inf <- 0.056 # inflation rate
       
@@ -743,7 +744,8 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       
        # variable costs
       # substrate costs
-      c_subs <- sum((sim_ij$reef_tiles_out[2:max_yr] + sim_ij$orchard_tiles_out[2:max_yr]) *(0.5*1 + 0.5*7)*(1 + r_inf)^(2:max_yr))
+      c_subs_yr <- (sim_ij$reef_tiles_out[2:max_yr] + sim_ij$orchard_tiles_out[2:max_yr]) *(0.5*1 + 0.5*7)*(1 + r_inf)^(2:max_yr) # substrate costs each year
+      c_subs <- sum((sim_ij$reef_tiles_out[2:max_yr] + sim_ij$orchard_tiles_out[2:max_yr]) *(0.5*1 + 0.5*7)*(1 + r_inf)^(2:max_yr)) # total substrate costs over time interval
       
       
     # outplanting and orchard maintenance costs
@@ -783,6 +785,10 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
         
       } # end of loop over 2:max_yr
       
+      c_out_yr <- c_reef + c_orch
+      c_maint_yr <- c_maint
+      c_trans_yr <-  c_trans
+      
       c_out <- sum(c_reef) + sum(c_orch)
       c_maint <- sum(c_maint)
       c_trans <-  sum(c_trans)
@@ -790,7 +796,7 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
       # lab costs
      # c_lab <- (432*7 + 200*7)*length(2:max_yr) # assume all tiles are only kept in the lab for two weeks
       c_lab <- sum((432*7 + 200*7)*(1 + r_inf)^(2:max_yr))
-    
+      c_lab_yr <- (432*7 + 200*7)*(1 + r_inf)^(2:max_yr)
   
       # spawning costs    
       c_spawn <- rep(NA, length(2:max_yr))
@@ -799,11 +805,14 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
         c_spawn[ii-1] <- c_spawn[ii-1]*(1 + r_inf)^(ii)
         
       }
-    
+     
+      c_spawn_yr <- c_spawn
       c_spawn <- sum(c_spawn)
       
-      
+      # total costs over length of specified time interval
      tot_costs <- c_fixed + c_subs + c_out + c_maint + c_lab + c_spawn + c_trans
+     # total costs each year:
+     tot_costs_yr <- rep(c_fixed, length(2:max_yr)) + c_subs_yr + c_out_yr + c_maint_yr + c_lab_yr + c_spawn_yr + c_trans_yr
      
      dt_i$c_fixed[j] <- c_fixed
      dt_i$c_subs[j] <- c_subs
@@ -815,15 +824,20 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
      dt_i$tot_costs[j] <- tot_costs
       
       #dt_i$tot_dollar_costs[j]
-      dt_i$reef_ROI_mean[j] <- mean(reef_cover_ij[2:max_yr]/tot_costs)
+      dt_i$reef_ROI_mean[j] <- mean(reef_cover_ij[2:max_yr]/tot_costs_yr)
       
-      dt_i$tot_ROI_mean[j] <- mean((reef_cover_ij[2:max_yr] + orch_cover_ij[2:max_yr])/tot_costs)
+      dt_i$tot_ROI_mean[j] <- mean((reef_cover_ij[2:max_yr] + orch_cover_ij[2:max_yr])/tot_costs_yr)
       
-      dt_i$reefI_ROI_mean[j] <- mean(reef_ind_ij[2:max_yr]/tot_costs)
+      dt_i$reefI_ROI_mean[j] <- mean(reef_ind_ij[2:max_yr]/tot_costs_yr)
       
-      dt_i$totI_ROI_mean[j] <- mean((reef_ind_ij[2:max_yr] + orch_ind_ij[2:max_yr])/tot_costs)
+      dt_i$totI_ROI_mean[j] <- mean((reef_ind_ij[2:max_yr] + orch_ind_ij[2:max_yr])/tot_costs_yr)
   
-  return(dt_i) # return the data frame
+      
+  if(annual_costs == F){
+    return(dt_i) # return the data frame
+  } else{
+    return(list(dt_i = dt_i, tot_costs_yr = tot_costs_yr))
+  }
   
 }
 
@@ -878,13 +892,21 @@ ts_fun <- function(sim_list, n_pars, max_yr, prop_choice, par2_choice = 1){
 # prop_set = vector with proportions of substrates to outplant to orchard
 # par_set2 = values of the second parameter to iterate over
 # par2_name = name of the second parameter iterated over in sim_list
-full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name){
+full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name, annual_costs = F){
+  
+  costs_list <- list()
   
   for(i in 1:n_pars){
   
+    costs_list_i <- list()
+    
   for(j in 1:length(par_set2)){
     
+    costs_list_j <- list()
+    
     for(k in 1:length(prop_set)){
+      
+      costs_list_k <- list()
       
       if(n_pars == 1){
         sim_ijk <- sim_list[[j]][[k]]
@@ -893,11 +915,22 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name)
       }
       
       
-      dt_ijk <- metrics_dt_fun(sim_ijk, max_yr)
+      if(annual_costs == F){
+        dt_ijk <- metrics_dt_fun(sim_ijk, max_yr, annual_costs)
       
       dt_ijk$par_rep <- i
       dt_ijk$prop_out <- prop_set[k]
       dt_ijk$par2 <- par_set2[j]
+      } else{
+        
+        metrics_ijk <- metrics_dt_fun(sim_ijk, max_yr, annual_costs)
+        
+        dt_ijk <- metrics_ijk$dt_i
+        
+        costs_list[[i]][[j]][[k]] <- metrics_ijk$tot_costs_yr
+
+      }
+      
       
       if(k == 1){
         dt_k <- dt_ijk
@@ -925,7 +958,12 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name)
   
   dt_i$par_name2 <- par2_name
   
-  return(dt_i)
+  if(annual_costs == F){
+    return(dt_i)
+  } else{
+    return(list(dt_i = dt_i, costs_list = costs_list))
+  }
+
 }
 
 
@@ -1623,7 +1661,7 @@ par(mar=c(0, 1, 3.5, 1), oma = c(4.5, 4.5, 0.1, 0))
 
 
 # 5 years, with reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.0025), las = 1)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.005), las = 1)
 mtext(side = 3, "a) 5 years, with reference reef")
 mtext(side = 1, expression("Coral cover on reef ("*m^2*")"), outer = T, line = 2.75, cex = 1.1)
 mtext(side = 2, expression("Total ROI ("*m^2~"reef and orchard coral/$)"), outer = T, line = 2.75, cex = 1.1)
@@ -1651,8 +1689,8 @@ arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, l
 
 
 # 5 years, no reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.0025), las = 1, yaxt = "n")
-axis(side = 2, at = seq(0, 0.0025, 0.0005), labels = NA)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.005), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.005, 0.001), labels = NA)
 mtext(side = 3, "b) 5 years, no reference reef")
 for(i in 1:3){ # for each disturbance type
 
@@ -1680,7 +1718,7 @@ legend("bottomright", legend = c("none", "every 3 yrs", "every 5 yrs"), pch = d_
 
 
 # 50 years, with reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.00026), las = 1)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.001), las = 1)
 mtext(side = 3, "c) 50 years, with reference reef")
 for(i in 1:3){ # for each disturbance type
 
@@ -1706,8 +1744,8 @@ arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, l
 
 
 # 5 years, no reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.00026), las = 1, yaxt = "n")
-axis(side = 2, at = seq(0, 0.00025, 0.0005), labels = NA)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.001), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.001, 0.0002), labels = NA)
 mtext(side = 3, "d) 50 years, no reference reef")
 for(i in 1:3){ # for each disturbance type
 
@@ -1753,7 +1791,7 @@ par(mar=c(0, 1, 3.5, 1), oma = c(4.5, 4.5, 0.1, 0))
 
 
 # 5 years, with reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.0025), las = 1)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.005), las = 1)
 mtext(side = 3, "a) 5 years, with reference reef")
 mtext(side = 1, expression("Coral cover on reef ("*m^2*")"), outer = T, line = 2.75, cex = 1.1)
 mtext(side = 2, expression("Total ROI ("*m^2~"reef and orchard coral/$)"), outer = T, line = 2.75, cex = 1.1)
@@ -1781,8 +1819,8 @@ arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, l
 
 
 # 5 years, no reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.0025), las = 1, yaxt = "n")
-axis(side = 2, at = seq(0, 0.0025, 0.0005), labels = NA)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.005), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.005, 0.001), labels = NA)
 mtext(side = 3, "b) 5 years, no reference reef")
 for(i in c(1,3)){ # for each disturbance type
 
@@ -1810,7 +1848,7 @@ legend("bottomright", legend = c("none", "every 3 yrs"), pch = d_shapes[c(1,3)],
 
 
 # 50 years, with reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.00026), las = 1)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.001), las = 1)
 mtext(side = 3, "c) 50 years, with reference reef")
 for(i in c(1,3)){ # for each disturbance type
 
@@ -1836,8 +1874,8 @@ arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, l
 
 
 # 5 years, no reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.00026), las = 1, yaxt = "n")
-axis(side = 2, at = seq(0, 0.00025, 0.0005), labels = NA)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.001), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.001, 0.0002), labels = NA)
 mtext(side = 3, "d) 50 years, no reference reef")
 for(i in c(1,3)){ # for each disturbance type
 
@@ -1882,7 +1920,7 @@ par(mar=c(0, 1, 3.5, 1), oma = c(4.5, 4.5, 0.1, 0))
 
 
 # 5 years, with reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.15), las = 1)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.25), las = 1)
 mtext(side = 3, "a) 5 years, with reference reef")
 mtext(side = 1, expression("Coral cover on reef ("*m^2*")"), outer = T, line = 2.75, cex = 1.1)
 mtext(side = 2, "Total ROI (reef and orchard corals/$)", outer = T, line = 2.75, cex = 1.1)
@@ -1910,8 +1948,8 @@ arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, l
 
 
 # 5 years, no reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.15), las = 1, yaxt = "n")
-axis(side = 2, at = seq(0, 0.15, 0.05), labels = NA)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 100), ylim = c(0, 0.25), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.25, 0.05), labels = NA)
 mtext(side = 3, "b) 5 years, no reference reef")
 for(i in c(1,3)){ # for each disturbance type
 
@@ -1939,7 +1977,7 @@ legend("bottomright", legend = c("none", "every 3 yrs"), pch = d_shapes[c(1,3)],
 
 
 # 50 years, with reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.004), las = 1)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.015), las = 1)
 mtext(side = 3, "c) 50 years, with reference reef")
 for(i in c(1,3)){ # for each disturbance type
 
@@ -1965,8 +2003,8 @@ arrows(x0 = dt_pt1$q05, y0 = dt_pt2$mn, x1 = dt_pt1$q95, code = 3, angle = 90, l
 
 
 # 5 years, no reference reef supply
-plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.004), las = 1, yaxt = "n")
-axis(side = 2, at = seq(0, 0.004, 0.001), labels = NA)
+plot(x = 1, y = 1, col = NA, xlim = c(0, 2500), ylim = c(0, 0.015), las = 1, yaxt = "n")
+axis(side = 2, at = seq(0, 0.015, 0.005), labels = NA)
 mtext(side = 3, "d) 50 years, no reference reef")
 for(i in c(1,3)){ # for each disturbance type
 
@@ -2527,7 +2565,7 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par
 ```{r, warning = F}
 
 # parameter sets
-L_HM <- 10 # number of parameter values for each axis of heatmaps
+L_HM <- 15 # number of parameter values for each axis of heatmaps
 
 # for lab grow out:
 # post-outplanting survival of recruits kept in lab for a year
@@ -2647,8 +2685,8 @@ col_valsU <- seq(from = 1, to = max_val, length.out = nHalf/2)
   par(pty = "s")
 plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
 #axis(side = 1, at = seq(0.5, L_HM - 0.5, 1), tick = F, line = -0.5, labels = seq(0.5, L_HM - 0.5, 1)/L_HM, cex.axis = 0.8)
-axis(side = 1, at = seq(0, L_HM, 2), tick = F, line = -0.5, labels = seq(0, L_HM, 2)/L_HM, cex.axis = 0.8, padj = -1)
-axis(side = 2, at = seq(0, L_HM, 2), tick = F, line = -0.5, labels = seq(0, L_HM, 2)/L_HM, cex.axis = 0.8, las = 1)
+axis(side = 1, at = seq(0, L_HM, 3), tick = F, line = -0.5, labels = round(seq(0, L_HM, 3)/L_HM, 2), cex.axis = 0.8, padj = -1)
+axis(side = 2, at = seq(0, L_HM, 3), tick = F, line = -0.5, labels = round(seq(0, L_HM, 3)/L_HM, 2), cex.axis = 0.8, las = 1)
 mtext(side = 1, "Growth to size class 2", line = 1)
 mtext(side = 2, "Survival rate of \nsize class 2 outplants", line = 1.5)
 for(i in 1:L_HM){ # x value
@@ -2756,6 +2794,53 @@ dt_plot <- trans_D3_dt50 %>% mutate(reef_cover_prop = reef_cover_mean/reef_cover
 hm_fun(dt_plot, xset = TG_set, yset = TS_set, max_val = ceiling(max(dt_plot$reef_cover_prop)))
 
 ```
+
+
+Fixed annual budget, three types of simulations:
+1) default size class 1 outplanting
+2) size class 2 outplanting with same lab size as 1)
+3) size class 1 outplanting with same budget as 2)
+
+
+Simulation steps (focus on 5 years for now):
+-- run the size class 1 outplanting simulations with default lab parameters (already have these from orchard investment simulations; just use 0.9 outplanting)
+-- decide on default size class 2 outplanting parameters (growth/survival rates -- for now just use same as field/orchard values)
+-- run the size class 2 outplanting simulations with default lab capacity
+-- for each parameter set: go through and calculate the difference in total costs between the size class 1 and size class 2 scenarios, and then based on those total costs determine the increase in lab capacity (lab substrates) needed to get approximately the same annual budget
+
+NOTE: will need to calculate costs each year... but that would mean max number of substrates would potentially vary each year, so maybe it's easiest to just use average costs (and divide by number of years to get annual budgets) and check final budgets for consistency?
+
+UPDATE: changed functions to output costs per year so can use that to estimate max number of additional substrates possible
+
+```{r}
+
+#orch_D0 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+
+lab_trans_fun2(dem_pars_all, n_pars = n_sample1, growth_set, surv_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ```{r}
