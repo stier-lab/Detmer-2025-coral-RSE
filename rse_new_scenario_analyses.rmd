@@ -121,26 +121,7 @@ all_pars_R <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length
 
 ```
 
-make a histogram of the survival rates of the smallest size class
 
-```{r}
-s1_rand <- rep(NA, n_sample1)
-
-for(i in 1:n_sample1){
-  s1_rand[i] <- all_pars_R$surv_pars_L.rc[[i]][[1]][[1]] 
-}
-
-#unique(s1_rand)
-
-hist(s1_rand, las = 1, xlab = NA, main = NA) # xaxt = "n",, breaks = 20
-#axis(side = 1, at = c(0 + 0.01, 0.05, 0.1-0.01, 0.15), labels = sort(unique(s1_rand)))
-mtext(side = 1, "Survival of size class 1", line = 2)
-mtext(side = 3, "Histogram of size class 1 survival")
-
-min(s1_rand)
-max(s1_rand)
-
-```
 
 
 
@@ -1476,29 +1457,27 @@ dist_sims[[i]] <- dist_sims_j
 toc()
 
 
-
-
-
-```
-
-
-process the results for the disturbance heatmap
-
-```{r}
-# process results
-# dist_sims = list of simulations varying disturbance severity and frequency
-# dist_sev.r = list of disturbance severities on the reef
-# dist_sev.o = list of disturbance severities on the orchard
-dist_dt_fun2 <- function(dist_sims, dist_sev.r, dist_sev.o, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none"){
+# process the results
+#dist_dt_fun2 <- function(dist_sims, dist_sev.r, dist_sev.o, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none"){
   
-  for(i in 1:length(dist_sev.r)){
+  for(i in 1:n_dist_sims){ # for each severity
     
-    # add frequency loop
+    for(j in 1:n_dist_sims){ # for each frequncy
+      
+      dt_j <- full_dt_fun(sim_list = dist_sims[[i]][[j]], max_yr = 51, n_pars = 1, prop_set = prop_main[2], par_set2 = NA, par2_name = "none")
   
-  dt_i <- full_dt_fun(sim_list = dist_sims[[i]], max_yr = 51, n_pars = 1, prop_set = prop_main, par_set2 = NA, par2_name = "none")
+   dt_j$dist_sev_r <- dist_sev.r[i]
+   dt_j$dist_freq <- dist_yrs_list[[j]][2] - dist_yrs_list[[j]][1]
+      
+    if(j == 1){
+     dt_i <- dt_j
+   } else{
+     dt_i <- rbind(dt_i, dt_j)
+   }
+   
+    }
   
-   dt_i$dist_sev_r <- dist_sev.r[i]
-   dt_i$dist_sev_o <- dist_sev.r[i]
+  
 
    if(i == 1){
      dt_out <- dt_i
@@ -1507,23 +1486,212 @@ dist_dt_fun2 <- function(dist_sims, dist_sev.r, dist_sev.o, max_yr = 51, n_pars 
    }
   
   }
-  
-  return(dt_out)
-}
+ 
+#  return(dt_out)
+#}
 
+dt_dist <- dt_out
+
+#View(dt_out)
 
 ```
 
 
+
 Make the plots: 
-2A: Probability of the population falling below the quasi-extinction threshold within 50 years, summarized across 100 parameter sets. Three bars: no intervention, 50% to reef, 100% to reef.
+2A: Probability of the population falling below the quasi-extinction threshold within 50 years, summarized across 100 parameter sets. Three bars: no intervention, 50% to reef, 100% to reef. 
 
-
-2B: Reef cover (m²) over 50 years, three restoration levels matching 2A, no disturbance. Mean line + 90% quantile envelope from 100 parameter replicates.
+2B: Reef cover (m²) over 50 years, three restoration levels matching 2A, no disturbance. Mean line + 90% quantile envelope from 100 parameter replicates. Maybe make this panel A instead?
 
 2C: Heatmap of reef cover at year 50, severity (x) × frequency (y). Second contour layer shows CV across replicates so reviewers can see the ranking is stable under parameter uncertainty. Finding: severity dominates frequency over the 3–7 year window.
 
+
+```{r}
+s_cols <- c("#888888", "#FB9A29", "#993404")
+
+
+pdf("TempFigs/Figure2.pdf", height = 3, width = 9)
+
+par(mfrow = c(2, 1))
+layout(matrix(c(1, 2, 3, 4), nrow = 1, ncol = 4, byrow = T), widths = c(1, 1, 1, 0.2), heights = rep(1, 4))
+#layout.show(4)
+par(mar=c(0, 3.5, 2.5, 1), oma = c(4.5, 1.5, 0.1, 0))
+
+
+# panel A: time series
+
+lab_cx <- 0.85
+
+xlab1 <- "Year in simulation"
+ylab1 <- expression("Reef cover ("*m^2*")")
+#plotlab <- "c) Reef ROI"
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 4000), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.9, cex = lab_cx)
+mtext(side = 3, "a) Reef cover over 50 years", cex = lab_cx, adj = 0)
+
+  plot_dt <- ts_fun(sim_list = orch_D0_0, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = s_cols[1], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(s_cols[1], alpha.f = 0.2), border = NA)
+  
+  plot_dt <- ts_fun(sim_list = orch_D0_50, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = s_cols[2], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(s_cols[2], alpha.f = 0.2), border = NA)
+  
+  plot_dt <- ts_fun(sim_list = orch_D0_100, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = s_cols[3], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(s_cols[3], alpha.f = 0.2), border = NA)
+  
+legend("topleft", legend = c("none", "50% to reef", "100% to reef"), col = s_cols, lwd = c(2, 2, 2), lty = c(1, 1, 1), title = "Restoration strategy", bty = "n", cex = 1.1, fill = c(adjustcolor(s_cols[1], alpha.f = 0.2), adjustcolor(s_cols[2], alpha.f = 0.2), adjustcolor(s_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 3))
+
+
+# panel B: extinction probabilities
+ext_probs <- c(ext_N0_0, ext_N0_50, ext_N0_100)
+
+plot(x = c(1, 2, 3), y = rep(0, 3), col = NA, ylim = c(0, 1), xlim = c(0.5, 3.5), las = 1, xaxt = "n", xlab = NA, ylab = NA, xaxs = "i")
+mtext(side = 1, "Restoration strategy", line = 2.5, cex = lab_cx)
+#mtext(side = 2, "Prop. simulations below \nextinction threshold", line = 2.5, cex = lab_cx)
+mtext(side = 2, "Extinction probability", line = 2.5, cex = lab_cx)
+mtext(side = 3, "b) Probabilities of extinction", cex = lab_cx, adj = 0)
+axis(side = 1, at = c(1,2,3), labels = c("No \nintervention", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
+for(i in 1:3){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, ext_probs[i], ext_probs[i]), col = s_cols[i])
+
+}
+
+# panel C: disturbance sensitivity
+  
+xset <- unique(dt_dist$dist_sev_r)
+yset <- unique(dt_dist$dist_freq)
+
+dt_plot <- dt_dist
+# color palette
+nHalf <- 100
+rc1 <- colorRampPalette(colors = c("#E8E6E6", "#993404"), space = "Lab")(nHalf)
+rampcols1 <- c(rc1) # all the colors
+
+col_vals <- seq(from = 0, to = max(dt_plot$reef_cover_mean), length.out = nHalf)
+
+  L_HM <- n_dist_sims
+  
+  #par(pty = "s")
+plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM), las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # asp = 1,xaxs = "i" removes white space around the plot
+axis(side = 1, at = seq(1, L_HM, length.out = 6), tick = F, line = -0.5, labels = seq(0,1,0.2), cex.axis = 1, padj = -1)
+axis(side = 2, at = seq(1, L_HM, 4), tick = F, line = -0.5, cex.axis = 1, las = 1, labels = rev(seq(1, L_HM, 4)))
+mtext(side = 1, "Disturbance severity \n(prop. reduction in survival)", line = 2.75, cex = lab_cx)
+mtext(side = 2, "Disturbance frequency (years \nbetween disturbance events)", line = 1.75, cex = lab_cx)
+mtext(side = 3, "c) Senstivity to disturbance", cex = lab_cx, adj = 0)
+for(i in 1:L_HM){ # x value
+  for(j in 1:L_HM){ # y value
+    
+    # get point to plot
+    plot_pt <- dt_plot$reef_cover_mean[which(dt_plot$dist_sev_r==xset[i] & dt_plot$dist_freq == yset[j])]
+    
+    # reverse y-axis
+    j2 <- rev(c(1:L_HM))[j]
+    
+    # get closest color
+    if(plot_pt < 1){
+      index_ij <- which(abs(plot_pt-col_vals) == min(abs(plot_pt-col_vals)))
+      
+      polygon(x = c(i-1, i, i, i-1), y = c(j2-1, j2-1, j2, j2), col = rampcols1[index_ij], border = NA) 
+    
+    } else{
+      index_ij <- which(abs(plot_pt-col_vals) == min(abs(plot_pt-col_vals)))
+      
+      polygon(x = c(i-1, i, i, i-1), y = c(j2-1, j2-1, j2, j2), col = rampcols1[index_ij], border = NA) 
+    }
+    
+  }
+}
+
+
+# make the legend
+xl <- 1
+yb <- 1
+xr <- 1.25
+yt <- 2
+
+par(mar=c(0, 0,2.5,0))
+plot(NA, type = "n", ann = F, xlim = c(1, 2), ylim = c(1, 2), xaxt = "n", yaxt = "n", bty = "n")
+mtext(side = 3, expression(m^2~"coral"), cex = 0.8, adj = -0.025)
+text(x = 1.6, y = 1, "0")
+text(x = 1.6, y = 1.5, "250")
+text(x = 1.6, y = 2-0.025, "500") # max(dt_plot$reef_cover_mean)
+rect(
+  xl,
+  head(seq(yb, yt, (yt-yb)/nHalf), -1), # the denominator needs to match the length of the color vector
+  xr,
+  tail(seq(yb, yt, (yt - yb)/nHalf), -1),
+  col = rampcols1,
+  border = NA
+)
+
+
+dev.off()
+
+```
+
+
 SM figure: λ distribution + parameter distributions
+-- for parameter distribution: show histogram of survival values, with different color for different size classes
+
+
+lambda distributions
+
+```{r}
+# calculate lambda for each of the parameter sets
+
+for(i in 1:n_sample1){
+  lambda_set[i] <- pop_lambda_fun(all_pars_R$surv_pars_L.r[[i]][[1]][[1]], all_pars_R$growth_pars_L.r[[i]][[1]][[1]], all_pars_R$shrink_pars_L.r[[i]][[1]][[1]], all_pars_R$frag_pars_L.r[[i]][[1]][[1]])
+}
+
+
+# get survival parameters for each size class and recruits
+
+surv_mat <- matrix(NA, nrow = n_sample1, ncol = 6)
+
+#s1_rand <- rep(NA, n_sample1)
+
+for(i in 1:n_sample1){
+  #s1_rand[i] <- all_pars_R$surv_pars_L.rc[[i]][[1]][[1]] 
+  
+  surv_mat[i,1] <- all_pars_R$surv_pars_L.rc[[i]][[1]][[1]] 
+  
+  for(k in 1:5){
+    surv_mat[i,k+1] <- all_pars_R$surv_pars_L.r[[i]][[1]][[1]][k]
+  }
+}
+
+#unique(s1_rand)
+
+hist(lambda_set, main = NA, xlab = NA, ylab = NA, las = 1, breaks = 20)
+mtext(side = 1, expression("Population"~lambda), line = 2)
+mtext(side = 2, "Frequency", line = 2)
+mtext(side = 3, "a) Population growth rates", line = 2)
+abline(v = 1, lty = 2)
+
+size_cols <- c("#882E72", "#5289C7", "#4EB265", "#F7F056", "#F1932D", "#DC050C")
+
+a1 <- 0.3
+
+hist(surv_mat[,1], las = 1, xlab = NA, main = NA, xlim = c(0,1), breaks = 5, col = adjustcolor(size_cols[1], alpha.f = a1), border = size_cols[1]) # xaxt = "n",, breaks = 20
+#axis(side = 1, at = c(0 + 0.01, 0.05, 0.1-0.01, 0.15), labels = sort(unique(s1_rand)))
+mtext(side = 1, "Proportion surviving one year", line = 2)
+mtext(side = 3, "b) Survival rates by size class", adj = 0)
+hist(surv_mat[,2], las = 1, xlab = NA, main = NA, xlim = c(0,1), add = T, breaks = 20, col = adjustcolor(size_cols[2], alpha.f = a1), border = size_cols[2])
+hist(surv_mat[,3], las = 1, xlab = NA, main = NA, xlim = c(0,1), add = T, breaks = 10, col = adjustcolor(size_cols[3], alpha.f = a1), border = size_cols[3])
+hist(surv_mat[,4], las = 1, xlab = NA, main = NA, xlim = c(0,1), add = T, breaks = 5, col = adjustcolor(size_cols[4], alpha.f = a1), border = size_cols[4])
+hist(surv_mat[,5], las = 1, xlab = NA, main = NA, xlim = c(0,1), add = T, breaks = 5, col = adjustcolor(size_cols[5], alpha.f = a1), border = size_cols[5])
+hist(surv_mat[,6], las = 1, xlab = NA, main = NA, xlim = c(0,1), add = T, breaks = 2, col = adjustcolor(size_cols[6], alpha.f = a1), border = size_cols[6])
+legend("topleft", legend = c("recruits", "1", "2", "3", "4", "5"), fill = c(adjustcolor(size_cols[1], alpha.f = a1), adjustcolor(size_cols[2], alpha.f = a1), adjustcolor(size_cols[3], alpha.f = a1), adjustcolor(size_cols[4], alpha.f = a1), adjustcolor(size_cols[5], alpha.f = a1), adjustcolor(size_cols[6], alpha.f = a1)), ncol = 2, title = "Size class", inset = c(0.1,0.05), bty = "n")
+
+#min(s1_rand)
+#max(s1_rand)
+
+```
+
 
 # main simulations
 
