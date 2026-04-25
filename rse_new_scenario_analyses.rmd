@@ -153,7 +153,7 @@ shrink_pars.r <- all_pars$shrink_pars.r
 # reef parameters: fragmentation
 frag_pars.r <- all_pars$frag_pars.r
 
-# density dependent survival (smallest size class only for now)
+# density dependent survival (within first year post-outplanting only)
 dens_pars.r <- list()
 dens_pars.r[[1]] <- list() # first reef treatment/subpop
 dens_pars.r[[1]][[1]] <- 0.02 # first source to first reef (external recruits)
@@ -2063,7 +2063,273 @@ points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt
 
 update: portfolio effect isn't very strong until you get to very high proportions outplanted to reef. So maybe instead of repeating the middle panel with disturbance, instead make some sort of heatmap plot/countour plot showing outplanting proportion that maximizes reef cover for different combinations of 1) orchard resistance to disturbance and 2) reference reef supply? OR orchard resistance to disturbance and orchard fecundity, repeated with and without reference reef supply?
 
-Hypothesis: benefits of orchard investment depends in part on lab capacity, otherwise orchard benefits max out when the lab is full. So if orchard is maxing out, it's better to put more on the reef just to get as many corals out there as possible.
+
+make the plots
+
+
+SM: 50-year petals, full metric plots at 5 and 50 years, time to full orchard
+
+
+
+# Figure 4 & SM
+Fill with one size class — which wins? SC2. Paired sub-panel: stacked final-size-distribution at year 50 (mechanism: SC2s grow up to SC5).
+
+```{r}
+
+# area outplanted: try to approximate the area of the orchard, so number of reef start in orchard x area per reef star. Estimate area of reef star as 0.337 m2 (from https://onlinelibrary.wiley.com/doi/full/10.1111/rec.12866)
+area_out <- 170 # 500*0.337 = 168.5; round up to 170
+lambda_R_12345 <- round(170/(A_mids*0.0001)) #c(10000, 1000, 100, 10, 1)
+out_sizes <- c(1, 2, 3, 4, 5)
+
+# make sure there's no orchard investment:
+rest_pars$reef_prop <- c(1,1)
+
+# holding list for model output
+
+mod_out_L <- list()
+
+mod_ind <- matrix(NA, nrow = years, ncol = 5) # total number of individuals on reef
+mod_area <- matrix(NA, nrow = years, ncol = 5) # total area covered on the reef
+
+# total number in each size class after 5 and 50 years
+mod_mat5 <- matrix(NA, nrow = 5, ncol = 5) # row = outplanting scenario
+mod_mat50 <- matrix(NA, nrow = 5, ncol = 5)
+
+dens_pars.r <- list()
+dens_pars.r[[1]] <- list() # first reef treatment/subpop
+dens_pars.r[[1]][[1]] <- 0 # first source to first reef (external recruits)
+dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (tiles outplanted immediately)
+dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (tiles retained in lab)
+
+N0.l <- list()
+N0.l[[1]] <- 0 # make sure there's nothing already in the lab
+N0.l[[2]] <- 0 
+
+for(j in 1:5){
+  
+ lambda_R_j <- lambda_R_12345[j]
+  
+  size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- rep(0, 5) # first lab treatment (0_T1)
+size_props[1, out_sizes[j]] <- 1
+lab_pars <- list(s0 = matrix(1, nrow = years, ncol = 2), s1 = matrix(1, nrow = years, ncol = 2), m0 = 0, m1 = 0, sett_props = list(T1 = 1), size_props = size_props, size_props1 = size_props1)
+
+sim_j <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R = lambda_R_j, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+
+  
+mod_out_L[[j]] <- sim_j
+
+
+mod_ind[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+mod_area[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+mod_ind1 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(1))
+
+mod_ind2 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(2))
+
+mod_ind3 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3))
+
+mod_ind4 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(4))
+
+mod_ind5 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(5))
+
+mod_mat5[,j] <- c(mod_ind1[6], mod_ind2[6], mod_ind3[6], mod_ind4[6], mod_ind5[6])
+mod_mat50[,j] <- c(mod_ind1[51], mod_ind2[51], mod_ind3[51], mod_ind4[51], mod_ind5[51])
+
+}
+
+
+# reset size props to default
+size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n)
+size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment 
+
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props, size_props1 = size_props1)
+
+# reset orchard investment
+rest_pars$reef_prop <- c(0.9, 1)
+
+dens_pars.r <- list()
+dens_pars.r[[1]] <- list() # first reef treatment/subpop
+dens_pars.r[[1]][[1]] <- 0.02 # first source to first reef (external recruits)
+dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (tiles outplanted immediately)
+dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (tiles retained in lab)
+
+N0.l <- list()
+N0.l[[1]] <- 1000 # start with some babies in the lab
+N0.l[[2]] <- 0 
+
+
+# lambda_R_12345[1]
+# mod_out_L[[1]]$reef_pops[[1]][[2]][1,2]
+# lambda_R_12345[2]
+# mod_out_L[[2]]$reef_pops[[1]][[2]][2,2]
+# lambda_R_12345[3]
+# mod_out_L[[3]]$reef_pops[[1]][[2]][3,2]
+# lambda_R_12345[4]
+# mod_out_L[[4]]$reef_pops[[1]][[2]][4,2]
+# lambda_R_12345[5]
+# mod_out_L[[5]]$reef_pops[[1]][[2]][5,2]
+
+```
+
+
+
+```{r}
+cols1 <- c("#5289C7", "#4EB265", "#F7F056", "#F1932D", "#DC050C")
+
+
+# plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_ind)), col = NA, xlab = NA, ylab = NA, las = 1)
+# for(j in 1:5){
+#   lines(x = c(1:years), y = mod_ind[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+# }
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+legend("topleft", legend = c("1 (340,000)", "2 (30,909)", "3 (3,400)", "4 (694)", "5 (182)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+
+
+# look at final size distributions
+
+end_mat <- mod_mat5
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[6,])), xlim = c(0.5, 5.5), las = 1)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+
+end_mat <- mod_mat50
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[51,])), xlim = c(0.5, 5.5), las = 1)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+
+```
+
+
+for supplement: 1) outplanting equal numbers and 2) equal survival
+
+```{r}
+
+# area outplanted: try to approximate the area of the orchard, so number of reef start in orchard x area per reef star. Estimate area of reef star as 0.337 m2 (from https://onlinelibrary.wiley.com/doi/full/10.1111/rec.12866)
+area_out <- 170 # 500*0.337 = 168.5; round up to 170
+lambda_R_12345 <- rep(200, 5) #c(10000, 1000, 100, 10, 1)
+out_sizes <- c(1, 2, 3, 4, 5)
+
+# make sure there's no orchard investment:
+rest_pars$reef_prop <- c(1,1)
+
+# holding list for model output
+
+mod_out_L2 <- list()
+
+mod_ind2 <- matrix(NA, nrow = years, ncol = 5) # total number of individuals on reef
+mod_area2 <- matrix(NA, nrow = years, ncol = 5) # total area covered on the reef
+
+# total number in each size class after 5 and 50 years
+mod_mat5_2 <- matrix(NA, nrow = 5, ncol = 5) # row = outplanting scenario
+mod_mat50_2 <- matrix(NA, nrow = 5, ncol = 5)
+
+dens_pars.r <- list()
+dens_pars.r[[1]] <- list() # first reef treatment/subpop
+dens_pars.r[[1]][[1]] <- 0 # first source to first reef (external recruits)
+dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (tiles outplanted immediately)
+dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (tiles retained in lab)
+
+N0.l <- list()
+N0.l[[1]] <- 0 # make sure there's nothing already in the lab
+N0.l[[2]] <- 0 
+
+for(j in 1:5){
+  
+ lambda_R_j <- lambda_R_12345[j]
+  
+  size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n) # matrix for fractions of retained recruits in each size class at the end of their year in the lab
+size_props[1, ] <- rep(0, 5) # first lab treatment (0_T1)
+size_props[1, out_sizes[j]] <- 1
+lab_pars <- list(s0 = matrix(1, nrow = years, ncol = 2), s1 = matrix(1, nrow = years, ncol = 2), m0 = 0, m1 = 0, sett_props = list(T1 = 1), size_props = size_props, size_props1 = size_props1)
+
+sim_j <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R = lambda_R_j, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
+
+
+  
+mod_out_L2[[j]] <- sim_j
+
+
+mod_ind2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+mod_area2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+
+mod_ind1 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(1))
+
+mod_ind2 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(2))
+
+mod_ind3 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3))
+
+mod_ind4 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(4))
+
+mod_ind5 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(5))
+
+mod_mat5_2[,j] <- c(mod_ind1[6], mod_ind2[6], mod_ind3[6], mod_ind4[6], mod_ind5[6])
+mod_mat50_2[,j] <- c(mod_ind1[51], mod_ind2[51], mod_ind3[51], mod_ind4[51], mod_ind5[51])
+
+}
+
+
+# reset size props to default
+size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n)
+size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment 
+
+lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props, size_props1 = size_props1)
+
+# reset orchard investment
+rest_pars$reef_prop <- c(0.9, 1)
+
+dens_pars.r <- list()
+dens_pars.r[[1]] <- list() # first reef treatment/subpop
+dens_pars.r[[1]][[1]] <- 0.02 # first source to first reef (external recruits)
+dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (tiles outplanted immediately)
+dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (tiles retained in lab)
+
+N0.l <- list()
+N0.l[[1]] <- 1000 # start with some babies in the lab
+N0.l[[2]] <- 0 
+
+
+
+```
+
+
+Equal survival: REMEMBER to update recruit survival as well
+
+# Misc
+
+
+Hypothesis for Figure 3: benefits of orchard investment depends in part on lab capacity, otherwise orchard benefits max out when the lab is full. So if orchard is maxing out, it's better to put more on the reef just to get as many corals out there as possible.
 
 Update: wasn't much variation -- portfolio effect doesn't seem to be very strong
 
@@ -2152,5 +2418,5 @@ takes 2-3 minutes
 
 
 
-SM: 50-year petals, full metric plots at 5 and 50 years, time to full orchard
+
 
