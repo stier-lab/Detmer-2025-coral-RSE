@@ -1962,7 +1962,7 @@ model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab,
         if(length(size_classes)>1){
           reef_tot <- apply(model_sim$reef_pops_pre[[i]][[1]][size_classes, ], MARGIN = 2, sum)
         } else{
-          reef_tot <- sum(model_sim$reef_pops_pre[[i]][[1]][size_classes, ])
+          reef_tot <- model_sim$reef_pops_pre[[i]][[1]][size_classes, ]
         }
 
         
@@ -1973,7 +1973,7 @@ model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab,
             if(length(size_classes)>1){
             reef_tot <- reef_tot + apply(model_sim$reef_pops_pre[[i]][[1 + j]][size_classes, ], MARGIN = 2, sum)
             } else{
-              reef_tot <- reef_tot + sum(model_sim$reef_pops_pre[[i]][[1 + j]][size_classes, ])
+              reef_tot <- reef_tot + model_sim$reef_pops_pre[[i]][[1 + j]][size_classes, ]
             }
           }
           
@@ -2062,7 +2062,7 @@ model_summ <- function(model_sim, location, metric, n_reef, n_orchard, n_lab,
             if(length(size_classes)>1){
             orchard_tot <- orchard_tot + apply(model_sim$orchard_pops_pre[[i]][[j]][size_classes, ], MARGIN = 2, sum)
             } else{
-              orchard_tot <- orchard_tot + sum(model_sim$orchard_pops_pre[[i]][[j]][size_classes, ])
+              orchard_tot <- orchard_tot + model_sim$orchard_pops_pre[[i]][[j]][size_classes, ]
             }
           }
           
