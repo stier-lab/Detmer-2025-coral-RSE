@@ -410,7 +410,8 @@ dist_yrs3 <- c(1:max(years))[c(F, T,F)] # years when disturbance occurs: once ev
 dist_mat.r <- matrix(0.2, nrow = length(dist_yrs3), ncol = 5)
 dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
 
-dist_mat.o <- matrix(0.4, nrow = length(dist_yrs3), ncol = 5)
+#dist_mat.o <- matrix(0.4, nrow = length(dist_yrs3), ncol = 5)
+dist_mat.o <- matrix(1, nrow = length(dist_yrs3), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list3 <- list(dist.r = dist.r, dist.o = dist.o)
@@ -424,7 +425,7 @@ dist_yrs5 <- c(1:max(years))[c(F, T, F, F, F)] # years when disturbance occurs: 
 dist_mat.r <- matrix(0.2, nrow = length(dist_yrs5), ncol = 5)
 dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
 
-dist_mat.o <- matrix(0.4, nrow = length(dist_yrs5), ncol = 5)
+dist_mat.o <- matrix(1, nrow = length(dist_yrs5), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list5 <- list(dist.r = dist.r, dist.o = dist.o)
@@ -438,7 +439,7 @@ dist_yrs7 <- c(1:max(years))[c(F, T,F, F, F, F, F)] # years when disturbance occ
 dist_mat.r <- matrix(0.2, nrow = length(dist_yrs7), ncol = 5)
 dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
 
-dist_mat.o <- matrix(0.4, nrow = length(dist_yrs7), ncol = 5)
+dist_mat.o <- matrix(1, nrow = length(dist_yrs7), ncol = 5)
 dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
 
 dist_pars_list7 <- list(dist.r = dist.r, dist.o = dist.o)
@@ -1923,22 +1924,26 @@ prop_all <- seq(from = 0, to = 1, length.out = 20)
 
 lambda_Rs <- c(0, 1255111)
 
+#lab_max <- 12000
+
 #orch_D0 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
 
 tic()
-orch_D0_all <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+orch_D0_all <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
 
-orch_D3_all <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = T, dist_yrs = dist_yrs3, dist_pars_list = dist_pars_list3)
+orch_D3_all <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs, par2_name = "lambda_R", dist = T, dist_yrs = dist_yrs3, dist_pars_list = dist_pars_list3)
 toc()
 
-# process the data
+# process the output
 
-orch_D0_all_dt5 <- full_dt_fun(sim_list = orch_D0_all, max_yr = 6, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs[2], par2_name = "lambda_R")
-orch_D0_all_dt50 <- full_dt_fun(sim_list = orch_D0_all, max_yr = 51, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs[2], par2_name = "lambda_R")
+orch_D0_all_dt5 <- full_dt_fun(sim_list = orch_D0_all, max_yr = 6, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs, par2_name = "lambda_R")
+orch_D0_all_dt50 <- full_dt_fun(sim_list = orch_D0_all, max_yr = 51, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs, par2_name = "lambda_R")
 
-orch_D3_all_dt5 <- full_dt_fun(sim_list = orch_D3_all, max_yr = 6, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs[2], par2_name = "lambda_R")
-orch_D3_all_dt50 <- full_dt_fun(sim_list = orch_D3_all, max_yr = 51, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs[2], par2_name = "lambda_R")
+orch_D3_all_dt5 <- full_dt_fun(sim_list = orch_D3_all, max_yr = 6, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs, par2_name = "lambda_R")
+orch_D3_all_dt50 <- full_dt_fun(sim_list = orch_D3_all, max_yr = 51, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs, par2_name = "lambda_R")
 
+
+#lab_max <- 4000
 
 ```
 
@@ -1955,46 +1960,197 @@ metric_cols <- c("#99DDFF", "#FFAABB", "#AAAA00", "#BBCC33","#EE8866", "#44BB99"
 
 plot_cols <- c("#99DDFF","#BBCC33") 
 
+plot_colsD <- c("#7EA0A8","#8E9470")
+
 dt_plot <- orch_D0_all_dt5
 
-dt_plot1 <- dt_plot %>% rename(metric = reef_cover_mean)
+dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[2]) %>% rename(metric = reef_cover_mean)
 
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
 plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = 2, col = plot_cols[1], xlab = NA, ylab = NA)
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
-
-
-dt_plot1 <- dt_plot %>% rename(metric = tot_ROI_mean)
-
-dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
-
-plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = 2, col = plot_cols[2], xlab = NA, ylab = NA)
-polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[2], alpha.f = 0.25))
+points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 16, col = plot_cols[1], cex = 1.1)
 
 
 # repeat with disturbance
 dt_plot <- orch_D3_all_dt5
 
-dt_plot1 <- dt_plot %>% rename(metric = reef_cover_mean)
+dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[2]) %>% rename(metric = reef_cover_mean)
 
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
-plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = 2, col = plot_cols[1], xlab = NA, ylab = NA)
-polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 2, col = plot_colsD[1], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
+points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 17, col = plot_colsD[1])
 
 
-dt_plot1 <- dt_plot %>% rename(metric = tot_ROI_mean)
+# total ROI
+
+dt_plot <- orch_D0_all_dt5
+
+dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[2]) %>% rename(metric = tot_ROI_mean)
 
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
 plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = 2, col = plot_cols[2], xlab = NA, ylab = NA)
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[2], alpha.f = 0.25))
+points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 16, col = plot_cols[2], cex = 1.1)
+
+
+# repeat with disturbance
+dt_plot <- orch_D3_all_dt5
+
+dt_plot1 <- dt_plot%>% filter(par2 == lambda_Rs[2]) %>% rename(metric = tot_ROI_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 2, col = plot_colsD[2], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[2], alpha.f = 0.25))
+points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 17, col = plot_colsD[2])
+
+
+# repeat with no reference reef supply
+
+
+dt_plot <- orch_D0_all_dt5
+
+dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[1]) %>% rename(metric = reef_cover_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = 2, col = plot_cols[1], xlab = NA, ylab = NA)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
+points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 16, col = plot_cols[1], cex = 1.1)
+
+# repeat with disturbance
+dt_plot <- orch_D3_all_dt5
+
+dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[1]) %>% rename(metric = reef_cover_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 2, col = plot_colsD[1], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
+points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 17, col = plot_colsD[1])
+
+
+# total ROI
+
+dt_plot <- orch_D0_all_dt5
+
+dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[1]) %>% rename(metric = tot_ROI_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = 2, col = plot_cols[2], xlab = NA, ylab = NA)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[2], alpha.f = 0.25))
+points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 16, col = plot_cols[2])
+
+# repeat with disturbance
+dt_plot <- orch_D3_all_dt5
+
+dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[1]) %>% rename(metric = tot_ROI_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 2, col = plot_colsD[2], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[2], alpha.f = 0.25))
+points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 17, col = plot_colsD[2])
 
 
 ```
 
 update: portfolio effect isn't very strong until you get to very high proportions outplanted to reef. So maybe instead of repeating the middle panel with disturbance, instead make some sort of heatmap plot/countour plot showing outplanting proportion that maximizes reef cover for different combinations of 1) orchard resistance to disturbance and 2) reference reef supply? OR orchard resistance to disturbance and orchard fecundity, repeated with and without reference reef supply?
+
+Hypothesis: benefits of orchard investment depends in part on lab capacity, otherwise orchard benefits max out when the lab is full. So if orchard is maxing out, it's better to put more on the reef just to get as many corals out there as possible.
+
+Update: wasn't much variation -- portfolio effect doesn't seem to be very strong
+
+```{r}
+
+# years <- 6 # just do 6 years for now to reduce computation time
+# 
+# prop_all <- seq(from = 0, to = 1, length.out = 20)
+# #prop_all <- seq(from = 0, to = 1, length.out = 5)
+# lab_max_set <- seq(from = 3000, to = 12000, length.out = 20)
+# 
+# lambda_R <- 0
+# 
+# #orch_D0 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_main, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+# 
+# tic()
+# orch_D0_all_lab_max <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_all, par_set2 = lab_max_set, par2_name = "lab_max", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+# 
+# orch_D3_all_lab_max <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_all, par_set2 = lab_max_set, par2_name = "lab_max", dist = T, dist_yrs = dist_yrs3, dist_pars_list = dist_pars_list3)
+# toc()
+# 
+# # reset number of years to default
+# years <- 51
+# 
+# lambda_R <- 1255111
+# 
+# # process the output
+# 
+# orch_D0_all_lab_max_dt5 <- full_dt_fun(sim_list = orch_D0_all_lab_max, max_yr = 6, n_pars = n_sample1, prop_set = prop_all, par_set2 = lab_max_set, par2_name = "lab_max")
+# 
+# orch_D3_all_lab_max_dt5 <- full_dt_fun(sim_list = orch_D3_all_lab_max, max_yr = 6, n_pars = n_sample1, prop_set = prop_all, par_set2 = lab_max_set, par2_name = "lab_max")
+# 
+
+```
+
+takes 2-3 minutes
+
+
+```{r}
+
+
+# for each parameter combination
+# for each proportion outplanted, find the range of lab sizes for which that proportion results in the max coral cover on the reef (NA if coral cover was never maximized at that proportion outplanted)
+
+# for each parameter combination and lab size, get the max coral cover and the proportion that it occurs, then arrange by proportions
+# 
+# plot_cols <- c("#99DDFF","#7EA0A8") # without and with disturbance
+# a1 <- 0.2
+# lwd1 <- 3
+# 
+# dt_plot <- orch_D0_all_lab_max_dt5
+# 
+# dt_plot1 <- dt_plot %>% select(reef_cover_mean, par2, par_rep, prop_out) %>% group_by(par2, par_rep) %>% mutate(max_coral = max(reef_cover_mean)) %>% ungroup() %>% filter(reef_cover_mean == max_coral)
+# 
+# plot(x = prop_all, lab_max_set, col = NA)
+# #points(x = dt_plot_i$prop_out, y = dt_plot_i$par2)
+# for(i in 1:n_sample1){
+#   for(j in 1:length(unique(dt_plot_i$prop_out))){
+#     
+#     dt_plot_i <- dt_plot1 %>% filter(par_rep == i)
+#   dt_plot_j <- dt_plot_i %>% filter(prop_out == unique(dt_plot_i$prop_out)[j])
+#   lines(x = dt_plot_j$prop_out, y = dt_plot_j$par2, col = adjustcolor(plot_cols[1], alpha.f = a1), lwd = lwd1)
+# }
+# 
+# }
+# 
+# 
+# dt_plot <- orch_D3_all_lab_max_dt5
+# 
+# dt_plot1 <- dt_plot %>% select(reef_cover_mean, par2, par_rep, prop_out) %>% group_by(par2, par_rep) %>% mutate(max_coral = max(reef_cover_mean)) %>% ungroup() %>% filter(reef_cover_mean == max_coral)
+# 
+# plot(x = prop_all, lab_max_set, col = NA)
+# for(i in 1:n_sample1){
+#   for(j in 1:length(unique(dt_plot_i$prop_out))){
+#     
+#     dt_plot_i <- dt_plot1 %>% filter(par_rep == i)
+#   dt_plot_j <- dt_plot_i %>% filter(prop_out == unique(dt_plot_i$prop_out)[j])
+#   lines(x = dt_plot_j$prop_out, y = dt_plot_j$par2, col = adjustcolor(plot_cols[2], alpha.f = a1), lwd = lwd1, lty = 1)
+# }
+# 
+# }
+
+
+
+```
+
+
 
 SM: 50-year petals, full metric plots at 5 and 50 years, time to full orchard
 
