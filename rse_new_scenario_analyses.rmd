@@ -293,7 +293,7 @@ tile_props <- list(T1 = 1) # proportion of tiles that are each type
 orchard_yield <- 1 # percent of new orchard babies successfully collected
 reef_yield <- 1 # percent of new reef babies successfully collected and fertilized
 spawn_target <- 2000000 # target number of embryos to collect from orchard each year (note: if this is set to zero, there won't be any settlers)
-reef_prop <- c(0.9, 1) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
+reef_prop <- c(0.5, 1) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
 reef_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion recruits going from each lab treatment to each reef treatment (row = origin lab treatment, column = destination reef treatment)
 reef_out_props[1,] <- c(1) # from first lab treatment to each reef treatment (here there's just on intervention reef so they all go there)
 reef_out_props[2,] <- c(1) # from second lab treatment to each reef treatment 
@@ -1208,7 +1208,6 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name,
     
     for(k in 1:length(prop_set)){
       
-      costs_list_k <- list()
       
       if(n_pars == 1){
         sim_ijk <- sim_list[[j]][[k]]
@@ -1229,7 +1228,7 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name,
         
         dt_ijk <- metrics_ijk$dt_i
         
-        costs_list[[i]][[j]][[k]] <- metrics_ijk$tot_costs_yr
+        costs_list_j[[k]] <- metrics_ijk$tot_costs_yr
 
       }
       
@@ -1240,6 +1239,8 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name,
         dt_k <- rbind(dt_k, dt_ijk)
       }
     }
+    
+    costs_list_i[[j]] <- costs_list_j
     
     if(j == 1){
       dt_j <- dt_k
@@ -1255,6 +1256,8 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name,
     dt_i <- rbind(dt_i, dt_j)
   }
   
+    
+    costs_list[[i]] <- costs_list_i
   }
   
   
@@ -2148,7 +2151,7 @@ size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment
 lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props, size_props1 = size_props1)
 
 # reset orchard investment
-rest_pars$reef_prop <- c(0.9, 1)
+rest_pars$reef_prop <- c(0.5, 1)
 
 dens_pars.r <- list()
 dens_pars.r[[1]] <- list() # first reef treatment/subpop
@@ -2325,6 +2328,272 @@ N0.l[[2]] <- 0
 
 
 Equal survival: REMEMBER to update recruit survival as well
+
+
+
+Budgeting figure: need to decide on lab grow out or nursery. Nursery might make more sense given 1) there is lower parameter uncertainty (already have growth estimates) and 2) it matches the paired panel with fixed area, and 3) the budgets are more comparable (diver/boat costs either spent on outplanting more babies or moving size class 2 corals). 
+
+50% orchard investment
+
+maybe plot everything relative to the default case? (for each parameter combination, calculate prop change relative to default for that parameter combination)
+
+base number of corals to transplant on number of outplanting day in budget
+
+start with some size class 2 and size class 1 corals in the orchard?
+
+```{r}
+
+prop_set1 <- c(0.5)
+
+# update orchard initial conditions 
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- c(0.25*orchard_size, 0.5*orchard_size, rep(0, 3)) # first source
+N0.o[[1]][[2]] <- rep(0, n) # second source
+
+# 50% investment in reef
+orch_D0_def_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = T, dist_yrs = dist_yrs_i, dist_pars_list = dist_pars_list_i)
+
+# make metric data frames
+orch_D0_def_dt5 <- full_dt_fun(sim_list = orch_D0_def_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+orch_D0_def_dt50 <- full_dt_fun(sim_list = orch_D0_def_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+
+#orch_D0_def_dt5$costs_list
+
+# update transplanting parameters
+transplant <- rep(1, years)
+rest_pars$transplant <- transplant
+
+orch_D0_SC2_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = T, dist_yrs = dist_yrs_i, dist_pars_list = dist_pars_list_i)
+
+orch_D0_SC2_dt5 <- full_dt_fun(sim_list = orch_D0_SC2_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+orch_D0_SC2_dt50 <- full_dt_fun(sim_list = orch_D0_SC2_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+
+# reset initial conditions in orchard
+
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- rep(0, n) # first source
+N0.o[[1]][[2]] <- rep(0, n) # second source
+
+# reset transplanting
+transplant <- rep(0, years)
+rest_pars$transplant <- transplant
+
+```
+
+
+```{r}
+# process costs
+# differences in costs are due to differences in number of corals in the orchard (due to differences in orchard parameters)
+cost_mat_fun <- function(dt_list, max_year){
+  
+  cost_mat <- matrix(NA, nrow = n_sample1, ncol = max_year)
+
+for(i in 1:n_sample1){
+  cost_mat[i,] <- dt_list[[i]][[1]][[1]]
+}
+  return(cost_mat)
+}
+
+costs_D0_def_5 <- cost_mat_fun(dt_list = orch_D0_def_dt5$costs_list, max_year = 5)
+
+costs_D0_SC2_5 <- cost_mat_fun(dt_list = orch_D0_SC2_dt5$costs_list, max_year = 5)
+
+# calculate the average increase in costs each year across all parameter combinations
+
+# calculate the total difference in cost across all 5 years for each parameter combination, then calculate the average total difference?
+
+# or calculate the max annual cost for each parameter combination 
+
+#mean_diff_5 <- apply(costs_D0_SC2_5 - costs_D0_def_5, MARGIN = 2, mean)
+#apply(costs_D0_SC2_5 - costs_D0_def_5, MARGIN = 2, sd)
+
+mean(apply(costs_D0_SC2_5, MARGIN = 1, max)- apply(costs_D0_def_5, MARGIN = 1, max))
+
+
+mean_diff_5
+
+#max(costs_D0_def_5 - costs_D0_SC2_5)
+#min(costs_D0_def_5 - costs_D0_SC2_5)
+
+
+```
+
+complicated because it's not just orchard outplanting vs. reef outplanting; also have orchard maintenance which depends on how many corals are in the orchard, and there's inflation so things get more expensive each year. But could still try to estimate budgets each year, and just assume you need to have enough to perform maintenance on the orchard corals? 
+
+
+Budgeting
+
+```{r}
+# plan out 5 year budget: need to make sure you have enough to collect spawn from reef only (more expensive), perform maintenance on full orchard, and outplant 50% of substrates to reef and 50% to orchard each year
+
+# cost*(1 + r_inf)^(2:max_yr)
+# r_inf <- 0.056
+
+# can use the same data function with fake simulation results
+
+# lab_max = max number of substrates
+# n_trans = max number of orchard colonies transplanted each year
+      
+# sum(rest_pars$trans_mats[[1]][[1]][1,])
+budget_fun <- function(max_yr, lab_max, n_trans){
+  
+  
+budget_sim <- list()
+
+
+budget_sim$reef_pops_pre <- list()
+budget_sim$reef_pops_pre[[1]] <- list()
+budget_sim$reef_pops_pre[[1]][[1]] <- matrix(0, 5, max_yr)
+budget_sim$reef_pops_pre[[1]][[2]] <- matrix(0, 5, max_yr)
+budget_sim$reef_pops_pre[[1]][[3]] <- matrix(0, 5, max_yr)
+
+budget_sim$orchard_pops_pre <- list()
+budget_sim$orchard_pops_pre[[1]] <- list()
+budget_sim$orchard_pops_pre[[1]][[1]] <- matrix(0, 5, max_yr)
+budget_sim$orchard_pops_pre[[1]][[2]] <- matrix(0, 5, max_yr)
+
+budget_sim$reef_tiles_out <- rep(0.5*lab_max, max_yr)
+budget_sim$orchard_tiles_out <- rep(0.5*lab_max, max_yr)
+budget_sim$orchard_tiles <- list()
+
+budget_sim$trans_colonies_tot <- rep(n_trans, max_yr)
+budget_sim$reef_babies_used <- rep(lambda_R, max_yr)
+budget_sim$orchard_babies_used <- rep(0, max_yr)
+
+for(kk in 1:length(orchard_treatments)){ # in case there's more than one orchard
+  
+  if(kk == 1){
+    budget_sim$orchard_tiles[[kk]] <- rep(rest_pars$orchard_size, max_yr)
+  } else{
+    budget_sim$orchard_tiles[[kk]] <- rep(0, max_yr)
+  }
+         
+}
+
+# calculate the costs
+dt_out <- metrics_dt_fun(sim = budget_sim, max_yr, annual_costs = T)
+  
+return(dt_out$tot_costs_yr)
+
+}
+
+
+def_budget <- budget_fun(max_yr = 6, lab_max, n_trans = 0)
+
+SC2_budget <- budget_fun(max_yr = 6, lab_max, n_trans = sum(rest_pars$trans_mats[[1]][[1]][1,]))
+
+# def_budget
+# SC2_budget
+
+c_extra <- SC2_budget - def_budget # put that difference into lab size
+c_extra <- min(c_extra)
+
+
+# 11700 per year = how many extra tiles?
+# x = number of tiles, costs = purchasing each year plus outplanting (50% to reef and 50% to orchard)
+
+x_set <- seq(from = 0, to = 4000, by = 1)
+
+c_subs_set <- x_set*(0.5*1 + 0.5*7)
+
+c_reef_set <- 300*ceiling(0.5*x_set/1250) + 200*0.5*x_set/1250 + 380/2000*0.5*x_set
+      
+c_orch_set <- 300*ceiling(0.5*x_set/800) + 200*0.5*x_set/800 + 250/2000 * 0.5*x_set
+
+c_tot_set <- c_subs_set + c_reef_set + c_orch_set
+
+c_diff_set <- c_extra - c_tot_set
+
+x_set[which(abs(c_diff_set)==min(abs(c_diff_set)))]
+c_diff_set[2476]
+
+c_extra - c_tot_set[2476]
+
+c_extra 
+c_tot_set[2476]
+
+# so the answer is 2476 extra tiles
+
+SC1L_budget <- budget_fun(max_yr = 6, lab_max + 1600, n_trans =0)
+
+#SC1L_budget <- budget_fun(max_yr = 6, lab_max + 2476, n_trans =0)
+
+(SC2_budget-SC1L_budget)/SC1L_budget*100 # within 10%
+```
+
+
+```{r}
+# now repeat SC1 outplanting with bigger lab
+
+
+rest_pars$lab_max <- 4000 + 1600
+
+prop_set1 <- c(0.5)
+
+# update orchard initial conditions 
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- c(0.25*orchard_size, 0.5*orchard_size, rep(0, 3)) # first source
+N0.o[[1]][[2]] <- rep(0, n) # second source
+
+# 50% investment in reef
+orch_D0_SC1L_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = c(0.5), par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = T, dist_yrs = dist_yrs_i, dist_pars_list = dist_pars_list_i)
+
+# make metric data frames
+orch_D0_SC1L_dt5 <- full_dt_fun(sim_list = orch_D0_SC1L_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+orch_D0_SC1L_dt50 <- full_dt_fun(sim_list = orch_D0_SC1L_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+
+#orch_D0_def_dt5$costs_list
+
+
+
+# reset initial conditions in orchard
+
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- rep(0, n) # first source
+N0.o[[1]][[2]] <- rep(0, n) # second source
+
+# rest lab capacity
+
+rest_pars$lab_max <- 4000
+
+
+
+```
+
+
+```{r}
+#orch_D0_SC1L_50[[1]][[1]][[1]]$trans_colonies_tot
+
+costs_D0_SC1L_5 <- cost_mat_fun(dt_list = orch_D0_SC1L_dt5$costs_list, max_year = 5)
+
+
+mean(apply(costs_D0_SC2_5, MARGIN = 1, max))
+     
+mean(apply(costs_D0_def_5, MARGIN = 1, max))
+
+mean(apply(costs_D0_SC1L_5, MARGIN = 1, max))
+
+
+mean(orch_D0_SC1L_dt5$dt_i$reef_cover_mean)
+
+mean(orch_D0_def_dt5$dt_i$reef_cover_mean)
+
+mean(orch_D0_SC2_dt5$dt_i$reef_cover_mean)
+
+mean(orch_D0_SC1L_dt5$dt_i$tot_ROI_mean)
+
+mean(orch_D0_def_dt5$dt_i$tot_ROI_mean)
+
+mean(orch_D0_SC2_dt5$dt_i$tot_ROI_mean)
+
+```
+
+
+repeat with disturbance?
 
 # Misc
 
