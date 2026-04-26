@@ -2579,17 +2579,114 @@ mean(apply(costs_D0_SC1L_5, MARGIN = 1, max))
 
 
 mean(orch_D0_SC1L_dt5$dt_i$reef_cover_mean)
-
 mean(orch_D0_def_dt5$dt_i$reef_cover_mean)
-
 mean(orch_D0_SC2_dt5$dt_i$reef_cover_mean)
 
 mean(orch_D0_SC1L_dt5$dt_i$tot_ROI_mean)
-
 mean(orch_D0_def_dt5$dt_i$tot_ROI_mean)
-
 mean(orch_D0_SC2_dt5$dt_i$tot_ROI_mean)
 
+mean(orch_D0_SC1L_dt5$dt_i$reef_ROI_mean)
+mean(orch_D0_def_dt5$dt_i$reef_ROI_mean)
+mean(orch_D0_SC2_dt5$dt_i$reef_ROI_mean)
+
+# check differences in costs
+max((orch_D0_SC2_dt5$dt_i$tot_costs - orch_D0_SC1L_dt5$dt_i$tot_costs)/orch_D0_SC1L_dt5$dt_i$tot_costs)*100
+
+max((orch_D0_SC2_dt5$dt_i$tot_costs - orch_D0_def_dt5$dt_i$tot_costs)/orch_D0_def_dt5$dt_i$tot_costs)*100
+
+
+# check over 50 years
+max((orch_D0_SC2_dt50$dt_i$tot_costs - orch_D0_SC1L_dt50$dt_i$tot_costs)/orch_D0_SC1L_dt50$dt_i$tot_costs)*100
+
+max((orch_D0_SC2_dt50$dt_i$tot_costs - orch_D0_def_dt50$dt_i$tot_costs)/orch_D0_def_dt50$dt_i$tot_costs)*100
+
+```
+
+
+```{r}
+#View(orch_D0_SC2_dt5$dt_i)
+
+# for each parameter set, get coral cover on reef, total costs, and total ROI relative to the default simulation
+
+relative_metrics_fun <- function(dt2, dt_def, n_sample1){
+  
+dt2$par_rep <- c(1:n_sample1)  
+dt_def$par_rep <- c(1:n_sample1)  
+
+reef_coral <- rep(NA, n_sample1)
+tot_ROI <- rep(NA, n_sample1)
+totI_ROI <- rep(NA, n_sample1)
+tot_costs <- rep(NA, n_sample1)
+
+for(i in 1:n_sample1){
+  dt_def_i <- dt_def[which(dt_def$par_rep == i),]
+  dt2_i <- dt2[which(dt2$par_rep == i),]
+  
+  reef_coral[i] <- dt2_i$reef_cover_mean/dt_def_i$reef_cover_mean
+  tot_ROI[i] <- dt2_i$tot_ROI_mean/dt_def_i$tot_ROI_mean
+  totI_ROI[i] <- dt2_i$totI_ROI_mean/dt_def_i$totI_ROI_mean
+  tot_costs[i] <- dt2_i$tot_costs/dt_def_i$tot_costs
+}
+
+return(list(reef_coral = reef_coral, tot_ROI = tot_ROI, totI_ROI = totI_ROI, tot_costs = tot_costs))
+  
+}
+
+
+
+```
+
+
+plot results
+
+```{r}
+
+pch_set <- c(16, 17)
+
+col_set <- c("black", "blue") # CHANGE THESE to match the size 1 and size 2 size classes from the outplanting size figure (once that color palette is decided)
+
+SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+
+xmax <- max(c(SC1L_def$reef_coral, SC2_def$reef_coral))
+ymax <- max(c(SC1L_def$tot_ROI, SC2_def$tot_ROI))
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_set[2], col = col_set[2])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$tot_ROI, 0.05), y1 = quantile(SC2_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+
+```
+
+repeat for 50 years
+
+```{r}
+SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+
+xmax <- max(c(SC1L_def$reef_coral, SC2_def$reef_coral))
+ymax <- max(c(SC1L_def$tot_ROI, SC2_def$tot_ROI))
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_set[2], col = col_set[2])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$tot_ROI, 0.05), y1 = quantile(SC2_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
 ```
 
 
