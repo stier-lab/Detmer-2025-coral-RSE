@@ -2117,6 +2117,16 @@ pdf("TempFigs/Figure3_petal100.pdf", height = 5, width = 6)
 petal_fun(dt_plot = orch_D0_petals_dt5, prop_choice = 1, square = T, middle = F, outer_xy = 1)
 dev.off()
 
+
+# 50 year petal plots
+pdf("TempFigs/Figure3_petal50_50yr.pdf", height = 5, width = 6)
+petal_fun(dt_plot = orch_D0_petals_dt50, prop_choice = 0.5, square = T, middle = F, outer_xy = 1)
+dev.off()
+
+pdf("TempFigs/Figure3_petal100_50yr.pdf", height = 5, width = 6)
+petal_fun(dt_plot = orch_D0_petals_dt50, prop_choice = 1, square = T, middle = F, outer_xy = 1)
+dev.off()
+
 ```
 
 
@@ -2151,7 +2161,7 @@ points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt
 
 legend("topleft", legend = c("No disturbance", "Disturbance every 3 years"), col = c(plot_cols[1], plot_colsD[1]), lwd = c(2, 2), lty = c(1, 2), bty = "n", cex = 1, fill = c(adjustcolor(plot_cols[1], alpha.f = 0.25), adjustcolor(plot_colsD[1], alpha.f = 0.25)), border = NA, merge = T, seg.len = c(0.5, 0.5))
 
-legend("left", legend = c("Max without disturbance", "Max with disturbance"), col = c(plot_cols[1], plot_colsD[1]), pch = c(16, 17), bty = "n", cex = 1, border = NA, merge = T)
+legend("left", legend = c("Max without disturbance", "Max with disturbance"), col = c(plot_cols[1], plot_colsD[1]), pch = c(16, 17), bty = "n", cex = 1, border = NA)
 
 
 
@@ -2202,6 +2212,332 @@ dev.off()
 
 
 SM: 50-year petals, full metric plots at 5 and 50 years, time to full orchard
+
+full metric plots
+
+```{r}
+
+full_metrics_plot <- function(dt_plot, dt_plotD, lambda_R_choice, main_lab){
+  
+plot_cols <- c("#4477AA","#BBCC33") 
+plot_colsD <- c("#87A0AD","#BDBF9D")
+
+lwd1 <- 2.5
+
+dt_plot <- dt_plot %>% filter(par2 == lambda_Rs[lambda_R_choice])
+dt_plotD <- dt_plotD %>% filter(par2 == lambda_Rs[lambda_R_choice])
+
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
+par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+
+# mean reef cover
+dt_plot1 <- dt_plot %>% rename(metric = reef_cover_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+xlab1 <- NA
+ylab1 <- expression("Mean coral cover ("*m^2*")")
+plotlab <- "a) Coral cover on reef"
+plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", ylim = c(0, max(dt_plot2$Q95)))
+axis(side = 1, at = seq(0, 1, 0.2))
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+mtext(side = 3, main_lab, outer = T, line = -1)
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = lwd1, col = plot_cols[1])
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
+
+# with disturbance
+dt_plot1 <- dt_plotD %>% rename(metric = reef_cover_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = lwd1, col = plot_colsD[1], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
+
+legend("topleft", legend = c("No disturbance", "Disturbance every 3 years"), col = c(plot_cols[1], plot_colsD[1]), lwd = c(2, 2), lty = c(1, 2), bty = "n", cex = 1, fill = c(adjustcolor(plot_cols[1], alpha.f = 0.25), adjustcolor(plot_colsD[1], alpha.f = 0.25)), border = NA, merge = T, seg.len = c(0.5, 0.5))
+
+
+
+# recruits outplanted to reef
+dt_plot1 <- dt_plot %>% rename(metric = reef_recruits_out_tot)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+
+xlab1 <- NA
+ylab1 <- "Number of recruits"
+plotlab <- "b) Recruits outplanted to reef"
+plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", ylim = c(0, max(dt_plot2$Q95)))
+axis(side = 1, at = seq(0, 1, 0.2))
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.75, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = lwd1, col = plot_cols[1])
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
+
+# with disturbance
+dt_plot1 <- dt_plotD %>% rename(metric = reef_recruits_out_tot)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = lwd1, col = plot_colsD[1], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
+
+
+
+# reef ROI
+dt_plot1 <- dt_plot %>% rename(metric = reef_ROI_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+
+xlab1 <- "Proportion substrates initially outplanted to reef"
+ylab1 <- expression("Reef ROI ("*m^2~"coral/$)")
+plotlab <- "c) Reef ROI"
+plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", ylim = c(0, max(dt_plot2$Q95)))
+axis(side = 1, at = seq(0, 1, 0.2))
+mtext(side = 1, xlab1, line = 2.5, outer = T, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = lwd1, col = plot_cols[1])
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
+
+# with disturbance
+dt_plot1 <- dt_plotD %>% rename(metric = reef_ROI_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = lwd1, col = plot_colsD[1], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
+
+
+# orchard function
+dt_plot1 <- dt_plot %>% rename(metric = orch_function_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+
+xlab1 <- NA
+#ylab1 <- "Mean cover of \nlarge orchard corals"
+plotlab <- "d) Orchard ecological function"
+plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", ylim = c(0, max(dt_plot2$Q95)))
+axis(side = 1, at = seq(0, 1, 0.2))
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, "Mean cover of", line = 3.75, cex = lab_cx)
+mtext(side = 2, expression("large orchard corals ("*m^2*")"), line = 2.5, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = lwd1, col = plot_cols[1])
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
+
+# with disturbance
+dt_plot1 <- dt_plotD %>% rename(metric = orch_function_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = lwd1, col = plot_colsD[1], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
+
+# total costs
+dt_plot1 <- dt_plot %>% rename(metric = tot_costs)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+xlab1 <- NA
+ylab1 <- "$"
+plotlab <- "e) Total costs"
+plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", ylim = c(0, max(dt_plot2$Q95)))
+axis(side = 1, at = seq(0, 1, 0.2))
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.75, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = lwd1, col = plot_cols[1])
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
+
+# with disturbance
+dt_plot1 <- dt_plotD %>% rename(metric = tot_costs)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = lwd1, col = plot_colsD[1], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
+
+
+# total ROI
+dt_plot1 <- dt_plot %>% rename(metric = tot_ROI_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+xlab1 <- NA
+ylab1 <- expression("Total ROI ("*m^2~"coral/$)")
+plotlab <- "f) Total ROI (reef + orchard)"
+plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", ylim = c(0, max(dt_plot2$Q95)))
+axis(side = 1, at = seq(0, 1, 0.2))
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+mtext(side = 2, ylab1, line = 2.75, cex = lab_cx)
+mtext(side = 3, plotlab, adj = 0)
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = lwd1, col = plot_cols[1])
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[1], alpha.f = 0.25))
+
+# with disturbance
+dt_plot1 <- dt_plotD %>% rename(metric = tot_ROI_mean)
+
+dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
+
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = lwd1, col = plot_colsD[1], lty = 2)
+polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
+}
+
+
+
+```
+
+```{r}
+
+pdf("TempFigs/full_metrics_5.pdf", height = 7, width = 6)
+
+full_metrics_plot(dt_plot = orch_D0_all_dt5, dt_plotD = orch_D3_all_dt5, lambda_R_choice = 2, main_lab = "5 years, with reference reef supply")
+
+dev.off()
+
+pdf("TempFigs/full_metrics_50.pdf", height = 7, width = 6)
+
+full_metrics_plot(dt_plot = orch_D0_all_dt50, dt_plotD = orch_D3_all_dt50, lambda_R_choice = 2, main_lab = "50 years, with reference reef supply")
+
+dev.off()
+
+
+pdf("TempFigs/full_metrics_5_noR.pdf", height = 7, width = 6)
+
+full_metrics_plot(dt_plot = orch_D0_all_dt5, dt_plotD = orch_D3_all_dt5, lambda_R_choice = 1, main_lab = "5 years, no reference reef supply")
+
+dev.off()
+
+pdf("TempFigs/full_metrics_50_noR.pdf", height = 7, width = 6)
+
+full_metrics_plot(dt_plot = orch_D0_all_dt50, dt_plotD = orch_D3_all_dt50, lambda_R_choice = 1, main_lab = "50 years, no reference reef supply")
+
+dev.off()
+
+```
+
+time to full orchard
+
+```{r}
+# orchard adults (for recording time to full orchard)
+
+orch_full_dt <- function(sim_list, n_pars, prop_set, par_set2, par2_name){
+  
+  for(i in 1:n_pars){
+    
+  for(j in 1:length(par_set2)){
+    
+    for(k in 1:length(prop_set)){
+      
+      
+      if(n_pars == 1){
+        sim_ijk <- sim_list[[j]][[k]]
+      } else{
+        sim_ijk <- sim_list[[i]][[j]][[k]]
+      }
+      
+      dt_ijk <- data.frame(
+        orch_full = NA
+      )
+      
+      orch_ad_ij <- model_summ(model_sim = sim_ijk, location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
+
+      # threshold value for full orchard
+      orch_thresh <- rest_pars$orchard_size*0.75
+      
+      dt_ijk$orch_full <- ifelse(max(orch_ad_ij) >= orch_thresh, min(which(orch_ad_ij >= orch_thresh)), NA)
+      
+      
+      dt_ijk$par_rep <- i
+      dt_ijk$prop_out <- prop_set[k]
+      dt_ijk$par2 <- par_set2[j]
+      
+      
+      if(k == 1){
+        dt_k <- dt_ijk
+      } else{
+        dt_k <- rbind(dt_k, dt_ijk)
+      }
+    }
+  
+    
+    if(j == 1){
+      dt_j <- dt_k
+    } else{
+      dt_j <- rbind(dt_j, dt_k)
+    }
+    
+  }
+  
+  if(i == 1){
+    dt_i <- dt_j
+  } else{
+    dt_i <- rbind(dt_i, dt_j)
+  }
+  
+  }
+  
+  
+  dt_i$par_name2 <- par2_name
+  
+  return(dt_i)
+}
+
+
+
+orch_D0_orch_full <- orch_full_dt(sim_list = orch_D0_all, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs, par2_name = "lambda_R")
+
+orch_D3_orch_full <- orch_full_dt(sim_list = orch_D3_all, n_pars = n_sample1, prop_set = prop_all, par_set2 = lambda_Rs, par2_name = "lambda_R")
+
+    
+```
+
+
+```{r}
+dt_plot0 <- orch_D0_orch_full %>% filter(par2 == lambda_Rs[2])
+dt_plot1 <- orch_D3_orch_full %>% filter(par2 == lambda_Rs[2])
+
+alpha1 <- 0.2
+
+Dcols <- c("#AA3377", "#998591")
+
+pdf("TempFigs/orchard_filling.pdf", height = 4, width = 6)
+
+xlab1 <- "Proportion initially outplanted to reef"
+ylab1 <- "Year"
+plotlab <- "Year when orchard reaches 75% capacity"
+
+plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, ylim = c(0, max(c(dt_plot0$orch_full, dt_plot1$orch_full), na.rm = T)), las = 1, xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(from = 0, to = 50, by = 10), labels = seq(from = 0, to = 50, by = 10) + 2025, las = 1)
+mtext(side = 1, xlab1, line = 2.5, cex = 1)
+mtext(side = 2, ylab1, line = 3, cex = 1)
+mtext(side = 3, plotlab, adj = 0)
+for(i in 1:n_sample1){
+  dt_sub <- dt_plot0[which(dt_plot0$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[1], alpha.f = alpha1), lwd = 2)
+}
+# dt_mean <- dt_plot0 %>% group_by(prop_out) %>% summarize(mean_val = mean(orch_full, na.rm = T))
+# lines(x = dt_mean$prop_out, y = dt_mean$mean_val, col = Dcols[1], lwd = 2.5, lty = lty.mn)
+for(i in 1:n_sample1){
+ # i <- 10
+  dt_sub <- dt_plot1[which(dt_plot1$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[2], alpha.f = alpha1), lwd = 2)
+}
+legend("topleft", legend = c("none", "every 3 years"), col = Dcols, lwd = 4, title = "Disturbance", bty = "n", cex = 0.9)
+# dt_mean <- dt_plot1 %>% group_by(prop_out) %>% summarize(mean_val = mean(orch_full, na.rm = T))
+# lines(x = dt_mean$prop_out, y = dt_mean$mean_val, col = Dcols[2], lwd = 2.5, lty = lty.mn)
+# add polygons over regions where it didn't fill up
+#polygon()
+
+dev.off()
+
+```
 
 
 
@@ -2941,20 +3277,24 @@ layout(matrix(c(1, 1, 2, 3, 4, 5), nrow = 2, ncol = 3, byrow = F), widths = c(1,
 par(mar=c(0, 4.5, 2.5, 1), oma = c(4.5, 1.5, 0.1, 0))
 
 
-plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1)
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
 mtext(side = 3, "a) Outplanting fixed area", adj = 0, line = 0)
+mtext(side = 1, "Year in simulation", line = 2.5, cex = 0.9)
+mtext(side = 2, expression("Coral cover on reef ("*m^2*")"), line = 3.5, cex = 0.9)
 for(j in 1:5){
   lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
 }
-legend("topleft", legend = c("1 (340,000)", "2 (30,909)", "3 (3,400)", "4 (694)", "5 (182)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+legend("topleft", legend = c("SC1 (340,000)", "SC2 (30,909)", "SC3 (3,400)", "SC4 (694)", "SC5 (182)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 1.1)
 
 
 # look at final size distributions
 
 end_mat <- mod_mat5
-plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[6,])), xlim = c(0.5, 5.5), las = 1)
-mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.9)
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[6,])), xlim = c(0.5, 5.5), las = 1, xlab = NA, ylab = NA)
+mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.85)
 mtext(side = 3, "b) Size distributions from a)", adj = 0, line = 0)
+mtext(side = 2, "Number of corals", adj = -1.75, line = 3.75, cex = 0.9)
 for(i in 1:5){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
   for(k in 1:5){
@@ -2971,8 +3311,9 @@ for(i in 1:5){
 
 
 end_mat <- mod_mat50
-plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[51,])), xlim = c(0.5, 5.5), las = 1)
-mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.9)
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[51,])), xlim = c(0.5, 5.5), las = 1, xlab = NA, ylab = NA)
+mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
+mtext(side = 1, "Size class outplanted", line = 2.5, cex = 0.9)
 for(i in 1:5){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
   for(k in 1:5){
@@ -2992,6 +3333,8 @@ for(i in 1:5){
 pch_set <- c(16, 17)
 pch_setD <- c(1, 2)
 
+pt_cex <- c(1.5, 1.25)
+
 col_set <- c("#44BB99", "#FFAABB") # CHANGE THESE to match the size 1 and size 2 size classes from the outplanting size figure (once that color palette is decided)
 
 SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
@@ -3007,23 +3350,30 @@ ymax <- max(c(quantile(SC1L_def$tot_ROI, 0.95), quantile(SC2_def$tot_ROI, 0.95))
 
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1])
+mtext(side = 3, "c) SC1 vs. SC2 strategies", adj = 0, line = 0)
+mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.85)
+mtext(side = 2, "Proportional change in total ROI", adj = 2, line = 2.5, cex = 0.9)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
 arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
 arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_set[2], col = col_set[2])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
 arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$tot_ROI, 0.05), y1 = quantile(SC2_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 abline(h = 1, lty = 2, col = "gray30")
 abline(v = 1, lty = 2, col = "gray30")
 
+legend("right", legend = c("Increase SC1 \ncapacity", "Transplant SC2"), col = col_set, pch = pch_set, bty = "n", pt.cex = 1.5)
+
+legend("bottomright", legend = c("No disturbance", "Disturbance"), col = "gray60", pch = c(pch_set[1], pch_setD[1]), bty = "n", pt.cex = 1.5, inset = c(0, 0.1))
+
 # add disturbance
 SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
 SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
 
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_setD[1], col = col_set[1])
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
 arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
 arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_setD[2], col = col_set[2])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
 arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$tot_ROI, 0.05), y1 = quantile(SC2_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 
@@ -3038,10 +3388,12 @@ xmax <- max(c(quantile(SC1L_def$reef_coral, 0.95), quantile(SC2_def$reef_coral, 
 ymax <- max(c(quantile(SC1L_def$tot_ROI, 0.95), quantile(SC2_def$tot_ROI, 0.95)))
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1])
+mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
+mtext(side = 1, "Proportional change in \nreef coral cover", line = 3.5, cex = 0.9)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
 arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
 arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_set[2], col = col_set[2])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
 arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$tot_ROI, 0.05), y1 = quantile(SC2_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 abline(h = 1, lty = 2, col = "gray30")
@@ -3051,10 +3403,10 @@ abline(v = 1, lty = 2, col = "gray30")
 SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
 SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
 
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_setD[1], col = col_set[1])
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
 arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
 arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_setD[2], col = col_set[2])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
 arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$tot_ROI, 0.05), y1 = quantile(SC2_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 
