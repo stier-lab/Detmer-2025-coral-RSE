@@ -10,6 +10,10 @@
 .DS_Store?
 
 
-# Folders to ignore 
+# Folders to ignore
 # ignore anything in folders labeled TempFigs
 TempFigs/
+
+# Literature PDFs (628MB — use DATABASE.csv + LITERATURE.md as indexes)
+literature/*.pdf
+figure-suggestions/~$*

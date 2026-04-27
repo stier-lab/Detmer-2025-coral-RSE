@@ -16,7 +16,11 @@ Stage-structured demographic models for evaluating coral restoration strategies,
 ├── function_tests.Rmd                # R function unit tests
 ├── model_description.Rmd             # Model documentation
 ├── data/Fundemar/                    # Field data (settlement, survival, substrate addition)
-├── manuscript-figures/               # Figure planning
+├── figure-1/                         # Figure 1 — RSE framework schematic (SVG/HTML + PDF/PNG export)
+├── figure-suggestions/               # Figure plan and supplement list
+├── literature/                       # Literature database (indexes only — PDFs on Drive)
+│   ├── DATABASE.csv                  # 174 papers: author, year, title, journal, DOI, domain tags
+│   └── LITERATURE.md                 # Hero paper analysis + manuscript-section mapping
 ├── model-diagram/                    # Standalone D3 model diagram (separate Vite project)
 ├── coral-app/                        # Interactive web app (React + Vite + TypeScript)
 │   ├── src/lib/model/                # TypeScript port of R model logic
@@ -24,6 +28,16 @@ Stage-structured demographic models for evaluating coral restoration strategies,
 │   └── src/test/                     # Vitest test setup
 └── docs/                             # Architecture specs, design docs, parameter provenance
 ```
+
+## Literature
+
+174 papers organized by domain. PDFs are too large for git (628MB) so they live on Google Drive:
+
+**PDFs:** [coral-rse/literature/](https://drive.google.com/drive/folders/1PJ_zGH0YfXb1zeJRX-zlaJR4JrUWIYRf) on the shared Drive (astier@ucsb.edu)
+
+**Indexes (in this repo):**
+- `literature/DATABASE.csv` — sortable spreadsheet with author, year, title, journal, DOI, domain tags, hero paper flag
+- `literature/LITERATURE.md` — hero paper analysis, what to mimic, papers organized by manuscript section
 
 ## Model Functions (in rse_funs.R)
 
