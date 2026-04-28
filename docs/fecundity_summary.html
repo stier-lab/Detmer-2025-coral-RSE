@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A. palmata Fecundity — Literature Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --prussian: #1B4965;
+    --terra: #E07A5F;
+    --cambridge: #81B29A;
+    --buff: #F2CC8F;
+    --sand: #FAF3E8;
+    --ink: #2C3E50;
+    --muted: #6B7D8D;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--ink);
+    background: var(--sand);
+    line-height: 1.7;
+    padding: 3rem 1.5rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--prussian);
+    border-bottom: 3px solid var(--terra);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+  }
+  h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--prussian);
+    margin-top: 2.2rem;
+    margin-bottom: 0.6rem;
+    border-left: 4px solid var(--terra);
+    padding-left: 0.8rem;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--prussian);
+    margin-top: 1.3rem;
+    margin-bottom: 0.4rem;
+  }
+  p { margin-bottom: 0.7rem; font-size: 0.93rem; }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    background: #E8EEF2;
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+  }
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    background: var(--prussian);
+    color: #E0E8EF;
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 0.6rem 0 1rem;
+    line-height: 1.5;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.6rem 0 1.2rem;
+    font-size: 0.87rem;
+  }
+  th {
+    background: var(--prussian);
+    color: #fff;
+    font-weight: 600;
+    padding: 0.5rem 0.7rem;
+    text-align: left;
+    font-size: 0.82rem;
+  }
+  td {
+    padding: 0.45rem 0.7rem;
+    border-bottom: 1px solid #D4CFC4;
+  }
+  tr:nth-child(even) td { background: rgba(27,73,101,0.04); }
+  .note {
+    background: rgba(129,178,154,0.1);
+    border-left: 3px solid var(--cambridge);
+    padding: 0.8rem 1rem;
+    border-radius: 0 5px 5px 0;
+    margin: 0.8rem 0 1.2rem;
+    font-size: 0.9rem;
+  }
+  ul { padding-left: 1.3rem; margin-bottom: 0.7rem; }
+  li { margin-bottom: 0.25rem; font-size: 0.91rem; }
+  hr {
+    border: none;
+    border-top: 1px solid #D4CFC4;
+    margin: 2rem 0;
+  }
+  .bib { margin-top: 1.5rem; }
+  .bib p {
+    font-size: 0.83rem;
+    padding-left: 2em;
+    text-indent: -2em;
+    margin-bottom: 0.4rem;
+    color: #444;
+  }
+  .small { font-size: 0.82rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1><em>A. palmata</em> Fecundity &amp; Reproduction</h1>
+<p class="subtitle">Literature summary for the RSE model &mdash; Apr 2026</p>
+
+<!-- ============================================================ -->
+<h2>Current model</h2>
+<p>SC3&ndash;SC5 each produce 48,274 embryos per colony per year (Fundemar 2025: 1,255,111 embryos / 26 colonies). SC1&ndash;SC2 do not reproduce. Fecundity is size-independent.</p>
+<p>The literature shows fecundity is strongly size-dependent. SC3 colonies are ~10% fertile; we currently treat them as 100%.</p>
+
+<!-- ============================================================ -->
+<h2>Probability of reproduction by size</h2>
+<p>Soong &amp; Lang (1992), 84 colonies in Panama. Puberty size &asymp; 1,600 cm&sup2;.</p>
+
+<table>
+  <tr><th>Size class (cm&sup2;)</th><th>% fertile</th><th>n</th><th>Our SC</th></tr>
+  <tr><td>0&ndash;60</td><td>0%</td><td>13</td><td>SC1&ndash;SC2</td></tr>
+  <tr><td>60&ndash;250</td><td>7%</td><td>14</td><td rowspan="2">SC3 (100&ndash;900)</td></tr>
+  <tr><td>250&ndash;1,000</td><td>11%</td><td>16</td></tr>
+  <tr><td>1,000&ndash;4,000</td><td>43%</td><td>7</td><td>SC4 (900&ndash;4,000)</td></tr>
+  <tr><td>&gt;4,000</td><td>88%</td><td>33</td><td>SC5 (&gt;4,000)</td></tr>
+</table>
+<p class="small">ABRT (2005) cites 30% for 250&ndash;1,000 cm&sup2; from the same dataset; Soong&rsquo;s original Table VI reports 11%.</p>
+
+<!-- ============================================================ -->
+<h2>Oocyte density</h2>
+<p>Mendoza-Quiroz et al. (2023) measured fecundity in outplanted <em>A. palmata</em> colonies in the Mexican Caribbean:</p>
+
+<table>
+  <tr><th>Parameter</th><th>Value</th></tr>
+  <tr><td>Oocytes per cm&sup2;</td><td><strong>63.6 &plusmn; 43.4</strong></td></tr>
+  <tr><td>Oocytes per polyp</td><td>5.61 &plusmn; 1.91</td></tr>
+  <tr><td>Oocyte diameter</td><td>769 &plusmn; 141 &mu;m</td></tr>
+  <tr><td>Spermaries per cm&sup2;</td><td>35.0 &plusmn; 19.4</td></tr>
+</table>
+<p>Soong (1991) independently estimated 4&ndash;16 eggs per polyp for <em>A. palmata</em> in Panama, consistent with the Mendoza-Quiroz values.</p>
+
+<!-- ============================================================ -->
+<h2>Fertilization success</h2>
+
+<table>
+  <tr><th>Condition</th><th>Rate</th><th>Source</th></tr>
+  <tr><td>F1 sperm &times; wild gametes</td><td>95%</td><td>Mendoza-Quiroz et al. 2023</td></tr>
+  <tr><td>Healthy wild colonies</td><td>71.5%</td><td>Pi&ntilde;&oacute;n-Gonz&aacute;lez 2018</td></tr>
+  <tr><td>Colonies with partial mortality</td><td>80.8% (eggs ~20% smaller)</td><td>Pi&ntilde;&oacute;n-Gonz&aacute;lez 2018</td></tr>
+  <tr><td>Lab-reared sibling crosses</td><td>15%</td><td>Mendoza-Quiroz et al. 2023</td></tr>
+  <tr><td>Under end-of-century OA</td><td>Reduced 12&ndash;13%</td><td>Albright 2010</td></tr>
+</table>
+<p>The 15% sibling-cross rate matters for restoration: outplanted populations with limited genotype diversity will have reduced reproductive output even if colonies reach spawning size.</p>
+
+<!-- ============================================================ -->
+<h2>Size-dependent fecundity function</h2>
+<pre>
+F(SC) = Area_mid  x  P_fertile  x  63.6 oocytes/cm2  x  fert_success  x  settlement_prob
+</pre>
+
+<table>
+  <tr><th>SC</th><th>Area mid (cm&sup2;)</th><th>P<sub>fertile</sub></th><th>Oocytes</th><th>&times; 0.107*</th><th>Settlers / colony / yr</th></tr>
+  <tr><td>SC1</td><td>5</td><td>0</td><td>0</td><td>&mdash;</td><td><strong>0</strong></td></tr>
+  <tr><td>SC2</td><td>55</td><td>0</td><td>0</td><td>&mdash;</td><td><strong>0</strong></td></tr>
+  <tr><td>SC3</td><td>500</td><td>0.10</td><td>3,180</td><td>340</td><td><strong>~340</strong></td></tr>
+  <tr><td>SC4</td><td>2,450</td><td>0.43</td><td>66,958</td><td>7,164</td><td><strong>~7,200</strong></td></tr>
+  <tr><td>SC5</td><td>9,325</td><td>0.88</td><td>521,690</td><td>55,821</td><td><strong>~55,800</strong></td></tr>
+</table>
+<p class="small">*0.107 = 0.71 fertilization (Pi&ntilde;&oacute;n-Gonz&aacute;lez 2018) &times; 0.15 settlement (Fundemar). Oocytes = Area_mid &times; P_fertile &times; 63.6.</p>
+
+<p>SC5 estimate (~55,800) is consistent with the current flat rate (48,274), which is reassuring. The main correction is reducing SC3 from 48,274 to ~340 and SC4 from 48,274 to ~7,200.</p>
+
+<!-- ============================================================ -->
+<h2>Within-colony patterns</h2>
+<p>Soong &amp; Lang (1992):</p>
+<ul>
+  <li>Upper branch surfaces are significantly more fecund than lower surfaces (<em>P</em> &lt; 0.01)</li>
+  <li>Branch tips are infertile (3&ndash;10 cm from tip); oogenesis takes &ge;6 months</li>
+  <li>Encrusting bases are infertile</li>
+  <li>Soft tissue is ~2&times; thicker on upper surfaces</li>
+</ul>
+<p>Fragments from branch tips are disproportionately non-reproductive. This amplifies the benefit of grow-out before outplanting.</p>
+
+<!-- ============================================================ -->
+<h2>Steward (2024) IPM sub-kernel</h2>
+<p>Steward built a reproduction sub-kernel for an <em>Acropora</em> IPM:</p>
+<pre>
+r(z', z) = P_colony(z) x P_polyps(z) x f_oocytes(z) x f_recruits(z') x P_establishment
+</pre>
+<p>The <code>f_oocytes(z)</code> term was parameterized from Indo-Pacific species (Alvarez-Noriega et al. 2016) because Caribbean data were unavailable. Mendoza-Quiroz (2023) provides the Caribbean-specific values.</p>
+
+<!-- ============================================================ -->
+<h2>Recommendation</h2>
+
+<p>Replace the current flat fecundity rate with a size-dependent function built from <em>A. palmata</em> field data:</p>
+
+<pre>
+F(SC) = Area_mid  x  P_fertile  x  63.6 oocytes/cm2  x  fert_success  x  settlement_prob
+</pre>
+
+<p>Every parameter comes from published Caribbean <em>A. palmata</em> studies: colony fertility from Soong &amp; Lang (1992), oocyte density from Mendoza-Quiroz et al. (2023), fertilization success from Pi&ntilde;&oacute;n-Gonz&aacute;lez (2018), settlement from Fundemar. The SC5 estimate (~55,800 settlers/colony/yr) is consistent with our current Fundemar-derived value (48,274), which validates the approach. The main correction is that SC3 drops from 48,274 to ~340 and SC4 from 48,274 to ~7,200.</p>
+
+<hr>
+
+<!-- ============================================================ -->
+<h2>References</h2>
+<div class="bib">
+  <p>ABRT. (2005). <em>Atlantic Acropora Status Review Document.</em> NOAA/NMFS.</p>
+  <p>Albright, R., Mason, B., Miller, M., &amp; Langdon, C. (2010). Ocean acidification compromises recruitment success of <em>Acropora palmata.</em> <em>PNAS,</em> 107, 20400&ndash;20404.</p>
+  <p>Alvarez-Noriega, M., et al. (2016). Fecundity and the demographic strategies of coral morphologies. <em>Ecology,</em> 97, 3462&ndash;3474.</p>
+  <p>Highsmith, R. C. (1982). Reproduction by fragmentation in corals. <em>Mar. Ecol. Prog. Ser.,</em> 7, 207&ndash;226.</p>
+  <p>Lirman, D. (2000). Fragmentation in <em>Acropora palmata.</em> <em>J. Exp. Mar. Biol. Ecol.,</em> 251, 41&ndash;57.</p>
+  <p>Mendoza-Quiroz, T., et al. (2023). Long-term survival, growth, and reproduction of <em>A. palmata</em> sexual recruits outplanted onto Mexican Caribbean reefs. <em>PeerJ,</em> 11, e15813.</p>
+  <p>Pi&ntilde;&oacute;n-Gonz&aacute;lez, J. M., et al. (2018). Effects of partial mortality on growth, reproduction, and total colony size of <em>A. palmata.</em> <em>Front. Mar. Sci.,</em> 5, 1&ndash;12.</p>
+  <p>Soong, K. (1991). Sexual reproductive patterns of shallow-water reef corals in Panama. <em>Bull. Mar. Sci.,</em> 49(3), 832&ndash;846.</p>
+  <p>Soong, K., &amp; Lang, J. C. (1992). Reproductive integration in reef corals. <em>Biol. Bull.,</em> 183, 418&ndash;431.</p>
+  <p>Steward, K. (2024). <em>Restoration renaissance: charting a course for Acropora spp. restoration and management.</em></p>
+  <p>Szmant, A. M., &amp; Miller, M. W. (2006). Settlement preferences and post-settlement mortality. <em>Proc. 10th ICRS,</em> 1, 43&ndash;49.</p>
+  <p>Vardi, T., Williams, D. E., &amp; Sandin, S. A. (2012). Population dynamics of threatened elkhorn coral in the northern Florida Keys. <em>Endang. Species Res.,</em> 19, 157&ndash;169.</p>
+  <p>Wallace, C. C. (1985). Reproduction, recruitment and fragmentation in nine sympatric species of <em>Acropora.</em> <em>Mar. Biol.,</em> 88, 217&ndash;233.</p>
+  <p>Williams, D. E., &amp; Miller, M. W. (2006). Importance of disease and predation to juvenile <em>Acropora palmata.</em> <em>Proc. 10th ICRS,</em> 1, 1096&ndash;1104.</p>
+  <p>Williams, D. E., &amp; Miller, M. W. (2008). Recruitment failure in Florida Keys <em>A. palmata.</em> <em>Coral Reefs,</em> 27, 697&ndash;705.</p>
+</div>
+
+</body>
+</html>
