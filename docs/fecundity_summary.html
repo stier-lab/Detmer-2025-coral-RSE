@@ -199,12 +199,51 @@ F(SC) = Area_mid  x  P_fertile  x  63.6 oocytes/cm2  x  fert_success  x  settlem
 <p>Fragments from branch tips are disproportionately non-reproductive. This amplifies the benefit of grow-out before outplanting.</p>
 
 <!-- ============================================================ -->
-<h2>Steward (2024) IPM sub-kernel</h2>
-<p>Steward built a reproduction sub-kernel for an <em>Acropora</em> IPM:</p>
+<h2>Connecting to Steward (2024)</h2>
+<p>Steward (2024) broke reproductive output into a chain of five terms. The idea is straightforward: start with a colony of size <em>z</em> and walk through each bottleneck between &ldquo;adult coral&rdquo; and &ldquo;established recruit.&rdquo;</p>
+
 <pre>
-r(z', z) = P_colony(z) x P_polyps(z) x f_oocytes(z) x f_recruits(z') x P_establishment
+r(z', z) = P_colony(z)  x  P_polyps(z)  x  f_oocytes(z)  x  f_recruits(z')  x  P_establishment
 </pre>
-<p>The <code>f_oocytes(z)</code> term was parameterized from Indo-Pacific species (Alvarez-Noriega et al. 2016) because Caribbean data were unavailable. Mendoza-Quiroz (2023) provides the Caribbean-specific values.</p>
+
+<table>
+  <tr><th>Term</th><th>Plain English</th><th>Data source for <em>A. palmata</em></th></tr>
+  <tr>
+    <td><code>P_colony(z)</code></td>
+    <td>Is this colony mature enough to spawn? Small colonies don&rsquo;t. Probability ramps from 0 to ~0.88 with size.</td>
+    <td>Soong &amp; Lang 1992 (0% below 60 cm&sup2;, 88% above 4,000 cm&sup2;)</td>
+  </tr>
+  <tr>
+    <td><code>P_polyps(z)</code></td>
+    <td>Of the polyps in a reproductive colony, what fraction actually carry eggs? Tips, bases, and shaded undersides are sterile &mdash; only mid-branch upper surfaces are fertile.</td>
+    <td>Soong &amp; Lang 1992 (qualitative); no clean scalar exists</td>
+  </tr>
+  <tr>
+    <td><code>f_oocytes(z)</code></td>
+    <td>How many eggs does the colony make? Scales with fertile tissue area and eggs per polyp.</td>
+    <td>Mendoza-Quiroz et al. 2023: 63.6 oocytes cm<sup>&minus;2</sup>, 5.6 oocytes/polyp</td>
+  </tr>
+  <tr>
+    <td><code>f_recruits(z')</code></td>
+    <td>What size are the babies? Defines the size distribution new recruits enter.</td>
+    <td>All settlers enter SC1 in our model</td>
+  </tr>
+  <tr>
+    <td><code>P_establishment</code></td>
+    <td>What fraction of eggs actually become established corals on the reef? This lumps fertilization, larval mortality, settlement, and early post-settlement survival.</td>
+    <td>71% fertilization (Pi&ntilde;&oacute;n-Gonz&aacute;lez 2018) &times; 15% settlement (Fundemar)</td>
+  </tr>
+</table>
+
+<h3>Our version</h3>
+<p>Our function is the discrete, stage-structured equivalent. We collapse the first two terms (<code>P_colony</code> and <code>P_polyps</code>) into a single fertility fraction from Soong &amp; Lang (1992), and we use the Mendoza-Quiroz oocyte density (which already bakes in polyp density and per-polyp fecundity). So:</p>
+
+<pre>
+Steward:  r(z', z) = P_colony  x  P_polyps  x  f_oocytes       x  f_recruits  x  P_establishment
+Us:       F(SC)    = P_fertile              x  Area x 63.6/cm2                 x  0.71 x 0.15
+</pre>
+
+<p>Steward had to use Indo-Pacific <em>Acropora</em> (Alvarez-Noriega et al. 2016) for the oocyte term because no one had measured it in <em>A. palmata</em>. Mendoza-Quiroz et al. (2023) fills that gap.</p>
 
 <!-- ============================================================ -->
 <h2>Recommendation</h2>
