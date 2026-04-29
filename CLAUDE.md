@@ -31,13 +31,16 @@ Stage-structured demographic models for evaluating coral restoration strategies,
 
 ## Literature
 
-174 papers organized by domain. PDFs are too large for git (628MB) so they live on Google Drive:
+235 papers organized by domain. PDFs are too large for git (~700MB) so they live in two places:
 
 **PDFs:** [coral-rse/literature/](https://drive.google.com/drive/folders/1PJ_zGH0YfXb1zeJRX-zlaJR4JrUWIYRf) on the shared Drive (astier@ucsb.edu)
+
+**Zotero group library:** [coral_restoration_strategey_evaluation](https://www.zotero.org/groups/5973787/coral_restoration_strategey_evaluation) — 276 items in 12 sub-collections (Hero Papers, Vital Rates, Reproduction & Fecundity, Density Dependence, Disturbance, MSE & Decision Analysis, Restoration Methods, Demographic Models, Costs & Economics, A. palmata Biology, Reef Ecology, Genetics)
 
 **Indexes (in this repo):**
 - `literature/DATABASE.csv` — sortable spreadsheet with author, year, title, journal, DOI, domain tags, hero paper flag
 - `literature/LITERATURE.md` — hero paper analysis, what to mimic, papers organized by manuscript section
+- `docs/FECUNDITY_LITERATURE_SUMMARY.md` — synthesis of size-dependent fecundity data for model parameterization
 
 ## Model Functions (in rse_funs.R)
 
