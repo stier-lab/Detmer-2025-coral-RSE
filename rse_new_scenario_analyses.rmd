@@ -123,6 +123,41 @@ all_pars_R <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length
 
 
 
+SC2 scenarios (transplanting SC2 corals from orchard or retaining reef-bound substrates in the lab for a year): 
+-- transplant survival: uniform between 0.5 and 1 (assume if it was lower than 0.5 the practitioners would change something)
+
+-- lab growth: use field growth values? check how much those vary? Could draw uniform from 5% smaller to 5% larger than field growth values? 
+
+-- lab survival: uniform from 0.5 to 1 (assume if it was lower than 0.5 the practitioners would change something)
+
+-- lab post-outplanting survival (relative): from 0.5 to 1.5
+
+```{r}
+
+trans_surv_list <- list() # initial survival of transplanted corals
+lab_growth1_list <- list() # growth in lab over a year (prop. growing from SC1 to SC2)
+lab_surv1_list <- list() # survival in lab over a year
+lab_out_surv1_list <- list() # survival of outplants kept in lab for a year (relative to defaults for each size class)
+
+#field_growth$trans_summary %>% filter(from_class == "SC1", to_class == "SC2") # mean = 0.52, Q05 = 0.403, Q95 = 0.72. For lab, maybe use range of 0.35 to 0.75?
+#0.9*0.40 # 0.36
+#1.1*0.72 # 0.8
+
+
+
+set.seed(1000)
+for(i in 1:n_sample1){
+  
+  trans_surv_list[[i]] <- runif(1, min = 0.5, max = 1)
+  lab_growth1_list[[i]] <- runif(1, min = 0.36, max = 0.8)
+  lab_surv1_list[[i]] <- runif(1, min = 0.5, max = 1)
+  lab_out_surv1_list[[i]] <- runif(1, min = 0.5, max = 1.5)
+  
+}
+
+SC2_lists <- list(trans_surv_list = trans_surv_list, lab_growth1_list = lab_growth1_list, lab_surv1_list = lab_surv1_list, lab_out_surv1_list = lab_out_surv1_list)
+
+```
 
 
 
@@ -288,6 +323,9 @@ size_props1[2, ] <- c(1, 0, 0, 0, 0) # second lab treatment
 
 lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props, size_props1 = size_props1)
 
+# save as default
+lab_pars_def <- lab_pars
+
 # restoration strategy parameters
 tile_props <- list(T1 = 1) # proportion of tiles that are each type
 orchard_yield <- 1 # percent of new orchard babies successfully collected
@@ -334,6 +372,8 @@ trans_surv <- c(1, 1, 1, 1, 1) # proportion of colonies of each size class that 
 
 rest_pars <- list(tile_props = tile_props, orchard_yield = orchard_yield, reef_yield = reef_yield, spawn_target = spawn_target, reef_prop = reef_prop, reef_out_props = reef_out_props, orchard_out_props = orchard_out_props, reef_areas = reef_areas, lab_max = lab_max, lab_retain_max = lab_retain_max, tank_min = tank_min, tank_max = tank_max, orchard_size = orchard_size, transplant = transplant, trans_mats = trans_mats, trans_reef = trans_reef, trans_surv = trans_surv)
 
+# save as default
+rest_pars_def <- rest_pars
 
 # initial conditions in each reef subpopulation
 N0.r <- list()
@@ -389,7 +429,7 @@ lines(x = c(1:years), y = orch1_tot, type = "l", col = "dodgerblue", lwd = 2, lt
 legend("topleft", legend = c("reef", "orchard"), col = c("black", "dodgerblue"), lwd = 2, lty = c(1, 2))
 
 
-plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(reef1_tot)), xlab = "year", ylab = "Area covered", lwd = 2)
+plot(x = c(1:years), y = reef1_tot, type = "l", las = 1, ylim = c(0, max(reef1_tot)), xlab = "year", ylab = "Population size", lwd = 2)
 
 plot(x = c(1:years), y = sim1$reef_out[[1]][[2]], type = "l", ylim = c(0, max(max(sim1$reef_out[[1]][[2]], na.rm = T), max(sim1$orchard_out[[1]][[1]], na.rm = T))))
 lines(x = c(1:years), y = sim1$orchard_out[[1]][[1]], col = "dodgerblue")
@@ -628,7 +668,9 @@ return(out_list)
 # wrapper function for iterating over multiple demographic parameter sets
 # dem_pars_all = list with all sets of demographic parameters
 # n_pars = number of parameter sets in dem_pars_all
-orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
+# SC2_lists = randomly generated parameter lists for the uncertain parameters related to SC2 scenarios (transplanting and lab grow out). Default is null; otherwise includes transplant survival (for orchard transplanting scenario), annual growth rates in lab, annual survival in lab, and outplant survival post-year in lab (all for lab grow out scenario)
+
+orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL, SC2_lists = NULL){
   
   out_list2 <- list() # holding list
   
@@ -637,6 +679,18 @@ orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_
     dem_pars <- sapply(dem_pars_all, "[[", i) # select the i^th element from each component of the full list of demographic parameters
     
     dem_pars <- list(surv_pars.r = list(dem_pars$surv_pars_L.r), surv_pars.rc = list(dem_pars$surv_pars_L.rc), growth_pars.r = list(dem_pars$growth_pars_L.r), shrink_pars.r = list(dem_pars$shrink_pars_L.r), frag_pars.r = list(dem_pars$frag_pars_L.r), surv_pars.o = list(dem_pars$surv_pars_L.o), growth_pars.o = list(dem_pars$growth_pars_L.o), shrink_pars.o = list(dem_pars$shrink_pars_L.o), frag_pars.o = list(dem_pars$frag_pars_L.o))
+    
+    if(is.null(SC2_lists)==F){
+      rest_pars$trans_surv <- SC2_lists$trans_surv_list[[i]]
+      lab_pars$s1[,1] <- rep(SC2_lists$lab_surv1_list[[i]], years)
+      lab_pars$s1[,2] <- lab_pars$s1[,1]
+      
+      lab_pars$size_props1[2,] <- c(1-SC2_lists$lab_growth1_list[[i]], SC2_lists$lab_growth1_list[[i]], 0, 0, 0)
+      
+      dem_pars$surv_pars.r[[1]][[3]] <- dem_pars$surv_pars.r[[1]][[3]]*SC2_lists$lab_out_surv1_list[[i]]
+      
+    }
+    
     
     out_list2[[i]] <- orch_exp_fun1(dem_pars, prop_set, par_set2, par2_name, dist, dist_yrs, dist_pars_list)
     
@@ -869,7 +923,9 @@ return(out_list)
 # wrapper function for iterating over multiple demographic parameter sets
 # dem_pars_all = list with all sets of demographic parameters
 # n_pars = number of parameter sets in dem_pars_all
+
 lab_trans_fun2 <- function(dem_pars_all, n_pars, growth_set, surv_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
+
   
   out_list2 <- list() # holding list
   
@@ -879,7 +935,9 @@ lab_trans_fun2 <- function(dem_pars_all, n_pars, growth_set, surv_set, out_par_t
     
     dem_pars <- list(surv_pars.r = list(dem_pars$surv_pars_L.r), surv_pars.rc = list(dem_pars$surv_pars_L.rc), growth_pars.r = list(dem_pars$growth_pars_L.r), shrink_pars.r = list(dem_pars$shrink_pars_L.r), frag_pars.r = list(dem_pars$frag_pars_L.r), surv_pars.o = list(dem_pars$surv_pars_L.o), growth_pars.o = list(dem_pars$growth_pars_L.o), shrink_pars.o = list(dem_pars$shrink_pars_L.o), frag_pars.o = list(dem_pars$frag_pars_L.o))
     
+    
     out_list2[[i]] <- lab_trans_fun1(dem_pars, out_set, out_par_type, par_set2, par2_name, dist, dist_yrs, dist_pars_list)
+    
     
   }
   
@@ -1097,8 +1155,20 @@ orch_fun_ij <- model_summ(model_sim = sim_ij, location = "orchard", metric = "ar
  
       # lab costs
      # c_lab <- (432*7 + 200*7)*length(2:max_yr) # assume all tiles are only kept in the lab for two weeks
+      
+      
+      if(rest_pars$lab_retain_max == 0){ # if all tiles are only kept in the lab for two weeks
       c_lab <- sum((432*7 + 200*7)*(1 + r_inf)^(2:max_yr))
       c_lab_yr <- (432*7 + 200*7)*(1 + r_inf)^(2:max_yr)
+      
+      } else{
+      c_lab2w <- (432*7 + 200*7)*(1 + r_inf)^(2:max_yr) # cost of initial two weeks for all substrates
+      c_lab1yr <- (200*(12*30 - 14))*(1 + r_inf)^(2:max_yr)# cost of keeping substrates for 12 months in the lab (subtract the first 2 weeks = 14 days from length of time in lab)
+      c_lab <- sum(c_lab2w) + sum(c_lab1yr)
+      c_lab_yr <- c_lab2w + c_lab1yr
+        
+        
+      }
   
       # spawning costs    
       c_spawn <- rep(NA, length(2:max_yr))
@@ -2551,7 +2621,10 @@ area_out <- 170 # 500*0.337 = 168.5; round up to 170
 lambda_R_12345 <- round(170/(A_mids*0.0001)) #c(10000, 1000, 100, 10, 1)
 out_sizes <- c(1, 2, 3, 4, 5)
 
+lab_pars <- lab_pars_def
+
 # make sure there's no orchard investment:
+rest_pars <- rest_pars_def
 rest_pars$reef_prop <- c(1,1)
 
 # holding list for model output
@@ -2612,14 +2685,17 @@ mod_mat50[,j] <- c(mod_ind1[51], mod_ind2[51], mod_ind3[51], mod_ind4[51], mod_i
 
 
 # reset size props to default
-size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n)
-size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment 
+lab_pars <- lab_pars_def
 
-lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props, size_props1 = size_props1)
+#size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n)
+#size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment 
+#lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props, size_props1 = size_props1)
 
 # reset orchard investment
-rest_pars$reef_prop <- c(0.5, 1)
+#rest_pars$reef_prop <- c(0.5, 1)
+rest_pars <- rest_pars_def
 
+# turn density dependence back on
 dens_pars.r <- list()
 dens_pars.r[[1]] <- list() # first reef treatment/subpop
 dens_pars.r[[1]][[1]] <- 0.02 # first source to first reef (external recruits)
@@ -2716,6 +2792,8 @@ area_out <- 170 # 500*0.337 = 168.5; round up to 170
 lambda_R_12345 <- rep(200, 5) #c(10000, 1000, 100, 10, 1)
 out_sizes <- c(1, 2, 3, 4, 5)
 
+rest_pars <- rest_pars_def
+
 # make sure there's no orchard investment:
 rest_pars$reef_prop <- c(1,1)
 
@@ -2777,13 +2855,10 @@ mod_mat50_2[,j] <- c(mod_ind1[51], mod_ind2[51], mod_ind3[51], mod_ind4[51], mod
 
 
 # reset size props to default
-size_props <- matrix(NA, nrow = length(lab_treatments), ncol = n)
-size_props[1, ] <- c(1, 0, 0, 0, 0) # first lab treatment 
-
-lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, size_props = size_props, size_props1 = size_props1)
+lab_pars <- lab_pars_def
 
 # reset orchard investment
-rest_pars$reef_prop <- c(0.9, 1)
+rest_pars <- rest_pars_def
 
 dens_pars.r <- list()
 dens_pars.r[[1]] <- list() # first reef treatment/subpop
@@ -2842,19 +2917,49 @@ orch_D3_def_dt50 <- full_dt_fun(sim_list = orch_D3_def_50, max_yr = 51, n_pars =
 #orch_D0_def_dt5$costs_list
 
 # update transplanting parameters
+rest_pars <- rest_pars_def
+
 transplant <- rep(1, years)
 rest_pars$transplant <- transplant
 
-orch_D0_SC2_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+orch_D0_SC2_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = F, dist_yrs = NULL, dist_pars_list = NULL, SC2_lists = SC2_lists)
 
 orch_D0_SC2_dt5 <- full_dt_fun(sim_list = orch_D0_SC2_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
 orch_D0_SC2_dt50 <- full_dt_fun(sim_list = orch_D0_SC2_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
 
 # repeat with disturbance
-orch_D3_SC2_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = T, dist_yrs3, dist_pars_list = dist_pars_list3)
+orch_D3_SC2_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = T, dist_yrs3, dist_pars_list = dist_pars_list3, SC2_lists = SC2_lists)
 
 orch_D3_SC2_dt5 <- full_dt_fun(sim_list = orch_D3_SC2_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
 orch_D3_SC2_dt50 <- full_dt_fun(sim_list = orch_D3_SC2_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+
+
+# reset transplanting
+rest_pars <- rest_pars_def
+# transplant <- rep(0, years)
+# rest_pars$transplant <- transplant
+
+
+# lab grow out scenarios
+rest_pars <- rest_pars_def
+rest_pars$reef_prop <- c(1, 1) # 1 = immediate outplants, 2 = retained in lab
+rest_pars$lab_retain_max <- rest_pars$lab_max/2 # divide by two because are putting 100% of immediate outplants to orchard and 100% retained to reef, and want overall proportion to orchard to be 0.5
+
+
+orch_D0_SC2L_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = F, dist_yrs = NULL, dist_pars_list = NULL, SC2_lists = SC2_lists)
+
+orch_D0_SC2L_dt5 <- full_dt_fun(sim_list = orch_D0_SC2L_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+orch_D0_SC2L_dt50 <- full_dt_fun(sim_list = orch_D0_SC2L_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+
+# repeat with disturbance
+orch_D3_SC2L_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = T, dist_yrs3, dist_pars_list = dist_pars_list3, SC2_lists = SC2_lists)
+
+orch_D3_SC2L_dt5 <- full_dt_fun(sim_list = orch_D3_SC2L_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+orch_D3_SC2L_dt50 <- full_dt_fun(sim_list = orch_D3_SC2L_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+
+
+# reset restoration parameters
+rest_pars <- rest_pars_def
 
 # reset initial conditions in orchard
 
@@ -2863,11 +2968,12 @@ N0.o[[1]] <- list() # first orchard treatment
 N0.o[[1]][[1]] <- rep(0, n) # first source
 N0.o[[1]][[2]] <- rep(0, n) # second source
 
-# reset transplanting
-transplant <- rep(0, years)
-rest_pars$transplant <- transplant
 
 ```
+
+
+
+TO DO: update the wrapper orch_exp_fun2 function to have an argument (default = F) that allows for random variation in the SC2 scenario parameters: transplant survival (don't need to update anything else for transplanting since orchard growth is already changing), lab growth and survival in lab and post-outplanting survival (with the latter being relative to baseline recruit survival, so changing surv_pars.r[[1]][[3]]). Randomly generate each of these parameter sets outside of the function, then add them in. Then let all these vary along with the parameter sets (should really combine them factorially but that would be 100x100 simulations each time...)
 
 
 ```{r}
@@ -2886,6 +2992,8 @@ for(i in 1:n_sample1){
 costs_D0_def_5 <- cost_mat_fun(dt_list = orch_D0_def_dt5$costs_list, max_year = 5)
 
 costs_D0_SC2_5 <- cost_mat_fun(dt_list = orch_D0_SC2_dt5$costs_list, max_year = 5)
+
+costs_D0_SC2L_5 <- cost_mat_fun(dt_list = orch_D0_SC2L_dt5$costs_list, max_year = 5)
 
 # calculate the average increase in costs each year across all parameter combinations
 
@@ -3012,8 +3120,9 @@ SC1L_budget <- budget_fun(max_yr = 6, lab_max + 1600, n_trans =0)
 
 
 ```{r}
-# now repeat SC1 outplanting with bigger lab
+# now repeat SC1 outplanting with bigger lab to match transplanting budget
 
+rest_pars <- rest_pars_def
 
 rest_pars$lab_max <- 4000 + 1600
 
@@ -3049,11 +3158,9 @@ N0.o[[1]][[1]] <- rep(0, n) # first source
 N0.o[[1]][[2]] <- rep(0, n) # second source
 
 # rest lab capacity
+rest_pars <- rest_pars_def
 
-rest_pars$lab_max <- 4000
-
-
-
+# repeat to match lab grow out budget
 ```
 
 
@@ -3064,23 +3171,25 @@ costs_D0_SC1L_5 <- cost_mat_fun(dt_list = orch_D0_SC1L_dt5$costs_list, max_year 
 
 
 mean(apply(costs_D0_SC2_5, MARGIN = 1, max))
+
+mean(apply(costs_D0_SC2L_5, MARGIN = 1, max))
      
 mean(apply(costs_D0_def_5, MARGIN = 1, max))
 
 mean(apply(costs_D0_SC1L_5, MARGIN = 1, max))
 
 
-mean(orch_D0_SC1L_dt5$dt_i$reef_cover_mean)
-mean(orch_D0_def_dt5$dt_i$reef_cover_mean)
-mean(orch_D0_SC2_dt5$dt_i$reef_cover_mean)
-
-mean(orch_D0_SC1L_dt5$dt_i$tot_ROI_mean)
-mean(orch_D0_def_dt5$dt_i$tot_ROI_mean)
-mean(orch_D0_SC2_dt5$dt_i$tot_ROI_mean)
-
-mean(orch_D0_SC1L_dt5$dt_i$reef_ROI_mean)
-mean(orch_D0_def_dt5$dt_i$reef_ROI_mean)
-mean(orch_D0_SC2_dt5$dt_i$reef_ROI_mean)
+# mean(orch_D0_SC1L_dt5$dt_i$reef_cover_mean)
+# mean(orch_D0_def_dt5$dt_i$reef_cover_mean)
+# mean(orch_D0_SC2_dt5$dt_i$reef_cover_mean)
+# 
+# mean(orch_D0_SC1L_dt5$dt_i$tot_ROI_mean)
+# mean(orch_D0_def_dt5$dt_i$tot_ROI_mean)
+# mean(orch_D0_SC2_dt5$dt_i$tot_ROI_mean)
+# 
+# mean(orch_D0_SC1L_dt5$dt_i$reef_ROI_mean)
+# mean(orch_D0_def_dt5$dt_i$reef_ROI_mean)
+# mean(orch_D0_SC2_dt5$dt_i$reef_ROI_mean)
 
 # check differences in costs
 max((orch_D0_SC2_dt5$dt_i$tot_costs - orch_D0_SC1L_dt5$dt_i$tot_costs)/orch_D0_SC1L_dt5$dt_i$tot_costs)*100
@@ -3414,6 +3523,8 @@ arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 =
 dev.off()
 
 ```
+
+# Figure 5 & SM
 
 
 
