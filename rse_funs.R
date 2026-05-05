@@ -1427,10 +1427,19 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, g
       
     }
     
+    # update lab_max and lab_retain_max this year if yearly values are specified
+    if(length(rest_pars$lab_max)> 1){
+      lab_max_i <- rest_pars$lab_max[i]
+      lab_retain_max_i <- rest_pars$lab_retain_max[i]
+    } else{
+      lab_max_i <- rest_pars$lab_max
+      lab_retain_max_i <- rest_pars$lab_retain_max
+    }
+    
     # TILES_PER_TANK = 100. Fundemar's standard tank setup holds ~100 settlement tiles.
     # Safety cap: total larvae cannot exceed (max_embryos/tank) * (total_tiles) / (tiles/tank).
     # This prevents unrealistically high embryo densities in the lab.
-    tot_babies <- min(tot_babies, rest_pars$tank_max*rest_pars$lab_max/100)
+    tot_babies <- min(tot_babies, rest_pars$tank_max*lab_max_i/100)
     
     # if this is the beginning of the simulation, also add the initial population in the lab
     if(i == 2){
@@ -1438,7 +1447,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, g
     }
     
     # make sure these don't exceed max lab capacity (assumed lab capacity is proportional to number of tiles)
-    #tot_babies <- min(tot_babies, rest_pars$lab_max)
+    #tot_babies <- min(tot_babies, lab_max_i)
     
     
     # --- STEP 4: LAB SETTLEMENT AND SURVIVAL ---
@@ -1453,23 +1462,23 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, g
       tot_settlers1 <- 0
       
       # calculate total densities
-     # tot_dens0 <- tot_settlers0/rest_pars$lab_max
+     # tot_dens0 <- tot_settlers0/lab_max_i
      # tot_dens1 <- NA
       
     } else{
       
       # update tot_settlers1 based on max capacity for retaining settlers
-      #tot_settlers1 <- min(tot_babies, rest_pars$lab_retain_max)
+      #tot_settlers1 <- min(tot_babies, lab_retain_max_i)
       
       # update tot_settlers1 based on proportion of tiles that can be retained for a year
-      tot_settlers1 <- tot_babies*rest_pars$lab_retain_max/rest_pars$lab_max
+      tot_settlers1 <- tot_babies*lab_retain_max_i/lab_max_i
       
       # babies that don't fit get added to the group being outplanted right away
       tot_settlers0 <- tot_babies - tot_settlers1
       
       # calculate total densities
-     # tot_dens0 <- ifelse(rest_pars$lab_max > rest_pars$lab_retain_max, tot_settlers0/(rest_pars$lab_max - rest_pars$lab_retain_max), NA)
-     # tot_dens1 <- tot_settlers1/rest_pars$lab_retain_max
+     # tot_dens0 <- ifelse(lab_max_i > lab_retain_max_i, tot_settlers0/(lab_max_i - lab_retain_max_i), NA)
+     # tot_dens1 <- tot_settlers1/lab_retain_max_i
     }
     
     
@@ -1481,12 +1490,12 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, g
     # Formula: (total_larvae / min_embryos_per_tank * 100_tiles_per_tank) / total_tiles
     # If larvae supply is less than lab capacity, we use fewer tiles.
     # Assume 100 tiles per tank (same constant as the safety cap above).
-    prop_use <- min(1, (tot_babies/rest_pars$tank_min*100)/rest_pars$lab_max)
+    prop_use <- min(1, (tot_babies/rest_pars$tank_min*100)/lab_max_i)
     
     
     # check to make sure there's no dividing by zero: at a minimum, use one tile
     if(prop_use == 0){
-      prop_use <- 1 - (rest_pars$lab_max-1)/rest_pars$lab_max
+      prop_use <- 1 - (lab_max_i-1)/lab_max_i
     }
     
     # update number of babies used
@@ -1504,7 +1513,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, g
         out_settlers[ss] <- tot_settlers0*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # number of tiles
-        lab_tiles[ss] <- (prop_use*(rest_pars$lab_max - rest_pars$lab_retain_max)*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
+        lab_tiles[ss] <- (prop_use*(lab_max_i - lab_retain_max_i)*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
        # dens_ss <- out_settlers[ss]/lab_tiles[ss]
@@ -1521,7 +1530,7 @@ rse_mod1 <- function(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, g
         retain_settlers <- tot_settlers1*lab_pars$sett_props[[which(names(lab_pars$sett_props)==tile_types[ss])]]*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]]
         
         # number of tiles
-        lab_tiles[ss] <- (prop_use*rest_pars$lab_retain_max*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
+        lab_tiles[ss] <- (prop_use*lab_retain_max_i*rest_pars$tile_props[[which(names(rest_pars$tile_props)==tile_types[ss])]])
         
         # calculate densities on the tiles
         # dens_ss <- retain_settlers/lab_tiles[ss]
