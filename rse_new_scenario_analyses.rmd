@@ -328,8 +328,8 @@ lab_pars_def <- lab_pars
 
 # restoration strategy parameters
 tile_props <- list(T1 = 1) # proportion of tiles that are each type
-orchard_yield <- 1 # percent of new orchard babies successfully collected
-reef_yield <- 1 # percent of new reef babies successfully collected and fertilized
+orchard_yield <- 0.72 # percent of new orchard babies successfully collected
+reef_yield <- 0.72 # percent of new reef babies successfully collected and fertilized
 spawn_target <- 2000000 # target number of embryos to collect from orchard each year (note: if this is set to zero, there won't be any settlers)
 reef_prop <- c(0.5, 1) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
 reef_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion recruits going from each lab treatment to each reef treatment (row = origin lab treatment, column = destination reef treatment)

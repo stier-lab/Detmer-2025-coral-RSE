@@ -406,7 +406,7 @@ lab_pars <- list(s0 = s0, s1 = s1, m0 = m0, m1 = m1, sett_props = sett_props, si
 # restoration strategy parameters
 tile_props <- list(T1 = 0.25, T2 = 0.75) # proportion of tiles that are each type
 orchard_yield <- 0 # percent of new orchard babies successfully collected
-reef_yield <- 1 # percent of new reef babies successfully collected and fertilized (note this is currently set to 1 because lambda_R is already set to the number of larvae actually collected by Fundemar in 2025 and there were no data on total larvae produced)
+reef_yield <- 0.72 # percent of new reef babies successfully collected and fertilized (note this is currently set to 1 because lambda_R is already set to the number of larvae actually collected by Fundemar in 2025 and there were no data on total larvae produced)
 spawn_target <- 2000000 # target number of embryos to collect from orchard each year (note: if this is set to zero, there won't be any settlers in the lab because total babies collected will be set to zero)
 reef_prop <- rep(0, length(lab_treatments)) # proportion of lab recruits from each lab treatment outplanted to reef (1-proportion outplanted to orchard)
 reef_out_props <- matrix(NA, nrow = length(lab_treatments), ncol = length(reef_treatments)) # proportion of reef-bound recruits going from each lab treatment to each reef treatment (row = origin lab treatment, column = destination reef treatment)
