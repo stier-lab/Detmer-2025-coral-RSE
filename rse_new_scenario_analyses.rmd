@@ -3456,6 +3456,8 @@ reef_coral <- rep(NA, n_sample1)
 tot_ROI <- rep(NA, n_sample1)
 totI_ROI <- rep(NA, n_sample1)
 tot_costs <- rep(NA, n_sample1)
+orch_function <- rep(NA, n_sample1)
+reef_ROI <- rep(NA, n_sample1)
 
 for(i in 1:n_sample1){
   dt_def_i <- dt_def[which(dt_def$par_rep == i),]
@@ -3465,12 +3467,13 @@ for(i in 1:n_sample1){
   tot_ROI[i] <- dt2_i$tot_ROI_mean/dt_def_i$tot_ROI_mean
   totI_ROI[i] <- dt2_i$totI_ROI_mean/dt_def_i$totI_ROI_mean
   tot_costs[i] <- dt2_i$tot_costs/dt_def_i$tot_costs
+  orch_function[i] <- dt2_i$orch_function_mean/dt_def_i$orch_function_mean
+  reef_ROI[i] <- dt2_i$reef_ROI_mean/dt_def_i$reef_ROI_mean
 }
 
-return(list(reef_coral = reef_coral, tot_ROI = tot_ROI, totI_ROI = totI_ROI, tot_costs = tot_costs))
+return(list(reef_coral = reef_coral, tot_ROI = tot_ROI, totI_ROI = totI_ROI, tot_costs = tot_costs, orch_function = orch_function, reef_ROI = reef_ROI))
   
 }
-
 
 
 ```
@@ -3500,7 +3503,7 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def
 xmax <- 70
 ymax <- 6
 
-pdf("TempFigs/Figure5.pdf", height = 6, width = 6)
+pdf("TempFigs/Figure5.pdf", height = 5, width = 6)
 
 par(mfrow = c(2, 2))
 layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = T), widths = c(1, 1), heights = rep(1, 2))
@@ -3514,8 +3517,9 @@ axis(side = 1, at = seq(0, 70, 10), labels = NA)
 #mtext(side = 3, "c) SC1 vs. SC2 strategies", adj = 0, line = 0)
 #mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.85)
 mtext(side = 3, "5 years", line = 0, cex = 1)
+mtext(side = 3, "a)", adj = 0.075, line = -1)
 #mtext(side = 2, "Proportional change in total ROI", adj = 2, line = 2.5, cex = 0.9)
-mtext(side = 2, "Proportional change in total ROI", line = 2, cex = 0.9)
+mtext(side = 2, "Proportional change \nin total ROI", line = 2, cex = 0.9)
 points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
 arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
 arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
@@ -3526,7 +3530,7 @@ abline(h = 1, lty = 2, col = "gray30")
 abline(v = 1, lty = 2, col = "gray30")
 
 #legend("right", legend = c("Increase SC1 \ncapacity", "Transplant SC2"), col = col_set, pch = pch_set, bty = "n", pt.cex = 1.5)
-legend("topright", legend = c("Increase SC1 capacity", "Transplant SC2"), col = col_set, pch = pch_set, bty = "n", pt.cex = 1.5, inset = c(0,0.075))
+legend("topright", legend = c("Increase SC1 capacity", "Transplant SC2"), col = col_set, pch = pch_set, bty = "n", pt.cex = 1.5, inset = c(0,0.01))
 
 #legend("bottomright", legend = c("No disturbance", "Disturbance"), col = "gray60", pch = c(pch_set[1], pch_setD[1]), bty = "n", pt.cex = 1.5, inset = c(0, 0.1))
 
@@ -3555,6 +3559,7 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_de
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
 axis(side = 1, at = seq(0, 70, 10), labels = NA)
 axis(side = 2, at = seq(0, 6, 1), labels = NA)
+mtext(side = 3, "b)", adj = 0.075, line = -1)
 #mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
 mtext(side = 3, "50 years", line = 0, cex = 1)
 points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
@@ -3588,15 +3593,16 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def
 #ymax <- max(c(quantile(SC1L_def$tot_costs, 0.95), quantile(SC2_def$tot_costs, 0.95)))
 
 #xmax <- 2
-ymax <- 1.2
-ymin <- 0
+ymax <- 1.5
+ymin <- 0.5
 
 
 plot(x = c(0, xmax), y = c(ymin, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
 #mtext(side = 3, "c) SC1 vs. SC2 strategies", adj = 0, line = 0)
 #mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.85)
-mtext(side = 2, "Proportional change in total costs", line = 2.25, cex = 0.9)
+mtext(side = 2, "Proportional change \nin total costs", line = 2.25, cex = 0.9)
 mtext(side = 1, "Proportional change in reef coral cover", line = 2.5, cex = 0.9, outer = T)
+mtext(side = 3, "c)", adj = 0.075, line = -1)
 points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_costs), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
 arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_costs, 0.05), y1 = quantile(SC1L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
 arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_costs), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
@@ -3627,6 +3633,7 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_de
 #ymax <- max(c(quantile(SC1L_def$tot_costs, 0.95), quantile(SC2_def$tot_costs, 0.95)))
 
 plot(x = c(0, xmax), y = c(ymin, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, yaxt = "n")
+mtext(side = 3, "d)", adj = 0.075, line = -1)
 #mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
 axis(side = 2, at = seq(0, 1.2, 0.2), labels = NA)
 points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_costs), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
@@ -3655,8 +3662,145 @@ dev.off()
 
 ```
 
+```{r}
+# check orchard function
+SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+xmax <- 70
+ymax <- 2
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 70, 10), labels = NA)
+mtext(side = 3, "5 years", line = 0, cex = 1)
+mtext(side = 3, "a)", adj = 0.075, line = -1)
+mtext(side = 2, "Proportional change \nin orchard function", line = 2, cex = 0.9)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$orch_function), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$orch_function, 0.05), y1 = quantile(SC1L_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$orch_function), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$orch_function), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$orch_function, 0.05), y1 = quantile(SC2_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$orch_function), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
 
 
+# add disturbance
+SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$orch_function), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$orch_function, 0.05), y1 = quantile(SC1L_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$orch_function), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$orch_function), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$orch_function, 0.05), y1 = quantile(SC2_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$orch_function), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+
+
+# 50 years
+SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
+axis(side = 1, at = seq(0, 70, 10), labels = NA)
+axis(side = 2, at = seq(0, 6, 1), labels = NA)
+mtext(side = 3, "b)", adj = 0.075, line = -1)
+#mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
+mtext(side = 3, "50 years", line = 0, cex = 1)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$orch_function), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$orch_function, 0.05), y1 = quantile(SC1L_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$orch_function), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$orch_function), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$orch_function, 0.05), y1 = quantile(SC2_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$orch_function), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+# add disturbance
+SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$orch_function), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$orch_function, 0.05), y1 = quantile(SC1L_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$orch_function), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$orch_function), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$orch_function, 0.05), y1 = quantile(SC2_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$orch_function), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+
+
+
+
+```
+
+```{r}
+# check reef ROI
+SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+xmax <- 70
+ymax <- 70
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 70, 10), labels = NA)
+mtext(side = 3, "5 years", line = 0, cex = 1)
+mtext(side = 3, "a)", adj = 0.075, line = -1)
+mtext(side = 2, "Proportional change \nin orchard function", line = 2, cex = 0.9)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$reef_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$reef_ROI, 0.05), y1 = quantile(SC1L_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$reef_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$reef_ROI), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$reef_ROI, 0.05), y1 = quantile(SC2_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$reef_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+
+# add disturbance
+SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$reef_ROI), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$reef_ROI, 0.05), y1 = quantile(SC1L_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$reef_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$reef_ROI), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$reef_ROI, 0.05), y1 = quantile(SC2_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$reef_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+
+
+# 50 years
+SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA) # , xaxt = "n", yaxt = "n"
+#axis(side = 1, at = seq(0, 70, 10), labels = NA)
+#axis(side = 2, at = seq(0, 6, 1), labels = NA)
+mtext(side = 3, "b)", adj = 0.075, line = -1)
+#mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
+mtext(side = 3, "50 years", line = 0, cex = 1)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$reef_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$reef_ROI, 0.05), y1 = quantile(SC1L_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$reef_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$reef_ROI), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$reef_ROI, 0.05), y1 = quantile(SC2_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$reef_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+# add disturbance
+SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$reef_ROI), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$reef_ROI, 0.05), y1 = quantile(SC1L_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$reef_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$reef_ROI), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$reef_ROI, 0.05), y1 = quantile(SC2_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$reef_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+
+
+
+
+```
 
 
 SM: repeat for lab grow out... but want to show how much it depends on different lab values
