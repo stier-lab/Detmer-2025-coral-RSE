@@ -196,3 +196,233 @@ length(which(sett_mat_APAL$year_scored == 2025 & sett_mat_APAL$substrate_type=="
 ```
 
 
+
+
+Density dependence
+
+estimating density dependent mortality rates from Fundemar's outplanting data
+
+
+```{r, warning=FALSE}
+# settler survival
+fundR_dt0 <- read_excel("data/Fundemar/Matriz_Supervivencia_Reclutas_Unificada.xlsx", sheet = 1)
+#View(fundR_dt0)
+
+fundR_dt0 <- fundR_dt0 %>% clean_names()
+
+
+fundR_dt <- fundR_dt0 %>% filter(coral_species=="Acropora palmata") %>% filter(number_settlers != "NA") %>% mutate(number_settlers = as.numeric(number_settlers))# %>% filter(is.na(number_settlers)==F)
+
+#View(fundR_dt0)
+
+#View(fundR_dt)
+
+#unique(fundR_dt$outplanting_site)
+#fundR_dt %>% filter(outplanting_site == "Mesa de sustrato 2") %>% view() # looks like there's no data on initial outplant numbers at this site
+
+# make data frame with the initial numbers of settlers
+fundR_N0 <- fundR_dt %>% filter(months_after_outplanting==0) %>% mutate(N0 = number_settlers) %>% select(-"number_settlers", -"survey_date_year", -"survey_date_month", -"survey_date_day", -"survey_date_day", -"months_after_outplanting", -"remarks", -"time_point")
+
+# now join back together with the main dataset
+fundR_dt1 <- fundR_dt %>% left_join(fundR_N0, by = c("coral_species", "outplanting_site", "settlement_technique", "settlement_container_id", "transect", "outplant_date_year", "outplant_date_month", "outplant_date_day", "treatment_1", "treatment_2", "plot_tag_number", "substrate_number_temporary_flag"), relationship="many-to-many") %>% mutate(survival = number_settlers/N0)
+
+#View(fundR_dt1)
+
+# check this worked
+#fundR_dt1 %>% filter(plot_tag_number==8, substrate_number_temporary_flag=="1") %>% view()
+
+
+# now flag cases where the number of settlers increases over time (probably due to natural recruits or miscounting?)
+fundR_dt2 <- fundR_dt1 %>% mutate(outplant_date = as.Date(paste(outplant_date_month, outplant_date_day, outplant_date_year, sep = "/"), format = '%m/%d/%Y')) %>% group_by(settlement_technique, transect, treatment_2, outplanting_site, outplant_date, treatment_1, plot_tag_number, substrate_number_temporary_flag) %>% arrange(months_after_outplanting) %>% mutate(survival1 = dplyr::lag(survival, n = 1L)) %>% ungroup() %>% mutate(new_recruits = if_else(survival - survival1 > 0, "Y", "N")) %>% group_by(settlement_technique, transect, treatment_2, outplanting_site, outplant_date, treatment_1, plot_tag_number, substrate_number_temporary_flag) %>% mutate(new_recruits_tot = if_else("Y" %in% new_recruits, "Y", "N")) %>% ungroup() # negative values of survival - survival1 means less recruits at current timepoint, positive values means more recruits (i.e., somehow a new recruit appeared). new_recruits_tot indicates whether a new recruit ever appeared on that tile
+fundR_dt2$new_recruits <- ifelse(is.na(fundR_dt2$new_recruits)==T, "N", fundR_dt2$new_recruits)
+
+# check this worked
+#fundR_dt2 %>% filter(plot_tag_number==8, substrate_number_temporary_flag=="1") %>% view()
+#fundR_dt2 %>% filter(plot_tag_number==2, substrate_number_temporary_flag=="60") %>% view()
+#fundR_dt2 %>% filter(plot_tag_number==5, substrate_number_temporary_flag=="16") %>% view()
+
+# select substrates that never had an increase in number of recruits and look at survival one year after outplanting
+
+#noaa_dt$Date <- as.Date(noaa_dt$Date, format = '%m/%d/%Y')
+
+fundR_dt3.2 <- fundR_dt2 %>% mutate(outplant_date = as.Date(paste(outplant_date_month, outplant_date_day, outplant_date_year, sep = "/"), format = '%m/%d/%Y'), survey_date = as.Date(paste(survey_date_month, survey_date_day, survey_date_year, sep = "/"), format = '%m/%d/%Y')) %>% filter(new_recruits_tot == "N") %>% select(outplanting_site, months_after_outplanting, settlement_technique, settlement_container_id, transect, outplant_date, survey_date, survey_date_year, treatment_1, treatment_2, plot_tag_number, substrate_number_temporary_flag, number_settlers, N0)
+```
+
+
+```{r}
+#View(fundR_dt3)
+
+#hist(fundR_dt2$months_after_outplanting)
+
+#unique(fundR_dt3.2$months_after_outplanting)
+
+#fundR_dt3.2 %>% group_by(months_after_outplanting, outplant_date) %>% summarize(n = n()) %>% view()
+
+# just use data from one month after outplanting (less time for other factors to influence mortality); all are from the same outplant date
+fundDD <- fundR_dt3.2 %>% mutate(prop_surv = number_settlers/N0) %>%filter(months_after_outplanting == 1) %>% mutate(n_dead = N0-number_settlers) #%>% mutate(prop_surv_yr = prop_surv^12) #filter(months_after_outplanting > 0 & months_after_outplanting < 2)
+
+# fundDD %>% group_by(treatment_1) %>% summarize(n = n()) %>% view() # almost all are cookie or tetrapod cement
+
+
+# fit nls model?
+# dd_mod <- nls(prop_surv ~ exp(m*N0), data = fundDD, start = list(m = -0.1))
+# 
+# summary(dd_mod)
+# 
+
+# plot the raw data
+plot(x = fundDD$N0, y = fundDD$prop_surv, las = 1, pch = 16, col = adjustcolor("black", alpha.f = 0.5))
+# lines(x = seq(from = 0, to = 80, length.out = 1000), y = exp(-0.97*seq(from = 0, to = 80, length.out = 1000)), type = "l")
+
+
+# should first convert prop surviving over one month to proportion surviving after 1 yr?
+
+# plot with y on the log scale and fit a line to this? but have issue of the 0's
+# plot(x = fundDD$N0, y = log(fundDD$prop_surv + 1), las = 1, pch = 16, col = adjustcolor("black", alpha.f = 0.5))
+
+```
+
+tile sizes (from "FW: Data for RSE" email sent on 9/15/25): "for Tetrapod cement we use 130 cm2, the cookies are not standardized", email also included some diagrams for gear
+
+
+problem with using proportions: for low densities, it's easier to get 0% or 100% mortality because there aren't very many individuals...
+
+
+```{r}
+
+# try making it binary?
+
+# fundDD
+
+# plot(x = fundDD$N0, y = rep(0, length(fundDD$N0)), ylim = c(0, 1), col = NA, las = 1)
+# for(i in 1:nrow(fundDD)){
+#   points(x = rep(fundDD$N0[i], fundDD$number_settlers[i]), y = rep(1, fundDD$number_settlers[i]), pch = 16, col = adjustcolor("black", alpha.f = 0.15))
+#   points(x = rep(fundDD$N0[i], fundDD$n_dead[i]), y = rep(0, fundDD$n_dead[i]), pch = 16, col = adjustcolor("black", alpha.f = 0.15))
+# }
+
+
+```
+
+
+Solution: group into density bins (e.g., 0-10, 10-20, etc.) and calculate prop surviving in each bin, then fit model to the values from each bin. Check what bin size gives reasonable numbers per bin in the lower sizes
+
+
+```{r}
+
+# make data frame with 1's and 0's
+# can use a for loop: for each row, make a data frame with number of rows = N0, then fill in with 1's and 0's, then join them all together
+
+#dd_bounds <- c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90) 
+
+dd_bounds <- c(0, 15, 30, 45, 60, 75, 90) 
+
+# means in each of these regions
+dd_means <- rep(NA, length(dd_bounds)-1)
+
+for(j in 2:length(dd_bounds)){
+  dd_means[j-1] <- mean(fundDD$N0[which(fundDD$N0 >= dd_bounds[j-1] & fundDD$N0 < dd_bounds[j])])
+}
+
+for(i in 1:nrow(fundDD)){
+  
+  dt_sub <- fundDD[i,]
+  
+  #dt_sub$N_class <- ifelse(dt_sub$N0 >= 0 & dt_sub$N0 < 10, dd_means[1], ifelse(dt_sub$N0 >= 10 & dt_sub$N0 < 20, dd_means[2], ifelse(dt_sub$N0 >= 20 & dt_sub$N0 < 30, dd_means[3], ifelse(dt_sub$N0 >= 30 & dt_sub$N0 < 40, dd_means[4], ifelse(dt_sub$N0 >= 40 & dt_sub$N0 < 50, dd_means[5], ifelse(dt_sub$N0 >= 50 & dt_sub$N0 < 60, dd_means[6], ifelse(dt_sub$N0 >= 60 & dt_sub$N0 < 70, dd_means[7], ifelse(dt_sub$N0 >= 70 & dt_sub$N0 < 80, dd_means[8], ifelse(dt_sub$N0 >= 80, dd_means[9], NA)))))))))
+  
+  dt_sub$N_class <- ifelse(dt_sub$N0 >= 0 & dt_sub$N0 < 15, dd_means[1], ifelse(dt_sub$N0 >= 15 & dt_sub$N0 < 30, dd_means[2], ifelse(dt_sub$N0 >= 30 & dt_sub$N0 < 45, dd_means[3], ifelse(dt_sub$N0 >= 45 & dt_sub$N0 < 60, dd_means[4], ifelse(dt_sub$N0 >= 60 & dt_sub$N0 < 75, dd_means[5], ifelse(dt_sub$N0 >= 75 & dt_sub$N0 < 90, dd_means[6], NA))))))
+  
+  fundDD_ind_i <- data.frame(
+    N0 = rep(dt_sub$N0, dt_sub$N0),
+    survived = c(rep(0, dt_sub$n_dead), rep(1, dt_sub$number_settlers)),
+    N_class = dt_sub$N_class
+  )
+  
+  if(i == 1){
+    fundDD_ind <- fundDD_ind_i
+  } else{
+    
+    fundDD_ind <- rbind(fundDD_ind, fundDD_ind_i)
+  }
+  
+}
+
+#View(fundDD_ind)
+
+#sort(unique(fundDD_ind$N0))
+#View(fundDD_ind)
+
+fundDD_summ <- fundDD_ind %>% group_by(N_class) %>% summarize(N_tot = n(), N_survived = sum(survived[survived == 1])) %>% mutate(prop_survived = N_survived/N_tot) %>% mutate(prop_survived_yr = prop_survived^12)# %>% view()
+
+#View(fundDD_summ)
+  
+```
+
+
+```{r}
+
+#dd_mod3 <- nls(prop_survived ~ exp(m*N_class), data = fundDD_summ, start = list(m = -0.1))
+
+#summary(dd_mod3)
+
+#dd_mod3 <- lm(log(prop_survived + 1) ~ N_class, data = fundDD_summ)
+
+
+# dd_mod3 <- lm(log(prop_survived_yr) ~ N_class, data = fundDD_summ)
+# 
+# 
+# summary(dd_mod3)
+# 
+# plot(x = fundDD_summ$N_class, y = log(fundDD_summ$prop_survived_yr), las = 1, pch = 16)
+# abline(a = dd_mod3$coefficients[1], b = dd_mod3$coefficients[2], col = "blue")
+
+fundDD_summ
+
+dd_mod3 <- lm(log(prop_survived) ~ N_class, data = fundDD_summ)
+
+plot(x = fundDD_summ$N_class, y = log(fundDD_summ$prop_survived), las = 1, pch = 16)
+abline(a = dd_mod3$coefficients[1], b = dd_mod3$coefficients[2], col = "blue")
+
+summary(dd_mod3)
+
+```
+
+slope is approx. -0.026
+
+y = exp(mx)*exp(b)
+
+log(y) = mx + b
+
+
+```{r}
+
+# plot(x = fundDD_summ$N_class, y = fundDD_summ$prop_survived_yr, las = 1, pch = 16)
+# lines(x = seq(from = 0, to = 80, length.out = 1000), y = exp(dd_mod3$coefficients[1])*exp(dd_mod3$coefficients[2]*seq(from = 0, to = 80, length.out = 1000)), type = "l", col = "blue")
+
+plot(x = fundDD_summ$N_class, y = fundDD_summ$prop_survived, las = 1, pch = 16, xlab = "Density class", ylab = "Proportion surviving", ylim = c(0, 0.18), xlim = c(3, 85))
+lines(x = seq(from = 0, to = 80, length.out = 1000), y = exp(dd_mod3$coefficients[1])*exp(dd_mod3$coefficients[2]*seq(from = 0, to = 80, length.out = 1000)), type = "l", col = "blue")
+text(x = fundDD_summ$N_class + 2, y = fundDD_summ$prop_survived + 0.01, paste("n = ", as.character(fundDD_summ$N_tot), sep = ""))
+text(x = 70, y = 0.15, "y = exp(-0.026x)exp(-1.86)", col = "blue")
+
+```
+
+
+
+
+density dependence is formulated as
+
+```{r}
+# S_i[1] <- S_i[1]*exp(-m*sum(N_all)); want to estimate m
+```
+
+ 
+
+
+
+
+
+
+
+
+
+
+

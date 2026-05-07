@@ -258,7 +258,7 @@ reflecting competition and post-settlement mortality on substrates with many rec
 # reef
 dens_pars.r <- list()
 dens_pars.r[[1]] <- list() # first reef treatment/subpop
-dens_pars.r[[1]][[1]] <- 0.02 # first source to first reef (external recruits)
+dens_pars.r[[1]][[1]] <- 0.026 # first source to first reef (external recruits)
 dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (first lab treatment)
 dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (second lab treatment)
 
@@ -266,7 +266,7 @@ dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (sec
 # orchard
 dens_pars.o <- list()
 dens_pars.o[[1]] <- list() # first orchard
-dens_pars.o[[1]][[1]] <- 0.02
+dens_pars.o[[1]][[1]] <- 0.026
 dens_pars.o[[1]][[2]] <- dens_pars.o[[1]][[1]]
 
 ```
@@ -375,8 +375,8 @@ lambda_R <- 1255111 # larvae produced by reference reefs each year from Table 1 
 # lab parameters
 # fraction of settled larvae in each lab treatment that survive to immediate outplanting. This a matrix to allow for potentially different values each year (e.g., representing disturbance events in the lab) 
 s0 <- matrix(NA, nrow = years, ncol = length(substr(lab_treatments, start = 3, stop = 4))) # columns = tile types in lab
-s0[,1] <- rep(0.95, years)
-s0[,2] <- rep(0.95, years)
+s0[,1] <- rep(0.98, years)
+s0[,2] <- rep(0.98, years)
 #s0[10,1] <- 0.05 # example of coding a disturbance in year 10
 #s0[10,2] <- 0.05
 
@@ -421,7 +421,7 @@ orchard_out_props[2,] <- c(1) # from second lab treatment to each orchard
 reef_areas <- c(A_reef)*10000 # m^2 given to each post-outplanting reef treatment/subpopulation, convert to cm^2 by multiplying by 10,000
 
 # lab capacities
-lab_max <- 3100 # 4000 # total number of tiles that the lab can accommodate in a year 
+lab_max <- 3098#3100 # 4000 # total number of tiles that the lab can accommodate in a year 
 lab_retain_max <- 0 # total number of settlers that the lab can keep for a year (must be less than or equal to lab_max; if > 0 then must have at least one "1_" lab treatment, if equal to lab max then must have all treatments be "1_")
 
 tank_min <- 14600 # min number of embryos to put in a tank (reduce number of tanks used if less than this to avoid unrealistically small densities on the tiles)
