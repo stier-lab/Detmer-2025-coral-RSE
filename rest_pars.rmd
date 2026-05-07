@@ -416,6 +416,36 @@ density dependence is formulated as
 
  
 
+Fecundity:
+
+```{r}
+
+# without additional information (Fundemar's report only): c(0, 0, rep(1255111/26, 3)) 
+
+# size class sizes
+SC1 <- 0
+SC2 <- 10
+SC3 <- 100
+SC4 <- 900
+SC5 <- 4000
+
+A_mids <- c((SC1 + SC2)/2, (SC2 + SC3)/2, (SC3 + SC4)/2, (SC4 + SC5)/2, 9325) 
+
+# fecundity probabilities
+p_fec <- c(0, 0, 0.1, 0.43, 0.88)
+
+# oocyte density
+d_ooc <- 63.6
+
+A_mids*d_ooc*p_fec
+
+# estimating fecundity parameters
+# Fundemar's report: 26 colonies, 1255111 embryos collected
+# assume they were all size class 4, what is the yield?
+
+1255111/(A_mids[4]*p_fec[4]*d_ooc*26)
+
+```
 
 
 

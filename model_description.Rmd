@@ -281,7 +281,7 @@ giving ~48,274 embryos per reproductive adult. Assume only SC3–SC5 reproduce.
 # reef parameters: fecundity (for tracking reef reproductive output)
 fec_pars.r <- list()
 fec_pars.r[[1]] <- list()
-fec_pars.r[[1]][[1]] <- c(0, 0, rep(1255111/26, 3)) # 1st source to 1st reef (external recruits)
+fec_pars.r[[1]][[1]] <- c(0, 0, 3180, 67002, 521901) # 1st source to 1st reef (external recruits)
 fec_pars.r[[1]][[2]] <- fec_pars.r[[1]][[1]] # 2nd source to 1st reef (1st lab treatment)
 fec_pars.r[[1]][[3]] <- fec_pars.r[[1]][[1]] # 2nd source to 1st reef (2nd lab treatment)
 
@@ -289,7 +289,7 @@ fec_pars.r[[1]][[3]] <- fec_pars.r[[1]][[1]] # 2nd source to 1st reef (2nd lab t
 # orchard parameters: fecundity
 fec_pars.o <- list()
 fec_pars.o[[1]] <- list() # first treatment
-fec_pars.o[[1]][[1]] <- c(0, 0, rep(1255111/26, 3)) #c(0, 0, 5000, 50000, 100000) # first source
+fec_pars.o[[1]][[1]] <- c(0, 0, 3180, 67002, 521901) #c(0, 0, 5000, 50000, 100000) # first source
 fec_pars.o[[1]][[2]] <- fec_pars.o[[1]][[1]] # second source
 
 ```
