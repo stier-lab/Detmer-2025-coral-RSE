@@ -2218,9 +2218,10 @@ dev.off()
 ```{r}
 
 #plot_cols <- c("#99DDFF","#CCBB44") 
-plot_cols <- c("#4477AA","#BBCC33") 
+plot_cols <- c("#4477AA","#CCBB44") 
 
-plot_colsD <- c("#87A0AD","#BDBF9D")
+plot_colsD <- plot_cols
+#plot_colsD <- c("#87A0AD","#BDBF9D")
 
 pt_cex <- 1.5
 
@@ -2283,7 +2284,9 @@ dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[2]) %>% rename(metric = tot_ROI
 
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
-plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = 3, col = plot_cols[2], xlab = NA, ylab = NA)
+ymax <- max(dt_plot2$Q95)
+
+plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, ymax), las = 1, lwd = 3, col = plot_cols[2], xlab = NA, ylab = NA)
 #mtext(side = 2, expression("Total ROI ("*m^2~"reef and orchard coral/$)"), line = 3, cex = 1.2)
 mtext(side = 2, expression("Total ROI ("*m^2~"coral/$)"), line = 3, cex = 1.2)
 mtext(side = 1, "Proportion initially outplanted to reef", line = 2.5, cex = 1.2, outer = T)
@@ -2298,7 +2301,7 @@ dt_plot1 <- dt_plot%>% filter(par2 == lambda_Rs[2]) %>% rename(metric = tot_ROI_
 
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
-plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = 3, col = plot_colsD[2], lty = 1, xlab = NA, ylab = NA, yaxt = "n")
+plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, ymax), las = 1, lwd = 3, col = plot_colsD[2], lty = 1, xlab = NA, ylab = NA, yaxt = "n")
 axis(side = 2, at = seq(0, 0.01, 0.002), labels = NA)
 # lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 3, col = plot_colsD[2], lty = 2)
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[2], alpha.f = 0.25))
