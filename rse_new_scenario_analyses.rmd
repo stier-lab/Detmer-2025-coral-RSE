@@ -194,6 +194,7 @@ dens_pars.r[[1]] <- list() # first reef treatment/subpop
 dens_pars.r[[1]][[1]] <- 0.026 # first source to first reef (external recruits)
 dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (tiles outplanted immediately)
 dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (tiles retained in lab)
+dens_pars.r_def <- dens_pars.r
 
 # reef fecundity
 fec_pars.r <- list()
@@ -2649,15 +2650,16 @@ Fill with one size class — which wins? SC2. Paired sub-panel: stacked final-si
 ```{r}
 
 # area outplanted: try to approximate the area of the orchard, so number of reef start in orchard x area per reef star. Estimate area of reef star as 0.337 m2 (from https://onlinelibrary.wiley.com/doi/full/10.1111/rec.12866)
-area_out <- 170 # 500*0.337 = 168.5; round up to 170
-lambda_R_12345 <- round(170/(A_mids*0.0001)) #c(10000, 1000, 100, 10, 1)
+area_out <- 1250#170 # 500*0.337 = 168.5; round up to 170. 1250 = avg area covered in full orchard
+lambda_R_12345 <- round(area_out/(A_mids*0.0001)) #c(10000, 1000, 100, 10, 1)
 out_sizes <- c(1, 2, 3, 4, 5)
 
 lab_pars <- lab_pars_def
 
-# make sure there's no orchard investment:
+# make sure there's no orchard investment and all embryos are included
 rest_pars <- rest_pars_def
 rest_pars$reef_prop <- c(1,1)
+rest_pars$reef_yield <- 1
 
 # holding list for model output
 
@@ -2728,15 +2730,9 @@ lab_pars <- lab_pars_def
 rest_pars <- rest_pars_def
 
 # turn density dependence back on
-dens_pars.r <- list()
-dens_pars.r[[1]] <- list() # first reef treatment/subpop
-dens_pars.r[[1]][[1]] <- 0.02 # first source to first reef (external recruits)
-dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (tiles outplanted immediately)
-dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (tiles retained in lab)
+dens_pars.r <- dens_pars.r_def
 
-N0.l <- list()
-N0.l[[1]] <- 1000 # start with some babies in the lab
-N0.l[[2]] <- 0 
+N0.l <- N0.l_def
 
 
 # lambda_R_12345[1]
@@ -2773,8 +2769,9 @@ plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xl
 for(j in 1:5){
   lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
 }
-legend("topleft", legend = c("1 (340,000)", "2 (30,909)", "3 (3,400)", "4 (694)", "5 (182)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
+legend("topleft", legend = c("1 (2,500,000)", "2 (227,273)", "3 (25,000)", "4 (5,102)", "5 (1,340)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
 
+# lambda_R_12345 # 2500000  227273   25000    5102    1340
 
 # look at final size distributions
 
@@ -2852,7 +2849,10 @@ mtext(side = 2, expression("Coral cover on reef ("*m^2*")"), line = 3.5, cex = 0
 for(j in 1:5){
   lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
 }
-legend("topleft", legend = c("SC1 (340,000)", "SC2 (30,909)", "SC3 (3,400)", "SC4 (694)", "SC5 (182)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 1.1)
+legend("topleft", legend = c("SC1 (2,500,000)", "SC2 (227,273)", "SC3 (25,000)", "SC4 (5,102)", "SC5 (1,340)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 1.1)
+#legend("topleft", legend = c("SC1 (340,000)", "SC2 (30,909)", "SC3 (3,400)", "SC4 (694)", "SC5 (182)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 1.1)
+
+#legend("topleft", legend = c("1 (2,500,000)", "2 (227,273)", "3 (25,000)", "4 (5,102)", "5 (1,340)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 0.9)
 
 
 # look at final size distributions
@@ -3071,21 +3071,22 @@ for supplement: 1) outplanting equal numbers and 2) equal survival
 ```{r}
 
 # area outplanted: try to approximate the area of the orchard, so number of reef start in orchard x area per reef star. Estimate area of reef star as 0.337 m2 (from https://onlinelibrary.wiley.com/doi/full/10.1111/rec.12866)
-area_out <- 170 # 500*0.337 = 168.5; round up to 170
-lambda_R_12345 <- rep(200, 5) #c(10000, 1000, 100, 10, 1)
+#area_out <- 170 # 500*0.337 = 168.5; round up to 170
+lambda_R_12345 <- rep(550000, 5) #c(10000, 1000, 100, 10, 1)
 out_sizes <- c(1, 2, 3, 4, 5)
 
 rest_pars <- rest_pars_def
 
 # make sure there's no orchard investment:
 rest_pars$reef_prop <- c(1,1)
+rest_pars$reef_yield <- 1
 
 # holding list for model output
 
 mod_out_L2 <- list()
 
-mod_ind2 <- matrix(NA, nrow = years, ncol = 5) # total number of individuals on reef
-mod_area2 <- matrix(NA, nrow = years, ncol = 5) # total area covered on the reef
+mod_ind.2 <- matrix(NA, nrow = years, ncol = 5) # total number of individuals on reef
+mod_area.2 <- matrix(NA, nrow = years, ncol = 5) # total area covered on the reef
 
 # total number in each size class after 5 and 50 years
 mod_mat5_2 <- matrix(NA, nrow = 5, ncol = 5) # row = outplanting scenario
@@ -3117,9 +3118,9 @@ sim_j <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, grow
 mod_out_L2[[j]] <- sim_j
 
 
-mod_ind2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+mod_ind.2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
-mod_area2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
+mod_area.2[,j] <- model_summ(model_sim = sim_j, location = "reef", metric = "area_m2", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments))
 
 mod_ind1 <- model_summ(model_sim = sim_j, location = "reef", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(1))
 
@@ -3143,15 +3144,9 @@ lab_pars <- lab_pars_def
 # reset orchard investment
 rest_pars <- rest_pars_def
 
-dens_pars.r <- list()
-dens_pars.r[[1]] <- list() # first reef treatment/subpop
-dens_pars.r[[1]][[1]] <- 0.02 # first source to first reef (external recruits)
-dens_pars.r[[1]][[2]] <- dens_pars.r[[1]][[1]] # second source to first reef (tiles outplanted immediately)
-dens_pars.r[[1]][[3]] <- dens_pars.r[[1]][[1]] # third source to first reef (tiles retained in lab)
+dens_pars.r <- dens_pars.r_def
 
-N0.l <- list()
-N0.l[[1]] <- 1000 # start with some babies in the lab
-N0.l[[2]] <- 0 
+N0.l <- N0.l_def
 
 
 
@@ -3500,7 +3495,7 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def
 #xmax <- max(c(quantile(SC1L_def$reef_coral, 0.95), quantile(SC2_def$reef_coral, 0.95)))
 #ymax <- max(c(quantile(SC1L_def$tot_ROI, 0.95), quantile(SC2_def$tot_ROI, 0.95)))
 
-xmax <- 70
+xmax <- 80
 ymax <- 6
 
 pdf("TempFigs/Figure5.pdf", height = 5, width = 6)
@@ -3513,7 +3508,7 @@ par(mar=c(0, 0.5, 0.5, 0), oma = c(4.5, 4, 2, 1))
 
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
-axis(side = 1, at = seq(0, 70, 10), labels = NA)
+axis(side = 1, at = seq(0, 80, 20), labels = NA)
 #mtext(side = 3, "c) SC1 vs. SC2 strategies", adj = 0, line = 0)
 #mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.85)
 mtext(side = 3, "5 years", line = 0, cex = 1)
@@ -3557,7 +3552,7 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_de
 #ymax <- max(c(quantile(SC1L_def$tot_ROI, 0.95), quantile(SC2_def$tot_ROI, 0.95)))
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
-axis(side = 1, at = seq(0, 70, 10), labels = NA)
+axis(side = 1, at = seq(0, 80, 20), labels = NA)
 axis(side = 2, at = seq(0, 6, 1), labels = NA)
 mtext(side = 3, "b)", adj = 0.075, line = -1)
 #mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
