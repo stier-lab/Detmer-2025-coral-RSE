@@ -3660,6 +3660,362 @@ dev.off()
 
 ```
 
+
+
+barplots with all metrics (repeat for 5 and 50 years)
+
+```{r}
+#%>%summarise(across(c(reef_cover_mean, reef_tiles_out_tot, reef_ROI_mean, tot_ROI_mean, orch_function_mean, tot_costs), list(mean = mean, sd = sd)))
+
+#metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") 
+
+
+metric_names <- c("reef_cover_mean", "orch_function_mean", "reef_ROI_mean", "tot_ROI_mean", "tot_costs", "reef_recruits_out_tot")
+
+metric_summ_fun <- function(dt_in){
+  for(i in 1:6){
+  
+  dt_i <- dt_in[,which(colnames(dt_in)==metric_names[i])]
+  
+  dt_new <- data.frame(
+    metric = metric_names[i],
+    mean = mean(dt_i),
+    Q05 = quantile(dt_i, 0.05),
+    Q95 = quantile(dt_i, 0.95)
+  )
+  
+  
+  if(i == 1){
+    dt_out = dt_new
+  } else{
+    dt_out = rbind(dt_out, dt_new)
+  }
+  }
+  
+ rownames(dt_out) <- c(1:6)
+
+  return(dt_out)
+}
+
+
+#colnames(orch_D0_def_dt5$dt_i)
+
+
+#View(SC1_defp)
+
+
+# # holding data frames with values to plot
+# SC1_defp <- orch_D0_def_dt5$dt_i
+# SC1Lp <- orch_D0_SC1L_dt5$dt_i
+# SC2p <- orch_D0_SC2_dt5$dt_i
+# 
+
+
+```
+
+
+```{r}
+
+SC1_defp <- metric_summ_fun(orch_D0_def_dt5$dt_i)
+SC1Lp <- metric_summ_fun(orch_D0_SC1L_dt5$dt_i)
+SC2p <- metric_summ_fun(orch_D0_SC2_dt5$dt_i)
+
+SC1_defpD <- metric_summ_fun(orch_D3_def_dt5$dt_i)
+SC1LpD <- metric_summ_fun(orch_D3_SC1L_dt5$dt_i)
+SC2pD <- metric_summ_fun(orch_D3_SC2_dt5$dt_i)
+
+#View(SC1_defp)
+
+plot_lists <- function(metric_name){
+mm <- which(SC1_defp$metric == metric_name) # metric
+means <- c(SC1_defp$mean[mm], SC1Lp$mean[mm], SC2p$mean[mm])
+Q05s <- c(SC1_defp$Q05[mm], SC1Lp$Q05[mm], SC2p$Q05[mm])
+Q95s <- c(SC1_defp$Q95[mm], SC1Lp$Q95[mm], SC2p$Q95[mm])
+meansD <- c(SC1_defpD$mean[mm], SC1LpD$mean[mm], SC2pD$mean[mm])
+Q05sD <- c(SC1_defpD$Q05[mm], SC1LpD$Q05[mm], SC2pD$Q05[mm])
+Q95sD <- c(SC1_defpD$Q95[mm], SC1LpD$Q95[mm], SC2pD$Q95[mm])
+
+return(list(means = means, Q05s = Q05s, Q95s = Q95s, meansD = meansD, Q05sD = Q05sD, Q95sD = Q95sD))
+
+}
+
+bar_cols <- c("gray", "#44BB99", "#FFAABB")
+
+pl <- plot_lists(metric_name = "reef_cover_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Reef cover", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+
+pl <- plot_lists(metric_name = "reef_recruits_out_tot")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Reef recruits outplanted", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "reef_ROI_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Reef ROI", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "orch_function_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Orchard ecological function", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "tot_costs")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Total restoration costs", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "tot_ROI_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Total ROI", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+#metric_names <- c("reef_cover_mean", "orch_function_mean", "reef_ROI_mean", "tot_ROI_mean", "tot_costs", "reef_recruits_out_tot")
+
+
+```
+
+
+
+```{r}
+# repeat over 50 years
+
+SC1_defp <- metric_summ_fun(orch_D0_def_dt50$dt_i)
+SC1Lp <- metric_summ_fun(orch_D0_SC1L_dt50$dt_i)
+SC2p <- metric_summ_fun(orch_D0_SC2_dt50$dt_i)
+
+SC1_defpD <- metric_summ_fun(orch_D3_def_dt50$dt_i)
+SC1LpD <- metric_summ_fun(orch_D3_SC1L_dt50$dt_i)
+SC2pD <- metric_summ_fun(orch_D3_SC2_dt50$dt_i)
+
+
+pl <- plot_lists(metric_name = "reef_cover_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Reef cover", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+
+pl <- plot_lists(metric_name = "reef_recruits_out_tot")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Reef recruits outplanted", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "reef_ROI_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Reef ROI", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "orch_function_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Orchard ecological function", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "tot_costs")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Total restoration costs", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "tot_ROI_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+mtext(side = 3, "Total ROI", adj = 0)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+#metric_names <- c("reef_cover_mean", "orch_function_mean", "reef_ROI_mean", "tot_ROI_mean", "tot_costs", "reef_recruits_out_tot")
+
+
+```
+
+
+
+```{r}
+
+
+metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") 
+
+
+# lambda_R_12345 # 2500000  227273   25000    5102    1340
+
+# look at final size distributions
+
+end_mat <- mod_mat5
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[6,])), xlim = c(0.5, 5.5), las = 1)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+```
+
+
+
+
+
 ```{r}
 # check orchard function
 SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
