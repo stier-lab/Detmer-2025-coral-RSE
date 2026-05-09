@@ -696,6 +696,8 @@ orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_
       
       dem_pars$surv_pars.r[[1]][[3]] <- dem_pars$surv_pars.r[[1]][[3]]*SC2_lists$lab_out_surv1_list[[i]]
       
+      dem_pars$surv_pars.rc[[1]][[3]] <- dem_pars$surv_pars.rc[[1]][[3]]*SC2_lists$lab_out_surv1_list[[i]]
+      
     }
     
     
@@ -723,7 +725,7 @@ orch_exp_fun2 <- function(dem_pars_all, n_pars, prop_set, par_set2 = NULL, par2_
 
 # function for running orchard expansion simulations with different restoration parameter values
 # growth_set = vector with growth of babies kept in lab or in orchard (proportion that transition from size class 1 to 2 after one year)
-# surv_set = vector with survival rates after outplanting/transplanting to reef
+# surv_set = vector with survival rates in lab/after transplanting to reef
 # out_par_type = either "lab_growth" (growing out babies in lab for a year) or "orch_trans" (transplanting corals from the orchard to the reef)
 # dem_pars = set of demographic parameters to use
 # par_set2 = values of the second parameter to iterate over
@@ -885,11 +887,15 @@ dist_pars.o[[1]][[2]] <- dist_pars_fun(dist_yrs = dist_yrs, dist_effects.o[[1]][
    # #surv_pars.r_j[[1]][[3]][c(1,2)] <- LS_mat[h,]
    
    # SC1 survival rates: preserve same ratio between SC1 and SC2 survival as in field parameters
-    surv_pars.rc_j[[1]][[3]][1] <- LS_set[h]*surv_pars.rc[[1]][[2]][1]/surv_pars.r[[1]][[2]][2]
+   # surv_pars.rc_j[[1]][[3]][1] <- LS_set[h]*surv_pars.rc[[1]][[2]][1]/surv_pars.r[[1]][[2]][2]
     # SC2 survival rates:
-    surv_pars.r_j[[1]][[3]][2] <- LS_set[h]
+   # surv_pars.r_j[[1]][[3]][2] <- LS_set[h]
     
     lab_pars_ij$size_props1[2, ] <- c(1-growth_set[j], growth_set[j], 0, 0,0)
+    
+    lab_pars_ij$s1[,1] <- rep(LS_set[h], years)
+    lab_pars_ij$s1[,2] <- lab_pars_ij$s1[,1]
+      
       
     sim_ij <- rse_mod1(years, n, A_mids, surv_pars.rc_j, surv_pars.r_j, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars_ij, rest_pars_ij, N0.r, N0.o, N0.l)
     }
@@ -931,7 +937,7 @@ return(out_list)
 # dem_pars_all = list with all sets of demographic parameters
 # n_pars = number of parameter sets in dem_pars_all
 
-lab_trans_fun2 <- function(dem_pars_all, n_pars, growth_set, surv_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL){
+lab_trans_fun2 <- function(dem_pars_all, n_pars, growth_set, surv_set, out_par_type, par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL, SC2_lists = NULL){
 
   
   out_list2 <- list() # holding list
@@ -942,8 +948,21 @@ lab_trans_fun2 <- function(dem_pars_all, n_pars, growth_set, surv_set, out_par_t
     
     dem_pars <- list(surv_pars.r = list(dem_pars$surv_pars_L.r), surv_pars.rc = list(dem_pars$surv_pars_L.rc), growth_pars.r = list(dem_pars$growth_pars_L.r), shrink_pars.r = list(dem_pars$shrink_pars_L.r), frag_pars.r = list(dem_pars$frag_pars_L.r), surv_pars.o = list(dem_pars$surv_pars_L.o), growth_pars.o = list(dem_pars$growth_pars_L.o), shrink_pars.o = list(dem_pars$shrink_pars_L.o), frag_pars.o = list(dem_pars$frag_pars_L.o))
     
+    if(is.null(SC2_lists)==F){
+     # rest_pars$trans_surv <- SC2_lists$trans_surv_list[[i]]
+     # lab_pars$s1[,1] <- rep(SC2_lists$lab_surv1_list[[i]], years)
+     # lab_pars$s1[,2] <- lab_pars$s1[,1]
+      
+     # lab_pars$size_props1[2,] <- c(1-SC2_lists$lab_growth1_list[[i]], SC2_lists$lab_growth1_list[[i]], 0, 0, 0)
+      
+      dem_pars$surv_pars.r[[1]][[3]] <- dem_pars$surv_pars.r[[1]][[3]]*SC2_lists$lab_out_surv1_list[[i]]
+      
+      dem_pars$surv_pars.rc[[1]][[3]] <- dem_pars$surv_pars.rc[[1]][[3]]*SC2_lists$lab_out_surv1_list[[i]]
+      
+    }
     
-    out_list2[[i]] <- lab_trans_fun1(dem_pars, out_set, out_par_type, par_set2, par2_name, dist, dist_yrs, dist_pars_list)
+    
+    out_list2[[i]] <- lab_trans_fun1(dem_pars, growth_set, surv_set, out_par_type, par_set2, par2_name, dist, dist_yrs, dist_pars_list)
     
     
   }
@@ -4296,155 +4315,141 @@ for(ii in 5:7){
 ```
 
 
-
-
-
-
-
-
-```{r}
-# check orchard function
-SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
-
-xmax <- 70
-ymax <- 2
-
-plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
-axis(side = 1, at = seq(0, 70, 10), labels = NA)
-mtext(side = 3, "5 years", line = 0, cex = 1)
-mtext(side = 3, "a)", adj = 0.075, line = -1)
-mtext(side = 2, "Proportional change \nin orchard function", line = 2, cex = 0.9)
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$orch_function), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
-arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$orch_function, 0.05), y1 = quantile(SC1L_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$orch_function), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$orch_function), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
-arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$orch_function, 0.05), y1 = quantile(SC2_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$orch_function), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-abline(h = 1, lty = 2, col = "gray30")
-abline(v = 1, lty = 2, col = "gray30")
-
-
-# add disturbance
-SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
-
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$orch_function), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
-arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$orch_function, 0.05), y1 = quantile(SC1L_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$orch_function), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$orch_function), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
-arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$orch_function, 0.05), y1 = quantile(SC2_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$orch_function), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-
-
-# 50 years
-SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
-
-plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
-axis(side = 1, at = seq(0, 70, 10), labels = NA)
-axis(side = 2, at = seq(0, 6, 1), labels = NA)
-mtext(side = 3, "b)", adj = 0.075, line = -1)
-#mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
-mtext(side = 3, "50 years", line = 0, cex = 1)
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$orch_function), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
-arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$orch_function, 0.05), y1 = quantile(SC1L_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$orch_function), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$orch_function), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
-arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$orch_function, 0.05), y1 = quantile(SC2_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$orch_function), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-abline(h = 1, lty = 2, col = "gray30")
-abline(v = 1, lty = 2, col = "gray30")
-
-# add disturbance
-SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
-
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$orch_function), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
-arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$orch_function, 0.05), y1 = quantile(SC1L_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$orch_function), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$orch_function), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
-arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$orch_function, 0.05), y1 = quantile(SC2_def$orch_function, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$orch_function), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-
-
-
-
-```
-
-```{r}
-# check reef ROI
-SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
-
-xmax <- 70
-ymax <- 70
-
-plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
-axis(side = 1, at = seq(0, 70, 10), labels = NA)
-mtext(side = 3, "5 years", line = 0, cex = 1)
-mtext(side = 3, "a)", adj = 0.075, line = -1)
-mtext(side = 2, "Proportional change \nin orchard function", line = 2, cex = 0.9)
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$reef_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
-arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$reef_ROI, 0.05), y1 = quantile(SC1L_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$reef_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$reef_ROI), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
-arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$reef_ROI, 0.05), y1 = quantile(SC2_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$reef_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-abline(h = 1, lty = 2, col = "gray30")
-abline(v = 1, lty = 2, col = "gray30")
-
-
-# add disturbance
-SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt5$dt_i, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
-
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$reef_ROI), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
-arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$reef_ROI, 0.05), y1 = quantile(SC1L_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$reef_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$reef_ROI), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
-arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$reef_ROI, 0.05), y1 = quantile(SC2_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$reef_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-
-
-# 50 years
-SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
-
-plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA) # , xaxt = "n", yaxt = "n"
-#axis(side = 1, at = seq(0, 70, 10), labels = NA)
-#axis(side = 2, at = seq(0, 6, 1), labels = NA)
-mtext(side = 3, "b)", adj = 0.075, line = -1)
-#mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
-mtext(side = 3, "50 years", line = 0, cex = 1)
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$reef_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
-arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$reef_ROI, 0.05), y1 = quantile(SC1L_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$reef_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$reef_ROI), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
-arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$reef_ROI, 0.05), y1 = quantile(SC2_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$reef_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-abline(h = 1, lty = 2, col = "gray30")
-abline(v = 1, lty = 2, col = "gray30")
-
-# add disturbance
-SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
-
-points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$reef_ROI), pch = pch_setD[1], col = col_set[1], cex = pt_cex[2])
-arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$reef_ROI, 0.05), y1 = quantile(SC1L_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$reef_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
-points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$reef_ROI), pch = pch_setD[2], col = col_set[2], cex = pt_cex[2])
-arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$reef_ROI, 0.05), y1 = quantile(SC2_def$reef_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$reef_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
-
-
-
-
-```
-
-
 SM: repeat for lab grow out... but want to show how much it depends on different lab values
 
+
+heatmaps with growth and survival in the lab on the axes, include random variation in post-outplanting survival in the simulations (as for transplanting scenario), repeat with and without disturbance, 5 and 50 years
+
+heatmaps show 1) coral cover relative to default, 2) total ROI relative to default
+
+BUT heatmaps don't show variability across parameter sets... so just show main text plots but with multiple points for different growth/survival values? Or maybe 4 combinations: high growth/high survival, high growth/low survival, low growth/high survival, or low growth/low survival. So four points (all pink; square, circle, diamond, triangle), with separate panels with and without disturbance?
+
+high growth = 95% quantile from nursery values
+low growth = 5% quantile from nursery values
+
+high survival = 95% quantile from nursery values
+low survival = 5% quantile from nursery values
+
+
+```{r}
+
+growth_set_all <- nurs_growth$growth_trans_df %>% filter(from_class == "SC1", to_class == "SC2")
+growth_set_all <- growth_set_all$prob
+
+#quantile(growth_set_all, 0.05)
+#quantile(growth_set_all, 0.95)
+
+surv_set_all <- nurs_surv$SC_surv_df %>% filter(size_class==1)
+surv_set_all <- surv_set_all$prop_survived
+
+#quantile(surv_set_all, 0.05)
+#quantile(surv_set_all, 0.95)
+
+#LG_set <- unname(c(quantile(growth_set_all, 0.05), quantile(growth_set_all, 0.05), quantile(growth_set_all, 0.95), quantile(growth_set_all, 0.95)))
+
+#LS_set <- unname(c(quantile(surv_set_all, 0.05), quantile(surv_set_all, 0.95), quantile(surv_set_all, 0.05), quantile(surv_set_all, 0.95)))
+
+LG_set <- unname(c(quantile(growth_set_all, 0.05), quantile(growth_set_all, 0.95)))
+
+LS_set <- unname(c(quantile(surv_set_all, 0.05), quantile(surv_set_all, 0.95)))
+
+
+#LG_set
+
+#LS_set
+
+
+```
+
+
+run the simulations
+
+```{r}
+prop_set1 <- c(0.5)
+
+# update orchard initial conditions 
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- c(0.25*orchard_size, 0.5*orchard_size, rep(0, 3)) # first source
+N0.o[[1]][[2]] <- rep(0, n) # second source
+
+# lab grow out scenarios
+rest_pars <- rest_pars_def
+# rest_pars$reef_prop <- c(0, 1) # 1 = immediate outplants, 2 = retained in lab. Need to specify this in the prop_set argument
+prop_set_LG <- 0
+
+rest_pars$lab_retain_max <- rest_pars$lab_max/2 # divide by two because are putting 100% of immediate outplants to orchard and 100% retained to reef, and want overall proportion to orchard to be 0.5
+
+labG_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL, SC2_lists = SC2_lists)
+
+#labG_D0[[1]][[1]][[4]][[4]]$reef_pops
+
+# turn into data frame
+labG_D0_dt5 <- full_dt_fun2(sim_list = labG_D0, max_yr = 6, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")
+
+labG_D0_dt50 <- full_dt_fun2(sim_list = labG_D0, max_yr = 51, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")
+
+#View(labG_D0_dt5)
+
+# repeat with disturbance
+labG_D3 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = T, dist_yrs3, dist_pars_list = dist_pars_list3, SC2_lists = SC2_lists)
+
+labG_D3_dt5 <- full_dt_fun2(sim_list = labG_D3, max_yr = 6, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")
+
+labG_D3_dt50 <- full_dt_fun2(sim_list = labG_D3, max_yr = 51, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")
+
+
+# reset restoration parameters
+rest_pars <- rest_pars_def
+
+# reset initial conditions in orchard
+
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- rep(0, n) # first source
+N0.o[[1]][[2]] <- rep(0, n) # second source
+
+```
+
+
+
+```{r}
+G_plot <- c(LG_set[1], LG_set[1], LG_set[2], LG_set[2])
+S_plot <- c(LS_set[1], LS_set[2], LS_set[1], LS_set[2])
+
+xmax <-  10000
+ymax <- 10
+
+plot_dt <- labG_D0_dt50
+
+pch_set <- c(22, 21, 24, 23)
+pt_cex_set <- c(1.4, 1.4, 1.4, 1.4)
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
+#axis(side = 1, at = seq(0, 80, 20), labels = NA)
+mtext(side = 3, "5 years", line = 0, cex = 1)
+mtext(side = 3, "a)", adj = 0.075, line = -1)
+mtext(side = 2, "Proportional change \nin total ROI", line = 2, cex = 0.9)
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+for(i in 1:4){
+  # get relative values
+dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
+SC2L_def <- relative_metrics_fun(dt2 = dt2_choice, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC2L_def$reef_coral), y = mean(SC2L_def$tot_ROI), pch = pch_set[i], col = col_set[2], cex = pt_cex_set[i], bg = col_set[2]) # bg = "white"
+arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_ROI, 0.05), y1 = quantile(SC2L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_ROI), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+}
+
+
+
+```
+
+
+
+OLD
 ```{r}
 
 prop_set1 <- c(0.5)
