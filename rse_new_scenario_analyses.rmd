@@ -1513,7 +1513,8 @@ for(i in 4:n_dist_sims){
 # could show coral cover relative to default?
 
 dist_sev.r <- rev(seq(from = 0.001, to = 1, length.out = n_dist_sims))
-dist_sev.o <- apply(matrix(c(2*dist_sev.r, rep(1, 25)), ncol = 2, byrow = F), 1, function(x) min(x))
+dist_sev.o <- rep(1, n_dist_sims)
+#dist_sev.o <- apply(matrix(c(2*dist_sev.r, rep(1, 25)), ncol = 2, byrow = F), 1, function(x) min(x))
 dist_sev.o1 <- dist_sev.o
 
 
@@ -1680,16 +1681,10 @@ for(i in 1:L_HM){ # x value
     j2 <- rev(c(1:L_HM))[j]
     
     # get closest color
-    if(plot_pt < 1){
       index_ij <- which(abs(plot_pt-col_vals) == min(abs(plot_pt-col_vals)))
       
       polygon(x = c(i-1, i, i, i-1), y = c(j2-1, j2-1, j2, j2), col = rampcols1[index_ij], border = NA) 
     
-    } else{
-      index_ij <- which(abs(plot_pt-col_vals) == min(abs(plot_pt-col_vals)))
-      
-      polygon(x = c(i-1, i, i, i-1), y = c(j2-1, j2-1, j2, j2), col = rampcols1[index_ij], border = NA) 
-    }
     
   }
 }
@@ -1720,6 +1715,323 @@ rect(
 dev.off()
 
 ```
+
+
+
+SM figure: testing for portfolio effect
+-- disturbance heatmaps showing difference in coral cover btw 50% and 100% investment levels, repeat with and without orchard being impacted by disturbance, 5 and 50 years (4 panels). So 8 simulations total
+
+
+```{r}
+
+dist_hm_fun <- function(dist_sev.o, prop_choice){
+
+dist_sims <- list()
+
+for(i in 1:n_dist_sims){ # severity
+  
+  dist_sims_j <- list()
+  
+  for(j in 1:n_dist_sims){ # frequency
+    
+  dist_mat.r <- matrix(dist_sev.r[i], nrow = length(dist_yrs_list[[j]]), ncol = 5)
+dist.r <- list(dist_mat.r, dist_mat.r, dist_mat.r) # disturbance impacts on survival for each source on the reef
+
+dist_mat.o <- matrix(dist_sev.o[i], nrow = length(dist_yrs_list[[j]]), ncol = 5)
+dist.o <- list(dist_mat.o, dist_mat.o) # disturbance impacts on survival for each source on the orchard
+
+dist_pars_list_j <- list(dist.r = dist.r, dist.o = dist.o)
+
+dist_sims_j[[j]] <- orch_exp_fun1(dem_pars = all_pars, prop_set = prop_choice, par_set2 = NULL, par2_name = "none", dist = T, dist_yrs = dist_yrs_list[[j]], dist_pars_list = dist_pars_list_j)
+
+  }
+
+dist_sims[[i]] <- dist_sims_j
+
+}
+
+# process the results
+#dist_dt_fun2 <- function(dist_sims, dist_sev.r, dist_sev.o, max_yr = 51, n_pars = n_sample1, prop_set = prop_main, par_set2 = NA, par2_name = "none"){
+  
+  for(i in 1:n_dist_sims){ # for each severity
+    
+    for(j in 1:n_dist_sims){ # for each frequncy
+      
+      dt_j <- full_dt_fun(sim_list = dist_sims[[i]][[j]], max_yr = 51, n_pars = 1, prop_set = prop_choice, par_set2 = NA, par2_name = "none")
+  
+   dt_j$dist_sev_r <- dist_sev.r[i]
+   dt_j$dist_sev_o <- dist_sev.o[i]
+   dt_j$dist_freq <- dist_yrs_list[[j]][2] - dist_yrs_list[[j]][1]
+   
+   dt_j5 <- full_dt_fun(sim_list = dist_sims[[i]][[j]], max_yr = 6, n_pars = 1, prop_set = prop_choice, par_set2 = NA, par2_name = "none")
+  
+   dt_j5$dist_sev_r <- dist_sev.r[i]
+   dt_j5$dist_sev_o <- dist_sev.o[i]
+   dt_j5$dist_freq <- dist_yrs_list[[j]][2] - dist_yrs_list[[j]][1]
+      
+    if(j == 1){
+     dt_i <- dt_j
+     dt_i5 <- dt_j5
+   } else{
+     dt_i <- rbind(dt_i, dt_j)
+      dt_i5 <- rbind(dt_i5, dt_j5)
+   }
+   
+    }
+  
+  
+   if(i == 1){
+     dt_out <- dt_i
+     dt_out5 <- dt_i5
+   } else{
+     dt_out <- rbind(dt_out, dt_i)
+     dt_out5 <- rbind(dt_out5, dt_i5)
+   }
+  
+  }
+ 
+# return dt_out5 and dt_out50
+
+return(list(dt5 = dt_out5, dt50 = dt_out))
+#}
+
+}
+
+dist_sev.r <- rev(seq(from = 0.001, to = 1, length.out = n_dist_sims))
+dist_sev.o_D0 <- rep(1, n_dist_sims)
+dist_sev.o_D1 <- dist_sev.r
+
+# prop_main[2]
+dist_hm_50_o_D0 <- dist_hm_fun(dist_sev.o = dist_sev.o_D0, prop_choice = 0.5)
+
+dist_hm_50_o_D1 <- dist_hm_fun(dist_sev.o = dist_sev.o_D1, prop_choice = 0.5)
+
+dist_hm_100_o_D0 <- dist_hm_fun(dist_sev.o = dist_sev.o_D0, prop_choice = 1)
+
+dist_hm_100_o_D1 <- dist_hm_fun(dist_sev.o = dist_sev.o_D1, prop_choice = 1)
+
+
+```
+
+
+```{r}
+# get max and min values
+# five years, orchard not disturbed
+p_diff_5_o_D0 <- (dist_hm_50_o_D0$dt5$reef_cover_mean - dist_hm_100_o_D0$dt5$reef_cover_mean)/dist_hm_100_o_D0$dt5$reef_cover_mean*100
+
+max(p_diff_5_o_D0)
+min(p_diff_5_o_D0)
+
+#p_diff_5_o_D0[which(p_diff_5_o_D0 > 0)]
+
+#hist(p_diff_5_o_D0)
+
+# five years, orchard disturbed
+p_diff_5_o_D1 <- (dist_hm_50_o_D1$dt5$reef_cover_mean - dist_hm_100_o_D1$dt5$reef_cover_mean)/dist_hm_100_o_D1$dt5$reef_cover_mean*100
+
+max(p_diff_5_o_D1)
+min(p_diff_5_o_D1)
+
+# 50 years, orchard not disturbed
+p_diff_50_o_D0 <- (dist_hm_50_o_D0$dt50$reef_cover_mean - dist_hm_100_o_D0$dt50$reef_cover_mean)/dist_hm_100_o_D0$dt50$reef_cover_mean*100
+
+max(p_diff_50_o_D0)
+min(p_diff_50_o_D0)
+
+# 50 years, orchard disturbed
+p_diff_50_o_D0 <- (dist_hm_50_o_D0$dt50$reef_cover_mean - dist_hm_100_o_D0$dt50$reef_cover_mean)/dist_hm_100_o_D0$dt50$reef_cover_mean*100
+
+#p_diff_50_o_D0[which(p_diff_50_o_D0 > 0)]
+
+max(p_diff_50_o_D0)
+min(p_diff_50_o_D0)
+
+```
+
+
+```{r}
+# plot results 
+
+
+pdf("TempFigs/SM_dist_hm.pdf", height = 5, width = 6)
+
+par(mfrow = c(2, 2))
+#layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = T), widths = c(1, 1), heights = rep(1, 2))
+layout(matrix(c(1, 2, 5, 3, 4, 5), nrow = 2, ncol = 3, byrow = T), widths = c(1, 1, 0.3), heights = rep(1, 2))
+#layout.show(5)
+par(mar=c(0, 0.5, 0.5, 0.1), oma = c(4.5, 4, 2, 1))
+
+
+xset <- unique(dt_dist$dist_sev_r)
+yset <- unique(dt_dist$dist_freq)
+
+# color palette
+nHalf <- 100
+rc1 <- colorRampPalette(colors = c("#2166AC","#F7F7F7", "#B2182B"), space = "Lab")(nHalf)
+rampcols1 <- c(rc1) # all the colors
+
+col_vals <- c(seq(from = -50, to = 0, length.out = nHalf/2), seq(from = 0, to = 100, length.out = nHalf/2))
+
+  L_HM <- n_dist_sims
+  
+  # 5 years, orchard not disturbed
+  dt_plot5 <- dist_hm_50_o_D0$dt5
+  dt_plot100 <- dist_hm_100_o_D0$dt5
+
+  #par(pty = "s")
+plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM), las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # asp = 1,xaxs = "i" removes white space around the plot
+axis(side = 2, at = seq(1, L_HM, 4), tick = F, line = -0.5, cex.axis = 1, las = 1, labels = rev(seq(1, L_HM, 4)))
+mtext(side = 1, "Disturbance severity (prop. reduction in survival)", line = 1.75, cex = lab_cx, outer = T)
+mtext(side = 2, "Disturbance frequency (years between disturbance events)", line = 1.75, cex = lab_cx, outer = T)
+mtext(side = 3, "5 years")
+for(i in 1:L_HM){ # x value
+  for(j in 1:L_HM){ # y value
+    
+    # get point to plot
+    plot_pt5 <- dt_plot5$reef_cover_mean[which(dt_plot5$dist_sev_r==xset[i] & dt_plot5$dist_freq == yset[j])]
+    
+    plot_pt100 <- dt_plot100$reef_cover_mean[which(dt_plot100$dist_sev_r==xset[i] & dt_plot100$dist_freq == yset[j])]
+    
+    # plot percent difference
+    plot_pt <- (plot_pt5 - plot_pt100)/plot_pt100*100
+    
+    # reverse y-axis
+    j2 <- rev(c(1:L_HM))[j]
+    
+    # get closest color
+      index_ij <- which(abs(plot_pt-col_vals) == min(abs(plot_pt-col_vals)))
+      
+      polygon(x = c(i-1, i, i, i-1), y = c(j2-1, j2-1, j2, j2), col = rampcols1[index_ij], border = NA) 
+    
+    
+  }
+}
+mtext(side = 3, "a)", cex = lab_cx, adj = 0, line = -1)
+
+
+# 50 years, orchard not disturbed
+  dt_plot5 <- dist_hm_50_o_D0$dt50
+  dt_plot100 <- dist_hm_100_o_D0$dt50
+
+  #par(pty = "s")
+plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM), las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # asp = 1,xaxs = "i" removes white space around the plot
+mtext(side = 3, "50 years")
+for(i in 1:L_HM){ # x value
+  for(j in 1:L_HM){ # y value
+    
+    # get point to plot
+    plot_pt5 <- dt_plot5$reef_cover_mean[which(dt_plot5$dist_sev_r==xset[i] & dt_plot5$dist_freq == yset[j])]
+    
+    plot_pt100 <- dt_plot100$reef_cover_mean[which(dt_plot100$dist_sev_r==xset[i] & dt_plot100$dist_freq == yset[j])]
+    
+    # plot percent difference
+    plot_pt <- (plot_pt5 - plot_pt100)/plot_pt100*100
+    
+    # reverse y-axis
+    j2 <- rev(c(1:L_HM))[j]
+    
+    # get closest color
+      index_ij <- which(abs(plot_pt-col_vals) == min(abs(plot_pt-col_vals)))
+      
+      polygon(x = c(i-1, i, i, i-1), y = c(j2-1, j2-1, j2, j2), col = rampcols1[index_ij], border = NA) 
+    
+    
+  }
+}
+mtext(side = 3, "b)", cex = lab_cx, adj = 0, line = -1)
+
+
+# 5 years, orchard disturbed
+  dt_plot5 <- dist_hm_50_o_D1$dt5
+  dt_plot100 <- dist_hm_100_o_D1$dt5
+
+  #par(pty = "s")
+plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM), las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # asp = 1,xaxs = "i" removes white space around the plot
+axis(side = 2, at = seq(1, L_HM, 4), tick = F, line = -0.5, cex.axis = 1, las = 1, labels = rev(seq(1, L_HM, 4)))
+axis(side = 1, at = seq(1, L_HM, length.out = 6), tick = F, line = -0.5, labels = seq(0,1,0.2), cex.axis = 1, padj = -0.9, hadj = 1.2)
+for(i in 1:L_HM){ # x value
+  for(j in 1:L_HM){ # y value
+    
+    # get point to plot
+    plot_pt5 <- dt_plot5$reef_cover_mean[which(dt_plot5$dist_sev_r==xset[i] & dt_plot5$dist_freq == yset[j])]
+    
+    plot_pt100 <- dt_plot100$reef_cover_mean[which(dt_plot100$dist_sev_r==xset[i] & dt_plot100$dist_freq == yset[j])]
+    
+    # plot percent difference
+    plot_pt <- (plot_pt5 - plot_pt100)/plot_pt100*100
+    
+    # reverse y-axis
+    j2 <- rev(c(1:L_HM))[j]
+    
+    # get closest color
+      index_ij <- which(abs(plot_pt-col_vals) == min(abs(plot_pt-col_vals)))
+      
+      polygon(x = c(i-1, i, i, i-1), y = c(j2-1, j2-1, j2, j2), col = rampcols1[index_ij], border = NA) 
+    
+    
+  }
+}
+mtext(side = 3, "c)", cex = lab_cx, adj = 0, line = -1)
+
+
+# 50 years, orchard disturbed
+  dt_plot5 <- dist_hm_50_o_D1$dt50
+  dt_plot100 <- dist_hm_100_o_D1$dt50
+
+  #par(pty = "s")
+plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM), las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # asp = 1,xaxs = "i" removes white space around the plot
+axis(side = 1, at = seq(1, L_HM, length.out = 6), tick = F, line = -0.5, labels = seq(0,1,0.2), cex.axis = 1, padj = -1, hadj = 1.2)
+for(i in 1:L_HM){ # x value
+  for(j in 1:L_HM){ # y value
+    
+    # get point to plot
+    plot_pt5 <- dt_plot5$reef_cover_mean[which(dt_plot5$dist_sev_r==xset[i] & dt_plot5$dist_freq == yset[j])]
+    
+    plot_pt100 <- dt_plot100$reef_cover_mean[which(dt_plot100$dist_sev_r==xset[i] & dt_plot100$dist_freq == yset[j])]
+    
+    # plot percent difference
+    plot_pt <- (plot_pt5 - plot_pt100)/plot_pt100*100
+    
+    # reverse y-axis
+    j2 <- rev(c(1:L_HM))[j]
+    
+    # get closest color
+      index_ij <- which(abs(plot_pt-col_vals) == min(abs(plot_pt-col_vals)))
+      
+      polygon(x = c(i-1, i, i, i-1), y = c(j2-1, j2-1, j2, j2), col = rampcols1[index_ij], border = NA) 
+    
+    
+  }
+}
+mtext(side = 3, "d)", cex = lab_cx, adj = 0, line = -1)
+
+# make the legend
+xl <- 1
+yb <- 1
+xr <- 1.25
+yt <- 2
+
+par(mar=c(0, 0,2.5,0))
+plot(NA, type = "n", ann = F, xlim = c(1, 2), ylim = c(1, 2), xaxt = "n", yaxt = "n", bty = "n")
+mtext(side = 3, "% change", cex = 0.8, adj = -0.025)
+text(x = 1.6, y = 1, "-50")
+text(x = 1.6, y = 1.5, "0")
+text(x = 1.6, y = 2-0.025,  expression("">=100)) # max(dt_plot$reef_cover_mean)
+rect(
+  xl,
+  head(seq(yb, yt, (yt-yb)/nHalf), -1), # the denominator needs to match the length of the color vector
+  xr,
+  tail(seq(yb, yt, (yt - yb)/nHalf), -1),
+  col = rampcols1,
+  border = NA
+)
+
+dev.off()
+
+
+```
+
+
 
 
 SM figure: λ distribution + parameter distributions
@@ -3985,32 +4297,6 @@ for(ii in 5:7){
 
 
 
-```{r}
-
-
-metric_cols <- c("#4477AA", "#AA3377", "#66CCEE", "#CCBB44","#EE6677", "#228833") 
-
-
-# lambda_R_12345 # 2500000  227273   25000    5102    1340
-
-# look at final size distributions
-
-end_mat <- mod_mat5
-plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[6,])), xlim = c(0.5, 5.5), las = 1)
-for(i in 1:5){
-  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
-  for(k in 1:5){
-    
-    if(k == 1){
-      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
-    } else{
-      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
-    }
-    
-  }
-  
-}
-```
 
 
 
