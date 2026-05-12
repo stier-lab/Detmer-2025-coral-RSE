@@ -985,13 +985,20 @@ lab_trans_fun2 <- function(dem_pars_all, n_pars, growth_set, surv_set, out_par_t
 # prop_set = vector with proportions of substrates to outplant to orchard
 # par_set2 = values of the second parameter to iterate over
 # par2_name = name of the second parameter iterated over in sim_list
-full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par_type, par_set2, par2_name){
+full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par_type, par_set2, par2_name, annual_costs = F){
+  
+  costs_list <- list()
   
   for(i in 1:n_pars){
+    costs_list_i <- list()
   
   for(j in 1:length(par_set2)){
     
+    costs_list_j <- list()
+    
     for(k in 1:length(growth_set)){
+      
+      costs_list_k <- list()
       
       for(h in 1:length(surv_set)){
         
@@ -1001,12 +1008,23 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par
           sim_ijk <- sim_list[[i]][[j]][[k]][[h]]
         }
       
-      dt_ijk <- metrics_dt_fun(sim_ijk, max_yr)
+        if(annual_costs == F){
+          dt_ijk <- metrics_dt_fun(sim_ijk, max_yr , annual_costs)
+        } else{
+          metrics_ijk <- metrics_dt_fun(sim_ijk, max_yr, annual_costs)
+        
+        dt_ijk <- metrics_ijk$dt_i
+        
+        costs_list_k[[h]] <- metrics_ijk$tot_costs_yr
+        }
+      
       
       dt_ijk$par_rep <- i
       dt_ijk$growth_par <- growth_set[k]
       dt_ijk$surv_par <- surv_set[h]
       dt_ijk$par2 <- par_set2[j]
+      
+      
         
         if(h == 1){
         dt_h <- dt_ijk
@@ -1016,6 +1034,8 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par
       
       } # end of h loop
       
+      costs_list_j[[k]] <- costs_list_k
+      
       
       if(k == 1){
         dt_k <- dt_h
@@ -1023,6 +1043,8 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par
         dt_k <- rbind(dt_k, dt_h)
       }
     } # end of k loop
+    
+    costs_list_i[[j]] <- costs_list_j
     
     if(j == 1){
       dt_j <- dt_k
@@ -1037,6 +1059,8 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par
   } else{
     dt_i <- rbind(dt_i, dt_j)
   }
+    
+    costs_list[[i]] <- costs_list_i
   
   } # end of i loop
   
@@ -1044,8 +1068,16 @@ full_dt_fun2 <- function(sim_list, max_yr, n_pars, growth_set, surv_set, out_par
   dt_i$par_name2 <- par2_name
   dt_i$out_par_type <- out_par_type
   
+  if(annual_costs == F){
+    return(dt_i)
+  } else{
+    return(list(dt_i = dt_i, costs_list = costs_list))
+  }
+  
   return(dt_i)
 }
+
+
 
 ```
 
@@ -1334,9 +1366,6 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name,
       if(annual_costs == F){
         dt_ijk <- metrics_dt_fun(sim_ijk, max_yr, annual_costs)
       
-      dt_ijk$par_rep <- i
-      dt_ijk$prop_out <- prop_set[k]
-      dt_ijk$par2 <- par_set2[j]
       } else{
         
         metrics_ijk <- metrics_dt_fun(sim_ijk, max_yr, annual_costs)
@@ -1347,6 +1376,9 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name,
 
       }
       
+      dt_ijk$par_rep <- i
+      dt_ijk$prop_out <- prop_set[k]
+      dt_ijk$par2 <- par_set2[j]
       
       if(k == 1){
         dt_k <- dt_ijk
@@ -3871,6 +3903,7 @@ subs_cost_fun <- function(prop_choice, lab_max_set, yr_set){
   return(cost_mat)
 }
 
+# check 50% and 100% to reef costs (actual costs in a given year will be somewhere between these, depending on how full the orchard is that year)
 # 100% to reef
 subs_cost1 <- subs_cost_fun(prop_choice = 1, lab_max_set = seq(from = 1, to = 10000, by = 1), yr_set = c(1:50))
 
@@ -4557,6 +4590,8 @@ for(ii in 5:7){
 ```
 
 
+# Lab grow out
+
 SM: repeat for lab grow out... but want to show how much it depends on different lab values
 
 
@@ -4627,18 +4662,18 @@ labG_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, growth_
 #labG_D0[[1]][[1]][[4]][[4]]$reef_pops
 
 # turn into data frame
-labG_D0_dt5 <- full_dt_fun2(sim_list = labG_D0, max_yr = 6, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")
+labG_D0_dt5 <- full_dt_fun2(sim_list = labG_D0, max_yr = 6, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none", annual_costs = T)
 
-labG_D0_dt50 <- full_dt_fun2(sim_list = labG_D0, max_yr = 51, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")
+labG_D0_dt50 <- full_dt_fun2(sim_list = labG_D0, max_yr = 51, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none", annual_costs = T)
 
 #View(labG_D0_dt5)
 
 # repeat with disturbance
 labG_D3 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = T, dist_yrs3, dist_pars_list = dist_pars_list3, SC2_lists = SC2_lists)
 
-labG_D3_dt5 <- full_dt_fun2(sim_list = labG_D3, max_yr = 6, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")
+labG_D3_dt5 <- full_dt_fun2(sim_list = labG_D3, max_yr = 6, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none", annual_costs = T)
 
-labG_D3_dt50 <- full_dt_fun2(sim_list = labG_D3, max_yr = 51, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none")
+labG_D3_dt50 <- full_dt_fun2(sim_list = labG_D3, max_yr = 51, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NA, par2_name = "none", annual_costs = T)
 
 
 # reset restoration parameters
@@ -4654,27 +4689,129 @@ N0.o[[1]][[2]] <- rep(0, n) # second source
 ```
 
 
+```{r}
+# get the excess cost information
+
+cost_mat_fun2 <- function(dt_list, max_year){
+  
+  cost_mat <- matrix(NA, nrow = n_sample1, ncol = max_year)
+
+for(i in 1:n_sample1){
+  cost_mat[i,] <- dt_list[[i]][[1]][[1]][[1]]
+}
+  return(cost_mat)
+}
+
+costs_D0_labG_50 <- cost_mat_fun2(dt_list = labG_D0_dt50$costs_list, max_year = 50)
+
+# get average across parameter combinations
+costs_D0_labG_50_mean <- apply(costs_D0_labG_50, MARGIN = 2, FUN = mean)
+
+
+budget_diff <- costs_D0_labG_50_mean - costs_D0_def_50_mean
+# check this is always positive
+# min(budget_diff)
+
+# now calculate the extra number of substrates that could be added
+
+subs_costLG1 <- subs_cost_fun(prop_choice = 1, lab_max_set = seq(from = 1, to = 20000, by = 1), yr_set = c(1:50))
+
+
+extra_subsLG <- rep(NA, length(budget_diff))
+#extra_subs[1] <- 0
+
+for(i in 1:length(extra_subsLG)){
+  
+  cost_vals <- subs_costLG1[i,]
+  
+  extra_subsLG[i] <- which(abs(cost_vals - budget_diff[i]) == min(abs(cost_vals - budget_diff[i])))
+}
+
+extra_subsLG <- c(0, extra_subsLG) # zero for first year (set up year, ignored in comparisons)
+
+```
+
+```{r}
+
+# run the size class 1 scenario with variable lab_max (given by lab_max_def + extra_subs) to match costs as closely as possible
+
+rest_pars <- rest_pars_def
+
+rest_pars$lab_max <- rep(rest_pars$lab_max, years) + extra_subsLG
+rest_pars$lab_retain_max <- rep(0, years)
+
+prop_set1 <- c(0.5)
+
+# update orchard initial conditions 
+N0.o <- list()
+N0.o[[1]] <- list() # first orchard treatment
+N0.o[[1]][[1]] <- c(0.25*orchard_size, 0.5*orchard_size, rep(0, 3)) # first source
+N0.o[[1]][[2]] <- rep(0, n) # second source
+
+# 50% investment in reef
+orch_D0_SC1LG_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = c(0.5), par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+
+# make metric data frames
+orch_D0_SC1LG_dt5 <- full_dt_fun(sim_list = orch_D0_SC1LG_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+orch_D0_SC1LG_dt50 <- full_dt_fun(sim_list = orch_D0_SC1LG_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+
+#orch_D0_def_dt5$costs_list
+
+# repeat with disturbance
+orch_D3_SC1LG_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = c(0.5), par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = T, dist_yrs3, dist_pars_list = dist_pars_list3)
+
+# make metric data frames
+orch_D3_SC1LG_dt5 <- full_dt_fun(sim_list = orch_D3_SC1LG_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+orch_D3_SC1LG_dt50 <- full_dt_fun(sim_list = orch_D3_SC1LG_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
+
+
+# reset initial conditions in orchard
+N0.o <- N0.o_def
+
+# rest lab capacity
+rest_pars <- rest_pars_def
+```
+
 
 ```{r}
 G_plot <- c(LG_set[1], LG_set[1], LG_set[2], LG_set[2])
 S_plot <- c(LS_set[1], LS_set[2], LS_set[1], LS_set[2])
 
-xmax <-  10000
-ymax <- 10
+xmax <-  100#10000
+#xmax <-  10000
+ymax <- 2
 
-plot_dt <- labG_D0_dt50
+plot_dt <- labG_D0_dt5$dt_i
 
-pch_set <- c(22, 21, 24, 23)
+plot_dt2 <- orch_D0_SC1LG_dt5$dt_i
+
+pch_set <- c(22, 25, 24, 23)
 pt_cex_set <- c(1.4, 1.4, 1.4, 1.4)
 
-plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
-#axis(side = 1, at = seq(0, 80, 20), labels = NA)
-mtext(side = 3, "5 years", line = 0, cex = 1)
+pdf("TempFigs/SM_LG_5yrs.pdf", height = 5, width = 6)
+
+par(mfrow = c(2, 2))
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = F), widths = c(1, 1), heights = rep(1, 2))
+#layout.show(5)
+par(mar=c(0, 0.5, 0.5, 0), oma = c(4.5, 4, 2, 1))
+
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 100, 20), labels = NA)
+mtext(side = 3, "5 years, no disturbance", line = 0, cex = 1)
 mtext(side = 3, "a)", adj = 0.075, line = -1)
 mtext(side = 2, "Proportional change \nin total ROI", line = 2, cex = 0.9)
 abline(h = 1, lty = 2, col = "gray30")
 abline(v = 1, lty = 2, col = "gray30")
 
+# size class 1 same budget case
+SC1L_def <- relative_metrics_fun(dt2 = plot_dt2, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = 19, col = col_set[1], cex = 1)
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+
+# lab grow out cases
 for(i in 1:4){
   # get relative values
 dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
@@ -4685,10 +4822,260 @@ arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_ROI, 0.05), y1
 arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_ROI), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
 }
 
+# total costs
 
+ymax <- 4
+#ymax <- 150
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
+#axis(side = 1, at = seq(0, 80, 20), labels = NA)
+#mtext(side = 3, "5 years", line = 0, cex = 1)
+mtext(side = 3, "c)", adj = 0.075, line = -1)
+mtext(side = 2, "Proportional change \nin total costs", line = 2, cex = 0.9)
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+# size class 1 same budget case
+SC1L_def <- relative_metrics_fun(dt2 = plot_dt2, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_costs), pch = 19, col = col_set[1], cex = 1)
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_costs, 0.05), y1 = quantile(SC1L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_costs), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+
+
+for(i in 1:4){
+  # get relative values
+dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
+SC2L_def <- relative_metrics_fun(dt2 = dt2_choice, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC2L_def$reef_coral), y = mean(SC2L_def$tot_costs), pch = pch_set[i], col = col_set[2], cex = pt_cex_set[i], bg = col_set[2]) # bg = "white"
+arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_costs, 0.05), y1 = quantile(SC2L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_costs), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+}
+
+# with disturbance
+
+xmax <-  100
+ymax <- 2
+
+plot_dt <- labG_D3_dt5$dt_i
+
+plot_dt2 <- orch_D3_SC1LG_dt5$dt_i
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
+axis(side = 1, at = seq(0, 100, 20), labels = NA)
+axis(side = 2, at = seq(0, 2, 0.5), labels = NA)
+mtext(side = 3, "5 years, disturbance every 3 years", line = 0, cex = 1)
+mtext(side = 3, "b)", adj = 0.075, line = -1)
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+legend("topright", legend = c("Increase SC1 capacity", "Lab, low growth & survival", "Lab, low growth & high survival", "Lab, high growth & low survival", "Lab, high growth & survival"), pch = c(1, pch_set), col = c(col_set[1], rep(col_set[2], 4)), bty = "n", cex = 0.9)
+
+# size class 1 same budget case
+SC1L_def <- relative_metrics_fun(dt2 = plot_dt2, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = 1, col = col_set[1], cex = 1)
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+
+# lab grow out cases
+for(i in 1:4){
+  # get relative values
+dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
+SC2L_def <- relative_metrics_fun(dt2 = dt2_choice, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC2L_def$reef_coral), y = mean(SC2L_def$tot_ROI), pch = pch_set[i], col = col_set[2], cex = pt_cex_set[i], bg = "white") # bg = "white"
+arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_ROI, 0.05), y1 = quantile(SC2L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_ROI), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+}
+
+# total costs
+
+ymax <- 4
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, 4, 1), labels = NA)
+#mtext(side = 3, "5 years", line = 0, cex = 1)
+mtext(side = 3, "d)", adj = 0.075, line = -1)
+#mtext(side = 2, "Proportional change \nin total costs", line = 2, cex = 0.9)
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+# size class 1 same budget case
+SC1L_def <- relative_metrics_fun(dt2 = plot_dt2, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_costs), pch = 1, col = col_set[1], cex = 1)
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_costs, 0.05), y1 = quantile(SC1L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_costs), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+
+
+for(i in 1:4){
+  # get relative values
+dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
+SC2L_def <- relative_metrics_fun(dt2 = dt2_choice, dt_def = orch_D3_def_dt5$dt_i, n_sample1)
+
+points(x = mean(SC2L_def$reef_coral), y = mean(SC2L_def$tot_costs), pch = pch_set[i], col = col_set[2], cex = pt_cex_set[i], bg = "white") # bg = "white"
+arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_costs, 0.05), y1 = quantile(SC2L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_costs), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+}
+
+dev.off()
 
 ```
 
+
+```{r}
+
+xmax <-  500
+ymax <- 100
+
+plot_dt <- labG_D0_dt50$dt_i
+
+plot_dt2 <- orch_D0_SC1LG_dt50$dt_i
+
+
+pdf("TempFigs/SM_LG_50yrs.pdf", height = 5, width = 6)
+
+par(mfrow = c(2, 2))
+layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = F), widths = c(1, 1), heights = rep(1, 2))
+#layout.show(5)
+par(mar=c(0, 0.5, 0.5, 0), oma = c(4.5, 4, 2, 1))
+
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 500, 100), labels = NA)
+mtext(side = 3, "5 years, no disturbance", line = 0, cex = 1)
+mtext(side = 3, "a)", adj = 0.075, line = -1)
+mtext(side = 2, "Proportional change \nin total ROI", line = 2, cex = 0.9)
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+# size class 1 same budget case
+SC1L_def <- relative_metrics_fun(dt2 = plot_dt2, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = 19, col = col_set[1], cex = 1)
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+
+# lab grow out cases
+for(i in 1:4){
+  # get relative values
+dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
+SC2L_def <- relative_metrics_fun(dt2 = dt2_choice, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC2L_def$reef_coral), y = mean(SC2L_def$tot_ROI), pch = pch_set[i], col = col_set[2], cex = pt_cex_set[i], bg = col_set[2]) # bg = "white"
+arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_ROI, 0.05), y1 = quantile(SC2L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_ROI), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+}
+
+# total costs
+
+ymax <- 4
+#ymax <- 150
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
+#axis(side = 1, at = seq(0, 80, 20), labels = NA)
+#mtext(side = 3, "5 years", line = 0, cex = 1)
+mtext(side = 3, "c)", adj = 0.075, line = -1)
+mtext(side = 2, "Proportional change \nin total costs", line = 2, cex = 0.9)
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+# size class 1 same budget case
+SC1L_def <- relative_metrics_fun(dt2 = plot_dt2, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_costs), pch = 19, col = col_set[1], cex = 1)
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_costs, 0.05), y1 = quantile(SC1L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_costs), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+
+
+for(i in 1:4){
+  # get relative values
+dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
+SC2L_def <- relative_metrics_fun(dt2 = dt2_choice, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC2L_def$reef_coral), y = mean(SC2L_def$tot_costs), pch = pch_set[i], col = col_set[2], cex = pt_cex_set[i], bg = col_set[2]) # bg = "white"
+arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_costs, 0.05), y1 = quantile(SC2L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_costs), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+}
+
+# with disturbance
+
+xmax <-  500
+ymax <- 100
+
+plot_dt <- labG_D3_dt50$dt_i
+
+plot_dt2 <- orch_D3_SC1LG_dt50$dt_i
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
+axis(side = 1, at = seq(0, 500, 100), labels = NA)
+axis(side = 2, at = seq(0, 100, 20), labels = NA)
+mtext(side = 3, "5 years, disturbance every 3 years", line = 0, cex = 1)
+mtext(side = 3, "b)", adj = 0.075, line = -1)
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+legend("topright", legend = c("Increase SC1 capacity", "Lab, low growth & survival", "Lab, low growth & high survival", "Lab, high growth & low survival", "Lab, high growth & survival"), pch = c(1, pch_set), col = c(col_set[1], rep(col_set[2], 4)), bty = "n", cex = 0.9)
+
+# size class 1 same budget case
+SC1L_def <- relative_metrics_fun(dt2 = plot_dt2, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = 1, col = col_set[1], cex = 1)
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+
+# lab grow out cases
+for(i in 1:4){
+  # get relative values
+dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
+SC2L_def <- relative_metrics_fun(dt2 = dt2_choice, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC2L_def$reef_coral), y = mean(SC2L_def$tot_ROI), pch = pch_set[i], col = col_set[2], cex = pt_cex_set[i], bg = "white") # bg = "white"
+arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_ROI, 0.05), y1 = quantile(SC2L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_ROI), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+}
+
+# total costs
+
+ymax <- 4
+#ymax <- 150
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(0, 4, 1), labels = NA)
+#mtext(side = 3, "5 years", line = 0, cex = 1)
+mtext(side = 3, "d)", adj = 0.075, line = -1)
+#mtext(side = 2, "Proportional change \nin total costs", line = 2, cex = 0.9)
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+# size class 1 same budget case
+SC1L_def <- relative_metrics_fun(dt2 = plot_dt2, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_costs), pch = 1, col = col_set[1], cex = 1)
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_costs, 0.05), y1 = quantile(SC1L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_costs), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+
+
+for(i in 1:4){
+  # get relative values
+dt2_choice <- plot_dt %>% filter(growth_par == G_plot[i], surv_par == S_plot[i])
+SC2L_def <- relative_metrics_fun(dt2 = dt2_choice, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
+
+points(x = mean(SC2L_def$reef_coral), y = mean(SC2L_def$tot_costs), pch = pch_set[i], col = col_set[2], cex = pt_cex_set[i], bg = "white") # bg = "white"
+arrows(x0 = mean(SC2L_def$reef_coral), y0 = quantile(SC2L_def$tot_costs, 0.05), y1 = quantile(SC2L_def$tot_costs, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_costs), x1 = quantile(SC2L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+}
+
+dev.off()
+
+```
+
+
+make a plot showing how results depend on post-outplanting survival
+
+```{r}
+# use the high growth, high survival case
+```
 
 
 OLD
