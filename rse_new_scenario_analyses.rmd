@@ -3194,7 +3194,7 @@ plotlab <- "b) Recruits outplanted to reef"
 plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", ylim = c(0, max(dt_plot2$Q95)))
 axis(side = 1, at = seq(0, 1, 0.2))
 mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
-mtext(side = 2, ylab1, line = 3.75, cex = lab_cx)
+mtext(side = 2, ylab1, line = 4.25, cex = lab_cx)
 mtext(side = 3, plotlab, adj = 0)
 lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = lwd1, col = plot_cols[6])
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[6], alpha.f = 0.25))
@@ -3297,7 +3297,7 @@ plotlab <- "f) Total ROI (reef + orchard)"
 plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", ylim = c(0, max(dt_plot2$Q95)))
 axis(side = 1, at = seq(0, 1, 0.2))
 mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
-mtext(side = 2, ylab1, line = 2.75, cex = lab_cx)
+mtext(side = 2, ylab1, line = 3.25, cex = lab_cx)
 mtext(side = 3, plotlab, adj = 0)
 lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, max(dt_plot2$Q95)), las = 1, lwd = lwd1, col = plot_cols[4])
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_cols[4], alpha.f = 0.25))
@@ -3463,6 +3463,37 @@ dev.off()
 
 ```
 
+```{r}
+# check individual results
+dt_plot0 <- orch_D0_orch_full %>% filter(par2 == lambda_Rs[2])
+dt_plot1 <- orch_D3_orch_full %>% filter(par2 == lambda_Rs[2])
+
+check_set <- c(2)
+
+plot(x = prop_all, y = rep(0, length(prop_all)), type = "l", col = NA, ylim = c(0, max(c(dt_plot0$orch_full, dt_plot1$orch_full), na.rm = T)), las = 1, xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = seq(from = 0, to = 50, by = 10), labels = seq(from = 0, to = 50, by = 10) + 2025, las = 1)
+#mtext(side = 1, xlab1, line = 2.5, cex = 1)
+#mtext(side = 2, ylab1, line = 3, cex = 1)
+mtext(side = 3, plotlab, adj = 0)
+for(i in check_set){
+  dt_sub <- dt_plot0[which(dt_plot0$par_rep==i),]
+  lines(x = dt_sub$prop_out, y = dt_sub$orch_full, col = adjustcolor(col = Dcols[1], alpha.f = alpha1), lwd = 2)
+}
+
+prop_check <- 10
+
+check_ts <- model_summ(model_sim = orch_D0_all[[check_set]][[1]][[prop_check]], location = "orchard", metric = "ind", n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), size_classes = c(3, 4, 5))
+
+plot(x = c(1:years), y = check_ts, type = "l", ylim = c(0, rest_pars_def$orchard_size), col = "dodgerblue")
+abline(h = 0.75*rest_pars_def$orchard_size)
+abline(h = rest_pars_def$orchard_size, lty = 2)
+lines(x = c(1:years), y = orch_D0_all[[check_set]][[1]][[prop_check]]$orchard_tiles[[1]], type = "l", ylim = c(0, rest_pars_def$orchard_size))
+
+
+
+#prop_all
+
+```
 
 
 # Figure 4 & SM
@@ -5439,7 +5470,7 @@ par(mar=c(0, 0.5, 0.5, 0), oma = c(4.5, 4, 2, 1))
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
 axis(side = 1, at = seq(0, 150, 50), labels = NA)
-mtext(side = 3, "5 years, no disturbance", line = 0, cex = 1)
+mtext(side = 3, "50 years, no disturbance", line = 0, cex = 1)
 mtext(side = 3, "a)", adj = 0.075, line = -1)
 mtext(side = 2, "Proportional change \nin total ROI", line = 2, cex = 0.9)
 abline(h = 1, lty = 2, col = "gray30")
@@ -5505,7 +5536,7 @@ plot_dt2 <- orch_D3_SC1LG_dt50$dt_i
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
 axis(side = 1, at = seq(0, 150, 50), labels = NA)
 axis(side = 2, at = seq(0, 15, 5), labels = NA)
-mtext(side = 3, "5 years, disturbance every 3 years", line = 0, cex = 1)
+mtext(side = 3, "50 years, disturbance every 3 years", line = 0, cex = 1)
 mtext(side = 3, "b)", adj = 0.075, line = -1)
 abline(h = 1, lty = 2, col = "gray30")
 abline(v = 1, lty = 2, col = "gray30")
@@ -5572,62 +5603,6 @@ make a plot showing how results depend on post-outplanting survival?
 -- use the high growth, high survival case
 -- x-axis = post-outplanting survival, y-axis = coral cover, left = no disturbance, right = with disturbance
 
-
-OLD
-```{r}
-
-prop_set1 <- c(0.5)
-
-# update orchard initial conditions 
-N0.o <- list()
-N0.o[[1]] <- list() # first orchard treatment
-N0.o[[1]][[1]] <- c(0.25*orchard_size, 0.5*orchard_size, rep(0, 3)) # first source
-N0.o[[1]][[2]] <- rep(0, n) # second source
-
-
-# lab grow out scenarios
-rest_pars <- rest_pars_def
-# rest_pars$reef_prop <- c(0, 1) # 1 = immediate outplants, 2 = retained in lab. Need to specify this in the prop_set argument
-prop_set_LG <- 0
-
-rest_pars$lab_retain_max <- rest_pars$lab_max/2 # divide by two because are putting 100% of immediate outplants to orchard and 100% retained to reef, and want overall proportion to orchard to be 0.5
-
-
-orch_D0_SC2L_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = F, dist_yrs = NULL, dist_pars_list = NULL, SC2_lists = SC2_lists)
-
-orch_D0_SC2L_dt5 <- full_dt_fun(sim_list = orch_D0_SC2L_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
-orch_D0_SC2L_dt50 <- full_dt_fun(sim_list = orch_D0_SC2L_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
-
-# repeat with disturbance
-orch_D3_SC2L_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = T, dist_yrs3, dist_pars_list = dist_pars_list3, SC2_lists = SC2_lists)
-
-orch_D3_SC2L_dt5 <- full_dt_fun(sim_list = orch_D3_SC2L_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
-orch_D3_SC2L_dt50 <- full_dt_fun(sim_list = orch_D3_SC2L_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
-
-
-# reset restoration parameters
-rest_pars <- rest_pars_def
-
-# reset initial conditions in orchard
-
-N0.o <- list()
-N0.o[[1]] <- list() # first orchard treatment
-N0.o[[1]][[1]] <- rep(0, n) # first source
-N0.o[[1]][[2]] <- rep(0, n) # second source
-
-
-```
-
-
-```{r}
-SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L2_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
-
-# add disturbance
-SC1L_def <- relative_metrics_fun(dt2 = orch_D3_SC1L2_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
-SC2_def <- relative_metrics_fun(dt2 = orch_D3_SC2L_dt50$dt_i, dt_def = orch_D3_def_dt50$dt_i, n_sample1)
-
-```
 
 # Misc
 
