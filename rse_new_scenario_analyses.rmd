@@ -26,6 +26,9 @@ library(tictoc)
 # load the model functions
 source("coral_demographic_funs.R")
 source("rse_funs.R")
+
+library(popbio) # for elasticity analyses (from https://cran.r-project.org/web/packages/popbio/popbio.pdf)
+
 ```
 
 
@@ -121,6 +124,163 @@ all_pars_R <- rand_pars_fun(n_reef = length(reef_treatments), n_orchard = length
 
 ```
 
+
+elasticity analyses
+
+```{r}
+
+all_pars_mean <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "mean", recruit_surv = "mean", field_growth = "mean", field_shrink = "mean", field_frag = "mean", nurs_surv = "mean", nurs_growth = "mean", nurs_shrink = "mean"), field_surv1, recruit_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters: survival
+surv_pars.r <- all_pars_mean$surv_pars.r[[1]][[1]]
+# reef parameters: growth
+growth_pars.r <- all_pars_mean$growth_pars.r[[1]][[1]]
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars_mean$shrink_pars.r[[1]][[1]]
+# reef parameters: fragmentation
+frag_pars.r <- all_pars_mean$frag_pars.r[[1]][[1]]
+
+all_mats <- G_fun(1, n = 5, growth_pars.r, shrink_pars.r, frag_pars.r)
+G_list <- all_mats$G_list
+Fr_list <- all_mats$Fr_list
+  
+  Tmat.i <- G_list[[1]]
+  Fmat.i <- Fr_list[[1]]
+
+  pop_mat <- (Tmat.i + Fmat.i) %*% diag(surv_pars.r)
+
+eMn <- elasticity(pop_mat)
+
+
+pop_lambda_fun(surv_pars.r, all_pars_mean$growth_pars.r[[1]][[1]], all_pars_mean$shrink_pars.r[[1]][[1]], all_pars_mean$frag_pars.r[[1]][[1]])
+
+
+all_pars_95 <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q95", recruit_surv = "Q95", field_growth = "Q95", field_shrink = "Q05", field_frag = "Q95", nurs_surv = "Q95", nurs_growth = "Q95", nurs_shrink = "Q05"), field_surv1, recruit_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters: survival
+surv_pars.r <- all_pars_95$surv_pars.r[[1]][[1]]
+# reef parameters: growth
+growth_pars.r <- all_pars_95$growth_pars.r[[1]][[1]]
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars_95$shrink_pars.r[[1]][[1]]
+# reef parameters: fragmentation
+frag_pars.r <- all_pars_95$frag_pars.r[[1]][[1]]
+
+all_mats <- G_fun(1, n = 5, growth_pars.r, shrink_pars.r, frag_pars.r)
+G_list <- all_mats$G_list
+Fr_list <- all_mats$Fr_list
+  
+  Tmat.i <- G_list[[1]]
+  Fmat.i <- Fr_list[[1]]
+
+  pop_mat <- (Tmat.i + Fmat.i) %*% diag(surv_pars.r)
+
+e95 <- elasticity(pop_mat)
+
+
+pop_lambda_fun(surv_pars.r, all_pars_95$growth_pars.r[[1]][[1]], all_pars_95$shrink_pars.r[[1]][[1]], all_pars_95$frag_pars.r[[1]][[1]])
+
+
+# repeat for 5% quantiles
+
+all_pars_05 <- default_pars_fun(n_reef = length(reef_treatments), n_orchard = length(orchard_treatments), n_lab = length(lab_treatments), summ_metric_list = list(field_surv = "Q05", recruit_surv = "Q05", field_growth = "Q05", field_shrink = "Q95", field_frag = "Q05", nurs_surv = "Q05", nurs_growth = "Q05", nurs_shrink = "Q95"), field_surv1, recruit_surv1, field_growth1, nurs_surv1, nurs_growth1, apal_frag_summ)
+
+# reef parameters: survival
+surv_pars.r <- all_pars_05$surv_pars.r[[1]][[1]]
+# reef parameters: growth
+growth_pars.r <- all_pars_05$growth_pars.r[[1]][[1]]
+# reef parameters: shrinkage
+shrink_pars.r <- all_pars_05$shrink_pars.r[[1]][[1]]
+# reef parameters: fragmentation
+frag_pars.r <- all_pars_05$frag_pars.r[[1]][[1]]
+
+all_mats <- G_fun(1, n = 5, growth_pars.r, shrink_pars.r, frag_pars.r)
+G_list <- all_mats$G_list
+Fr_list <- all_mats$Fr_list
+  
+  Tmat.i <- G_list[[1]]
+  Fmat.i <- Fr_list[[1]]
+
+  pop_mat <- (Tmat.i + Fmat.i) %*% diag(surv_pars.r)
+
+e05 <- elasticity(pop_mat)
+
+
+pop_lambda_fun(surv_pars.r, all_pars_05$growth_pars.r[[1]][[1]], all_pars_05$shrink_pars.r[[1]][[1]], all_pars_05$frag_pars.r[[1]][[1]])
+
+
+```
+
+
+plot results
+
+```{r}
+
+pdf("TempFigs/SM_elasticity.pdf", height = 3, width = 9)
+
+par(mfrow = c(2, 1))
+layout(matrix(c(1, 2, 3, 4), nrow = 1, ncol = 4, byrow = T), widths = c(1, 1, 1, 0.2), heights = rep(1, 4))
+#layout.show(4)
+par(mar=c(0, 3.5, 2.5, 1), oma = c(4.5, 1.5, 0.1, 0))
+
+
+e05r <- t(e05[5:1 ,])
+
+par(pty = "s")
+plot(x = c(1:5), y = c(1:5), col = NA, xlim = c(0, 5), ylim = c(0, 5), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
+axis(side = 1, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(1, 2, 3, 4, 5), tick = F, line = -0.5)
+axis(side = 2, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(5, 4, 3, 2, 1), las = 1, tick = F, line = -0.5)
+mtext(side = 1, "Final size class", line = 1.75)
+mtext(side = 2, "Initial size class", line = 1.5)
+mtext(side = 3, expression("a)"~lambda~"="~0.77~"(5% quantile)"))
+#polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
+for(i in 1:5){ # x value
+  for(j in 1:5){ # y value
+    polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = adjustcolor(col = "orange", alpha.f = e05r[i,j]/max(e05)))
+    text(x = i - 0.5, y = j - 0.5, as.character(round(e05r[i,j], 2)))
+  }
+}
+
+eMnr <- t(eMn[5:1 ,])
+
+par(pty = "s")
+plot(x = c(1:5), y = c(1:5), col = NA, xlim = c(0, 5), ylim = c(0, 5), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
+axis(side = 1, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(1, 2, 3, 4, 5), tick = F, line = -0.5)
+axis(side = 2, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(5, 4, 3, 2, 1), las = 1, tick = F, line = -0.5)
+mtext(side = 1, "Final size class", line = 1.75)
+mtext(side = 2, "Initial size class", line = 1.5)
+mtext(side = 3, expression("b)"~lambda~"="~0.95~"(mean)"))
+#polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
+for(i in 1:5){ # x value
+  for(j in 1:5){ # y value
+    polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = adjustcolor(col = "orange", alpha.f = eMnr[i,j]/max(eMn)))
+    text(x = i - 0.5, y = j - 0.5, as.character(round(eMnr[i,j], 2)))
+  }
+}
+
+
+e95r <- t(e95[5:1 ,])
+
+par(pty = "s")
+plot(x = c(1:5), y = c(1:5), col = NA, xlim = c(0, 5), ylim = c(0, 5), asp = 1, las = 1, xaxs = "i", yaxs = "i", xlab = NA, ylab = NA, xaxt = "n", yaxt = "n") # xaxs = "i" removes white space around the plot
+axis(side = 1, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(1, 2, 3, 4, 5), tick = F, line = -0.5)
+axis(side = 2, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(5, 4, 3, 2, 1), las = 1, tick = F, line = -0.5)
+mtext(side = 1, "Final size class", line = 1.75)
+mtext(side = 2, "Initial size class", line = 1.5)
+mtext(side = 3, expression("c)"~lambda~"="~1.16~"(95% quantile)"))
+#polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
+for(i in 1:5){ # x value
+  for(j in 1:5){ # y value
+    polygon(x = c(i-1, i, i, i-1), y = c(j-1, j-1, j, j), col = adjustcolor(col = "orange", alpha.f = e95r[i,j]/max(e95)))
+    text(x = i - 0.5, y = j - 0.5, as.character(round(e95r[i,j], 2)))
+  }
+}
+
+
+
+dev.off()
+
+```
 
 
 SC2 scenarios (transplanting SC2 corals from orchard or retaining reef-bound substrates in the lab for a year): 
