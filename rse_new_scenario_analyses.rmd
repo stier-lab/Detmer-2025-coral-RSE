@@ -4364,29 +4364,6 @@ rest_pars <- rest_pars_def
 # rest_pars$transplant <- transplant
 
 
-# lab grow out scenarios
-rest_pars <- rest_pars_def
-# rest_pars$reef_prop <- c(0, 1) # 1 = immediate outplants, 2 = retained in lab. Need to specify this in the prop_set argument
-prop_set_LG <- 0
-
-rest_pars$lab_retain_max <- rest_pars$lab_max/2 # divide by two because are putting 100% of immediate outplants to orchard and 100% retained to reef, and want overall proportion to orchard to be 0.5
-
-
-orch_D0_SC2L_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = F, dist_yrs = NULL, dist_pars_list = NULL, SC2_lists = SC2_lists)
-
-orch_D0_SC2L_dt5 <- full_dt_fun(sim_list = orch_D0_SC2L_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
-orch_D0_SC2L_dt50 <- full_dt_fun(sim_list = orch_D0_SC2L_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
-
-# repeat with disturbance
-orch_D3_SC2L_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R",  dist = T, dist_yrs3, dist_pars_list = dist_pars_list3, SC2_lists = SC2_lists)
-
-orch_D3_SC2L_dt5 <- full_dt_fun(sim_list = orch_D3_SC2L_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
-orch_D3_SC2L_dt50 <- full_dt_fun(sim_list = orch_D3_SC2L_50, max_yr = 51, n_pars = n_sample1, prop_set = prop_set_LG, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
-
-
-# reset restoration parameters
-rest_pars <- rest_pars_def
-
 # reset initial conditions in orchard
 
 N0.o <- N0.o_def
@@ -5235,10 +5212,10 @@ N0.o[[1]][[2]] <- rep(0, n) # second source
 
 # lab grow out scenarios
 rest_pars <- rest_pars_def
-# rest_pars$reef_prop <- c(0, 1) # 1 = immediate outplants, 2 = retained in lab. Need to specify this in the prop_set argument
-prop_set_LG <- 0
 
 rest_pars$lab_retain_max <- rest_pars$lab_max/2 # divide by two because are putting 100% of immediate outplants to orchard and 100% retained to reef, and want overall proportion to orchard to be 0.5
+
+rest_pars$reef_prop <- c(0, 1) # specify that 100% of immediately outplanted substrates should go to the orchard (0 to reef) because they represent 50% of total substrates
 
 labG_D0 <- lab_trans_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, growth_set = LG_set, surv_set = LS_set, out_par_type = "lab_growth", par_set2 = NULL, par2_name = "none", dist = F, dist_yrs = NULL, dist_pars_list = NULL, SC2_lists = SC2_lists)
 
@@ -5332,7 +5309,7 @@ N0.o[[1]][[1]] <- c(0.25*orchard_size, 0.5*orchard_size, rep(0, 3)) # first sour
 N0.o[[1]][[2]] <- rep(0, n) # second source
 
 # 50% investment in reef
-orch_D0_SC1LG_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = c(0.5), par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
+orch_D0_SC1LG_50 <- orch_exp_fun2(dem_pars_all = all_pars_R, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", dist = F, dist_yrs = NULL, dist_pars_list = NULL)
 
 # make metric data frames
 orch_D0_SC1LG_dt5 <- full_dt_fun(sim_list = orch_D0_SC1LG_50, max_yr = 6, n_pars = n_sample1, prop_set = prop_set1, par_set2 = lambda_Rs[2], par2_name = "lambda_R", annual_costs = T)
@@ -5654,6 +5631,313 @@ dev.off()
 
 note: reason disturbance has bigger impact in lab case is because you don't have the orchard protecting the size class 2 corals to be outplanted
 -- basically see similar pattern as orchard transplanting except disturbance has a bigger impact on coral cover in the long-term (short-term only have one disturbance)
+
+
+show barplots
+NOTE these are currently showing averages across the 4 growth/survival scenarios
+
+```{r}
+
+
+SC1_defp <- metric_summ_fun(orch_D0_def_dt5$dt_i)
+SC1Lp <- metric_summ_fun(orch_D0_SC1LG_dt5$dt_i)
+SC2p <- metric_summ_fun(labG_D0_dt5$dt_i)
+
+SC1_defpD <- metric_summ_fun(orch_D3_def_dt5$dt_i)
+SC1LpD <- metric_summ_fun(orch_D3_SC1LG_dt5$dt_i)
+SC2pD <- metric_summ_fun(labG_D3_dt5$dt_i)
+
+#View(SC1_defp)
+
+bar_cols <- c("gray", "#44BB99", "#FFAABB")
+
+pl <- plot_lists(metric_name = "reef_cover_mean")
+
+lab_cx <- 0.85
+
+pdf("TempFigs/SM_LG_barplots5.pdf", height = 7, width = 6)
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
+par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "a) Coral cover on reef", adj = 0)
+mtext(side = 2, expression("Mean coral cover"~m^2*")"), line = 2.5, cex = lab_cx)
+mtext(side = 3, "5 years", line = 2, adj = 1.3)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+legend("topleft", legend = c("Default", "Increase SC1 capacity", "Transplant SC2"), fill = bar_cols, bty = "n", pt.cex = 1.5)
+
+
+pl <- plot_lists(metric_name = "reef_recruits_out_tot")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "b) Recruits outplanted to reef", adj = 0)
+mtext(side = 2, "Number of recruits", line = 3.5, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "reef_ROI_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "c) Reef ROI", adj = 0)
+mtext(side = 2, expression("Reef ROI ("*m^2~"coral/$)"), line = 3.5, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "orch_function_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "d) Orchard ecological function", adj = 0)
+mtext(side = 2, "Mean cover of", line = 3.75, cex = lab_cx)
+mtext(side = 2, expression("large orchard corals ("*m^2*")"), line = 2.5, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "tot_costs")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "e) Total costs", adj = 0)
+mtext(side = 2, "$", line = 2.5, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "tot_ROI_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "f) Total ROI (reef + orchard)", adj = 0)
+mtext(side = 2, expression("Total ROI ("*m^2*") coral/$"), line = 3, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+#metric_names <- c("reef_cover_mean", "orch_function_mean", "reef_ROI_mean", "tot_ROI_mean", "tot_costs", "reef_recruits_out_tot")
+
+dev.off()
+
+```
+
+
+
+```{r}
+# repeat over 50 years
+
+SC1_defp <- metric_summ_fun(orch_D0_def_dt50$dt_i)
+SC1Lp <- metric_summ_fun(orch_D0_SC1LG_dt50$dt_i)
+SC2p <- metric_summ_fun(labG_D0_dt50$dt_i)
+
+SC1_defpD <- metric_summ_fun(orch_D3_def_dt50$dt_i)
+SC1LpD <- metric_summ_fun(orch_D3_SC1LG_dt50$dt_i)
+SC2pD <- metric_summ_fun(labG_D3_dt50$dt_i)
+
+pl <- plot_lists(metric_name = "reef_cover_mean")
+
+pdf("TempFigs/SM_LG_barplots50.pdf", height = 7, width = 6)
+par(mfrow = c(3, 2))
+layout(matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, byrow = F), widths = rep(1, 2), heights = rep(1, 3))
+par(mar=c(0, 2, 3, 3), oma = c(4.5, 4.5, 2, 0))
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "a) Coral cover on reef", adj = 0)
+mtext(side = 2, expression("Mean coral cover"~m^2*")"), line = 2.5, cex = lab_cx)
+mtext(side = 3, "50 years", line = 2, adj = 1.3)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+legend("topleft", legend = c("Default", "Increase SC1 capacity", "Transplant SC2"), fill = bar_cols, bty = "n", pt.cex = 1.5)
+
+
+pl <- plot_lists(metric_name = "reef_recruits_out_tot")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "b) Recruits outplanted to reef", adj = 0)
+mtext(side = 2, "Number of recruits", line = 3.5, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "reef_ROI_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "c) Reef ROI", adj = 0)
+mtext(side = 2, expression("Reef ROI ("*m^2~"coral/$)"), line = 3.5, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "orch_function_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "d) Orchard ecological function", adj = 0)
+mtext(side = 2, "Mean cover of", line = 3.75, cex = lab_cx)
+mtext(side = 2, expression("large orchard corals ("*m^2*")"), line = 2.5, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "tot_costs")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "e) Total costs", adj = 0)
+mtext(side = 2, "$", line = 2.5, cex = lab_cx, adj = 0.55)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+pl <- plot_lists(metric_name = "tot_ROI_mean")
+
+ymax <- max(pl$Q95s)
+plot(x = c(1, 2, 3, 4, 5, 6, 7), y = rep(0, 7), col = NA, ylim = c(0, ymax), xlim = c(0.5, 7.5), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = c(2, 6), labels = c("No disturbance", "Disturbance"), tick = F, cex.axis = 0.9, line = -1)
+mtext(side = 3, "f) Total ROI (reef + orchard)", adj = 0)
+mtext(side = 2, expression("Total ROI ("*m^2*") coral/$"), line = 3, cex = lab_cx)
+# no disturbance
+for(i in 1:3){
+  polygon(x = c(i-0.5, i + 0.5, i + 0.5, i-0.5), y = c(0, 0, pl$means[i], pl$means[i]), col = adjustcolor(bar_cols[i], alpha.f = 0.65), border = bar_cols[i]) # col = metric_cols[mm]
+  arrows(x0 = i, y0 = pl$Q05s[i], y1 = pl$Q95s[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+# with disturbance
+for(ii in 5:7){
+  i <- ii-4
+  polygon(x = c(ii-0.5, ii + 0.5, ii + 0.5, ii-0.5), y = c(0, 0, pl$meansD[i], pl$meansD[i]), col = NA, border = bar_cols[i])
+  arrows(x0 = ii, y0 = pl$Q05sD[i], y1 = pl$Q95sD[i], code = 3, angle = 90, length = 0.025, col = bar_cols[i])
+}
+
+#metric_names <- c("reef_cover_mean", "orch_function_mean", "reef_ROI_mean", "tot_ROI_mean", "tot_costs", "reef_recruits_out_tot")
+
+dev.off()
+
+```
+
 
 make a plot showing how results depend on post-outplanting survival?
 -- use the high growth, high survival case
