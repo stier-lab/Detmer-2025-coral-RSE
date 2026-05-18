@@ -243,8 +243,6 @@ fundR_dt2$new_recruits <- ifelse(is.na(fundR_dt2$new_recruits)==T, "N", fundR_dt
 
 # select substrates that never had an increase in number of recruits and look at survival one year after outplanting
 
-#noaa_dt$Date <- as.Date(noaa_dt$Date, format = '%m/%d/%Y')
-
 fundR_dt3.2 <- fundR_dt2 %>% mutate(outplant_date = as.Date(paste(outplant_date_month, outplant_date_day, outplant_date_year, sep = "/"), format = '%m/%d/%Y'), survey_date = as.Date(paste(survey_date_month, survey_date_day, survey_date_year, sep = "/"), format = '%m/%d/%Y')) %>% filter(new_recruits_tot == "N") %>% select(outplanting_site, months_after_outplanting, settlement_technique, settlement_container_id, transect, outplant_date, survey_date, survey_date_year, treatment_1, treatment_2, plot_tag_number, substrate_number_temporary_flag, number_settlers, N0)
 ```
 
@@ -260,6 +258,10 @@ fundR_dt3.2 <- fundR_dt2 %>% mutate(outplant_date = as.Date(paste(outplant_date_
 
 # just use data from one month after outplanting (less time for other factors to influence mortality); all are from the same outplant date
 fundDD <- fundR_dt3.2 %>% mutate(prop_surv = number_settlers/N0) %>%filter(months_after_outplanting == 1) %>% mutate(n_dead = N0-number_settlers) #%>% mutate(prop_surv_yr = prop_surv^12) #filter(months_after_outplanting > 0 & months_after_outplanting < 2)
+
+sum(fundDD$N0)
+
+# View(fundDD)
 
 # fundDD %>% group_by(treatment_1) %>% summarize(n = n()) %>% view() # almost all are cookie or tetrapod cement
 
@@ -398,10 +400,12 @@ log(y) = mx + b
 # plot(x = fundDD_summ$N_class, y = fundDD_summ$prop_survived_yr, las = 1, pch = 16)
 # lines(x = seq(from = 0, to = 80, length.out = 1000), y = exp(dd_mod3$coefficients[1])*exp(dd_mod3$coefficients[2]*seq(from = 0, to = 80, length.out = 1000)), type = "l", col = "blue")
 
-plot(x = fundDD_summ$N_class, y = fundDD_summ$prop_survived, las = 1, pch = 16, xlab = "Density class", ylab = "Proportion surviving", ylim = c(0, 0.18), xlim = c(3, 85))
+plot(x = fundDD_summ$N_class, y = fundDD_summ$prop_survived, las = 1, pch = 16, xlab = "Mean density (recruits per substrate)", ylab = "Proportion surviving", ylim = c(0, 0.18), xlim = c(3, 85))
+#axis(side = 1, at = (dd_bounds[2:7] + dd_bounds[1:6])/2)
 lines(x = seq(from = 0, to = 80, length.out = 1000), y = exp(dd_mod3$coefficients[1])*exp(dd_mod3$coefficients[2]*seq(from = 0, to = 80, length.out = 1000)), type = "l", col = "blue")
 text(x = fundDD_summ$N_class + 2, y = fundDD_summ$prop_survived + 0.01, paste("n = ", as.character(fundDD_summ$N_tot), sep = ""))
 text(x = 70, y = 0.15, "y = exp(-0.026x)exp(-1.86)", col = "blue")
+#abline(v = dd_bounds, lty = 3)
 
 ```
 
