@@ -7,11 +7,11 @@
   @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #FAFAF7; font-family: 'Source Sans 3', sans-serif; display: flex; justify-content: center; padding: 16px; }
-  svg { width: 740px; height: 762px; }
+  svg { width: 740px; height: 510px; }
 </style>
 </head>
 <body>
-<svg viewBox="0 0 740 762" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 740 510" xmlns="http://www.w3.org/2000/svg">
 <defs>
   <!-- Subtle paper grain -->
   <filter id="grain" x="0" y="0" width="100%" height="100%">
@@ -63,103 +63,23 @@
 </defs>
 
 <!-- ==================== BACKGROUND ==================== -->
-<rect width="740" height="762" fill="#FAFAF7"/>
-<rect width="740" height="762" fill="#FAFAF7" filter="url(#grain)" opacity="0.3"/>
+<rect width="740" height="510" fill="#FAFAF7"/>
+<rect width="740" height="510" fill="#FAFAF7" filter="url(#grain)" opacity="0.3"/>
 
-<!-- Subtle watercolor washes behind simulate band -->
-<ellipse cx="200" cy="390" rx="160" ry="100" fill="#81B29A" opacity="0.04" filter="url(#wash)"/>
-<ellipse cx="550" cy="390" rx="160" ry="100" fill="#5FA8D3" opacity="0.04" filter="url(#wash)"/>
-<ellipse cx="370" cy="250" rx="140" ry="80" fill="#F2CC8F" opacity="0.04" filter="url(#wash)"/>
+<!-- Subtle watercolor washes behind simulate band (shifted up by 140 px after dropping DEFINE band) -->
+<ellipse cx="200" cy="250" rx="160" ry="100" fill="#81B29A" opacity="0.04" filter="url(#wash)"/>
+<ellipse cx="550" cy="250" rx="160" ry="100" fill="#5FA8D3" opacity="0.04" filter="url(#wash)"/>
+<ellipse cx="370" cy="110" rx="140" ry="80" fill="#F2CC8F" opacity="0.04" filter="url(#wash)"/>
 
 
 <!-- ================================================================ -->
-<!-- BAND 1: DEFINE                                                   -->
+<!-- OPERATING MODEL (was BAND 2: SIMULATE; DEFINE and EVALUATE bands -->
+<!-- removed per author request to focus Fig 1 on the model itself)   -->
 <!-- ================================================================ -->
 <g transform="translate(20, 12)">
   <!-- Band border -->
-  <rect x="0" y="0" width="700" height="120" rx="8" fill="none" stroke="#1B4965" stroke-width="1.2" stroke-opacity="0.2"/>
-  <rect x="0" y="0" width="700" height="120" rx="8" fill="#1B4965" fill-opacity="0.018"/>
-
-  <!-- Band label -->
-  <rect x="0" y="0" width="72" height="24" rx="4" fill="#1B4965"/>
-  <text x="36" y="16" text-anchor="middle" font-family="'Source Sans 3'" font-size="11" font-weight="700" fill="#FAFAF7" letter-spacing="1.5">DEFINE</text>
-
-  <!-- Step 1: Partners -->
-  <g transform="translate(16, 36)">
-    <!-- People icon -->
-    <g transform="translate(0, 4)" fill="none" stroke="#1B4965" stroke-width="1.4" stroke-linecap="round">
-      <circle cx="10" cy="5" r="4"/><path d="M2 18c0-4.4 3.6-8 8-8s8 3.6 8 18"/>
-      <circle cx="26" cy="7" r="3" opacity="0.6"/><path d="M22 18c2-3 4-5 7-5s5 2.5 5 6" opacity="0.6"/>
-    </g>
-    <text x="0" y="34" font-family="'Source Sans 3'" font-size="9.5" font-weight="600" fill="#1B4965">Partners &amp; stakeholders</text>
-    <text x="0" y="47" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">Fundemar, Mote Marine,</text>
-    <text x="0" y="58" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">coral practitioners</text>
-  </g>
-
-  <!-- Arrow 1→2 -->
-  <line x1="140" y1="68" x2="164" y2="68" stroke="#1B4965" stroke-width="1" stroke-opacity="0.25" marker-end="url(#a-band)"/>
-
-  <!-- Step 2: Objectives -->
-  <g transform="translate(172, 36)">
-    <text x="0" y="4" font-family="'Source Sans 3'" font-size="9.5" font-weight="600" fill="#1B4965">Define objectives &amp; metrics</text>
-    <g transform="translate(0, 12)">
-      <rect x="0" y="0" width="8" height="8" rx="1.5" fill="#6B9AC4" opacity="0.7"/>
-      <text x="11" y="7" font-family="'Source Sans 3'" font-size="8" fill="#3D405B">Reef coral cover (m²)</text>
-      <rect x="0" y="11" width="8" height="8" rx="1.5" fill="#9B6B9E" opacity="0.7"/>
-      <text x="11" y="18" font-family="'Source Sans 3'" font-size="8" fill="#3D405B">Orchard function (m²)</text>
-      <rect x="0" y="22" width="8" height="8" rx="1.5" fill="#89B8D4" opacity="0.7"/>
-      <text x="11" y="29" font-family="'Source Sans 3'" font-size="8" fill="#3D405B">Reef ROI (m² coral / $)</text>
-      <rect x="105" y="0" width="8" height="8" rx="1.5" fill="#D4C87A" opacity="0.7"/>
-      <text x="116" y="7" font-family="'Source Sans 3'" font-size="8" fill="#3D405B">Total ROI (m² / $)</text>
-      <rect x="105" y="11" width="8" height="8" rx="1.5" fill="#D4A07A" opacity="0.7"/>
-      <text x="116" y="18" font-family="'Source Sans 3'" font-size="8" fill="#3D405B">Total costs ($)</text>
-      <rect x="105" y="22" width="8" height="8" rx="1.5" fill="#7AB29A" opacity="0.7"/>
-      <text x="116" y="29" font-family="'Source Sans 3'" font-size="8" fill="#3D405B">Recruits outplanted</text>
-    </g>
-  </g>
-
-  <!-- Arrow 2→3 -->
-  <line x1="395" y1="68" x2="419" y2="68" stroke="#1B4965" stroke-width="1" stroke-opacity="0.25" marker-end="url(#a-band)"/>
-
-  <!-- Step 3: Strategies -->
-  <g transform="translate(427, 36)">
-    <text x="0" y="4" font-family="'Source Sans 3'" font-size="9.5" font-weight="600" fill="#1B4965">Choose strategies to test</text>
-    <text x="0" y="19" font-family="'DM Mono'" font-size="8" fill="#5C6B75">prop</text>
-    <text x="30" y="19" font-family="'Source Sans 3'" font-size="8" fill="#6B7680">allocation to orchard vs. reef</text>
-    <text x="0" y="31" font-family="'DM Mono'" font-size="8" fill="#5C6B75">retain</text>
-    <text x="38" y="31" font-family="'Source Sans 3'" font-size="8" fill="#6B7680">lab grow-out duration</text>
-    <text x="0" y="43" font-family="'DM Mono'" font-size="8" fill="#5C6B75">size</text>
-    <text x="28" y="43" font-family="'Source Sans 3'" font-size="8" fill="#6B7680">transplant size threshold</text>
-    <text x="0" y="55" font-family="'DM Mono'" font-size="8" fill="#5C6B75">dist.</text>
-    <text x="28" y="55" font-family="'Source Sans 3'" font-size="8" fill="#6B7680">disturbance regime scenarios</text>
-  </g>
-
-  <!-- Arrow 3→4 -->
-  <line x1="625" y1="55" x2="625" y2="68" stroke="#1B4965" stroke-width="1" stroke-opacity="0.25" marker-end="url(#a-band)"/>
-
-  <!-- Step 4: Parameterize -->
-  <g transform="translate(608, 76)">
-    <text x="0" y="4" font-family="'Source Sans 3'" font-size="9.5" font-weight="600" fill="#1B4965">Parameterize</text>
-    <text x="0" y="17" font-family="'Source Sans 3'" font-size="8" fill="#6B7680">Fundemar data</text>
-    <text x="0" y="28" font-family="'Source Sans 3'" font-size="8" fill="#6B7680">+ literature</text>
-  </g>
-</g>
-
-<!-- Down arrow: Define → Simulate -->
-<path d="M 370,134 L 370,148" stroke="#1B4965" stroke-width="1.8" stroke-opacity="0.3" stroke-linecap="round" marker-end="url(#a-band)"/>
-
-
-<!-- ================================================================ -->
-<!-- BAND 2: SIMULATE (operating model)                               -->
-<!-- ================================================================ -->
-<g transform="translate(20, 152)">
-  <!-- Band border -->
   <rect x="0" y="0" width="700" height="448" rx="8" fill="none" stroke="#E07A5F" stroke-width="1.2" stroke-opacity="0.3"/>
   <rect x="0" y="0" width="700" height="448" rx="8" fill="#E07A5F" fill-opacity="0.012"/>
-
-  <!-- Band label -->
-  <rect x="0" y="0" width="94" height="24" rx="4" fill="#E07A5F"/>
-  <text x="47" y="16" text-anchor="middle" font-family="'Source Sans 3'" font-size="11" font-weight="700" fill="#FAFAF7" letter-spacing="1.5">SIMULATE</text>
 
   <!-- Cycle annotation: top-right -->
   <g transform="translate(420, 6)">
@@ -171,7 +91,7 @@
   <g transform="translate(8, 46)">
     <text x="0" y="0" font-family="'Source Sans 3'" font-size="9.5" font-weight="600" fill="#3D405B">Reference reef</text>
     <text x="0" y="12" font-family="'Source Sans 3'" font-size="9.5" fill="#3D405B">larvae collection</text>
-    <text x="0" y="27" font-family="'DM Mono'" font-size="8.5" fill="#5C6B75">λ<tspan baseline-shift="sub" font-size="6.5">R</tspan> = 1.26 × 10⁶ yr⁻¹</text>
+    <text x="0" y="27" font-family="'DM Mono'" font-size="8.5" fill="#5C6B75">R<tspan baseline-shift="sub" font-size="6.5">ref</tspan> = 1.26 × 10⁶ yr⁻¹</text>
     <line x1="108" y1="6" x2="210" y2="6" stroke="#6B7680" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#a-slate)"/>
   </g>
 
@@ -185,8 +105,8 @@
     <text x="38" y="27" font-family="'Source Sans 3'" font-size="14" font-weight="700" fill="#1B4965">Laboratory</text>
     <text x="38" y="39" font-family="'Source Sans 3'" font-size="9" font-weight="300" fill="#6B7680">Controlled rearing &amp; settlement</text>
     <g transform="translate(12, 50)">
-      <text x="0" y="0" font-family="'DM Mono'" font-size="8.5" fill="#5C6B75">K<tspan baseline-shift="sub" font-size="6.5">lab</tspan> = 3 100 tiles</text>
-      <text x="0" y="14" font-family="'DM Mono'" font-size="8.5" fill="#5C6B75">λ<tspan baseline-shift="sub" font-size="6.5">S</tspan> settlement rate</text>
+      <text x="0" y="0" font-family="'DM Mono'" font-size="8.5" fill="#5C6B75">K<tspan baseline-shift="sub" font-size="6.5">lab</tspan> = 4 000 tiles</text>
+      <text x="0" y="14" font-family="'DM Mono'" font-size="8.5" fill="#5C6B75">p<tspan baseline-shift="sub" font-size="6.5">sett</tspan> settlement rate</text>
       <rect x="120" y="-6" width="1" height="44" rx="0.5" fill="#D4A66A" opacity="0.2"/>
       <text x="128" y="0" font-family="'Source Sans 3'" font-size="8.5" font-weight="600" fill="#1B4965">Immediate:</text>
       <text x="128" y="13" font-family="'DM Mono'" font-size="8" fill="#5C6B75">s₀ = 0.95</text>
@@ -206,7 +126,7 @@
     <text x="36" y="39" font-family="'Source Sans 3'" font-size="9" font-weight="300" fill="#6B7680">Ocean-based reef stars</text>
     <g transform="translate(12, 50)">
       <text x="0" y="0" font-family="'Source Sans 3'" font-size="8.5" font-weight="600" fill="#1B4965">No frag. collection</text>
-      <text x="0" y="14" font-family="'Source Sans 3'" font-size="8.5" font-weight="600" fill="#9A7340">SC4–5 larvae → Lab</text>
+      <text x="0" y="14" font-family="'Source Sans 3'" font-size="8.5" font-weight="600" fill="#9A7340">SC3–5 larvae → Lab</text>
       <text x="0" y="30" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">Grow SC2–SC4 until transplant</text>
     </g>
   </g>
@@ -316,7 +236,7 @@
       <image href="elkhorn_coral_ian.svg" x="0" y="0" width="36" height="30" opacity="0.6"/>
       <text x="39" y="24" font-family="'Source Sans 3'" font-size="9" font-weight="600" fill="#1B4965">SC4</text>
       <text x="57" y="24" font-family="'DM Mono'" font-size="8" fill="#6B7680">900–4k</text>
-      <text x="57" y="34" font-family="'Source Sans 3'" font-size="7.5" fill="#B85A40">♀ reproductive</text>
+      <text x="57" y="34" font-family="'Source Sans 3'" font-size="7.5" fill="#B85A40">♀ repro. ⚡ frag.</text>
     </g>
     <g transform="translate(450, -12)">
       <image href="elkhorn_coral_ian.svg" x="0" y="0" width="48" height="40" opacity="0.65"/>
@@ -352,80 +272,8 @@
 </g>
 
 
-<!-- Down arrow: Simulate → Evaluate -->
-<path d="M 370,604 L 370,616" stroke="#1B4965" stroke-width="1.8" stroke-opacity="0.3" stroke-linecap="round" marker-end="url(#a-band)"/>
-
-
-<!-- ================================================================ -->
-<!-- BAND 3: EVALUATE                                                 -->
-<!-- ================================================================ -->
-<g transform="translate(20, 620)">
-  <!-- Band border -->
-  <rect x="0" y="0" width="700" height="100" rx="8" fill="none" stroke="#1B4965" stroke-width="1.2" stroke-opacity="0.2"/>
-  <rect x="0" y="0" width="700" height="100" rx="8" fill="#1B4965" fill-opacity="0.018"/>
-
-  <!-- Band label -->
-  <rect x="0" y="0" width="92" height="24" rx="4" fill="#1B4965"/>
-  <text x="46" y="16" text-anchor="middle" font-family="'Source Sans 3'" font-size="11" font-weight="700" fill="#FAFAF7" letter-spacing="1.5">EVALUATE</text>
-
-  <!-- RSE cycle reference (steps 2-4 of the 7-step RSE framework) -->
-  <g transform="translate(20, 34)">
-    <text x="0" y="10" font-family="'Source Sans 3'" font-size="9" fill="#6B7680" font-style="italic">This paper: RSE steps</text>
-    <!-- Numbered circles referencing the perspective paper's 7-step cycle -->
-    <g transform="translate(0, 20)">
-      <circle cx="8" cy="8" r="8" fill="#1B4965" opacity="0.15"/><text x="8" y="12" text-anchor="middle" font-family="'DM Mono'" font-size="8" fill="#6B7680">2</text>
-      <text x="20" y="12" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">Build model</text>
-      <circle cx="88" cy="8" r="8" fill="#E07A5F" opacity="0.2"/><text x="88" y="12" text-anchor="middle" font-family="'DM Mono'" font-size="8" fill="#B85A40">3</text>
-      <text x="100" y="12" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">Simulate</text>
-      <circle cx="158" cy="8" r="8" fill="#1B4965" opacity="0.15"/><text x="158" y="12" text-anchor="middle" font-family="'DM Mono'" font-size="8" fill="#6B7680">4</text>
-      <text x="170" y="12" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">Evaluate</text>
-    </g>
-  </g>
-
-  <!-- Step 1: Calculate -->
-  <g transform="translate(240, 34)">
-    <!-- Bar chart icon -->
-    <g fill="#1B4965" opacity="0.5">
-      <rect x="0" y="16" width="6" height="14" rx="1"/>
-      <rect x="8" y="8" width="6" height="22" rx="1"/>
-      <rect x="16" y="12" width="6" height="18" rx="1"/>
-      <rect x="24" y="4" width="6" height="26" rx="1"/>
-    </g>
-    <text x="0" y="44" font-family="'Source Sans 3'" font-size="9.5" font-weight="600" fill="#1B4965">Calculate</text>
-    <text x="0" y="55" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">performance metrics</text>
-  </g>
-
-  <!-- Arrow 1→2 -->
-  <line x1="348" y1="58" x2="374" y2="58" stroke="#1B4965" stroke-width="1" stroke-opacity="0.25" marker-end="url(#a-band)"/>
-
-  <!-- Step 2: Compare -->
-  <g transform="translate(382, 34)">
-    <!-- Petal/radar plot icon -->
-    <g transform="translate(15, 15)" fill="none" stroke="#1B4965" stroke-width="1" opacity="0.5">
-      <polygon points="0,-12 10.4,6 -10.4,6" fill="#81B29A" fill-opacity="0.3" stroke="#81B29A"/>
-      <polygon points="0,-8 6.9,4 -6.9,4" fill="#E07A5F" fill-opacity="0.3" stroke="#E07A5F"/>
-    </g>
-    <text x="0" y="44" font-family="'Source Sans 3'" font-size="9.5" font-weight="600" fill="#1B4965">Compare &amp; trade off</text>
-    <text x="0" y="55" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">petal plots, trajectories</text>
-  </g>
-
-  <!-- Arrow 2→3 -->
-  <line x1="520" y1="58" x2="546" y2="58" stroke="#1B4965" stroke-width="1" stroke-opacity="0.25" marker-end="url(#a-band)"/>
-
-  <!-- Step 3: Recommend -->
-  <g transform="translate(554, 34)">
-    <!-- Checkmark + arrow icon -->
-    <g fill="none" stroke="#81B29A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6">
-      <path d="M4 15 L12 23 L28 7"/>
-    </g>
-    <text x="0" y="44" font-family="'Source Sans 3'" font-size="9.5" font-weight="600" fill="#1B4965">Recommend to</text>
-    <text x="0" y="55" font-family="'Source Sans 3'" font-size="8.5" fill="#6B7680">practitioners</text>
-  </g>
-</g>
-
-
 <!-- ==================== COMPACT LEGEND ==================== -->
-<g transform="translate(38, 740)">
+<g transform="translate(38, 472)">
   <!-- Flow types -->
   <line x1="0" y1="0" x2="18" y2="0" stroke="#1B4965" stroke-width="2.2" stroke-linecap="round"/>
   <text x="22" y="3.5" font-family="'Source Sans 3'" font-size="8.5" fill="#3D405B">Ecological flow</text>

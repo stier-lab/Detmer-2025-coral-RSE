@@ -9,8 +9,8 @@ Demographic flow diagram for the Restoration Strategy Evaluation (RSE) model, sh
 | `fig1.html` | **Source file** — edit this. Open in any browser to preview. |
 | `elkhorn_coral_ian.svg` | Coral silhouette art (Tracey Saxby, IAN/UMCES, CC BY-SA 4.0). Referenced by fig1.html for the size class strip. |
 | `export.mjs` | Node script to generate PDF + PNG from fig1.html. |
-| `fig1.pdf` | Submission-ready PDF (180 × 161 mm). |
-| `fig1_600dpi.png` | High-res raster (600 DPI, 4252 × 3803 px). |
+| `fig1.pdf` | Submission-ready PDF (180 × 124 mm). |
+| `fig1_600dpi.png` | High-res raster (600 DPI, 4252 × 2929 px). |
 
 ## How to edit
 
@@ -34,19 +34,20 @@ node export.mjs
 
 ## Structure of the SVG
 
-The figure has these sections (marked with `<!-- ========== -->` comments):
+The figure shows the operating model only. Prior DEFINE and EVALUATE process bands were removed (2026-05-26) to focus Fig 1 on the model itself; the RSE process steps now live in the Methods narrative. The figure has these sections (marked with `<!-- ========== -->` comments):
 
-1. **Background** — ivory fill, paper grain texture, watercolor wash zones
+1. **Background** — ivory fill, paper grain texture, watercolor wash zones (positioned around the operating-model y range)
 2. **Reference reef larvae** — external larval source (top left)
-3. **Laboratory** — card with parameters (top center)
-4. **Nursery orchard** — card with parameters (bottom left)
-5. **Restoration reef** — card with parameters (bottom right)
+3. **Laboratory** — card with parameters `K_lab = 4 000 tiles`, `p_sett`, `s₀`, `s₁`
+4. **Nursery orchard** — card with parameters
+5. **Restoration reef** — card with parameters + disturbance scenarios
 6. **Inter-compartment flows** — curved arrows between compartments
 7. **Decision points** — amber `prop`, `retain`, `size` pills
-8. **Size class strip** — SC1–SC5 with IAN coral silhouettes
+8. **Size class strip** — SC1–SC5 with IAN coral silhouettes (SC4 + SC5 both flagged ♀ reproductive ⚡ fragmentation; SC3 marked as larvae source via the Nursery → Lab text)
 9. **Equation** — N(t+1) = (T + F) · (S ⊙ N(t)) + R
 10. **Legend** — flow types + equation variable definitions
-11. **Output metrics** — 6 tracked metrics with colored squares
+
+Notation hygiene: settlement rate uses `p_sett` (not λ_S); reference-reef larval yield uses `R_ref` (not λ_R). λ is reserved for population growth rate in the Results.
 
 ## Design system
 

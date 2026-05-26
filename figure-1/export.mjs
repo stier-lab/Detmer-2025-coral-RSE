@@ -11,9 +11,9 @@ const html = path.join(__dirname, 'fig1.html');
 const browser = await chromium.launch();
 const page = await browser.newPage();
 
-// Figure dimensions: viewBox 740×762 → 180mm wide, height scales proportionally
+// Figure dimensions: viewBox 740×510 → 180mm wide, height scales proportionally
 const W_MM = 180;
-const H_MM = Math.round(762 / 740 * W_MM); // ~185mm
+const H_MM = Math.round(510 / 740 * W_MM); // ~124mm
 
 const scale = 4;
 const vpW = Math.round(W_MM * 3.7795 * scale);
