@@ -26,6 +26,10 @@ Open http://localhost:5173 to use the application.
 
 See [coral-app/README.md](coral-app/README.md) for details.
 
+### History
+
+An earlier first-pass platform (`stier-lab/Detmer-2025-coral-platform`, Feb 2026) was a separate React + R Plumber app focused on data exposure for the synthesis paper. It received a single initial commit, was deployed briefly on Render, and has since been archived. Active development moved here, into `coral-app/`, which combines the data-exposure functionality with the interactive RSE scenario model. Any reader pointers in the manuscript should refer to this repo, not the archived one.
+
 ---
 
 ## Project Structure
