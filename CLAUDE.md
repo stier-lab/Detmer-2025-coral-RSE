@@ -66,7 +66,7 @@ Stage-structured demographic models for evaluating coral restoration strategies,
 
 ## External Dependency
 
-All R analyses require a sibling repo: `Detmer-2025-coral-parameters/` (empirical demographic data). Expected at `../Detmer-2025-coral-parameters/`.
+All R analyses require a sibling repo: [stier-lab/Detmer-2025-coral-parameters](https://github.com/stier-lab/Detmer-2025-coral-parameters) (the empirical *A. palmata* demographic synthesis that produces the parameter estimates these analyses read). Expected cloned alongside at `../Detmer-2025-coral-parameters/`.
 
 ## Commands
 

@@ -74,7 +74,7 @@ Detmer-2025-coral-RSE/
 Clone both of these into the same parent directory:
 
 1. **This repo** -- `Detmer-2025-coral-RSE`
-2. **`Detmer-2025-coral-parameters`** -- contains the Fundemar-derived demographic parameter estimates that all analyses read from
+2. **[stier-lab/Detmer-2025-coral-parameters](https://github.com/stier-lab/Detmer-2025-coral-parameters)** -- the empirical *A. palmata* demographic synthesis; contains the parameter estimates that all analyses here read from
 
 ```
 parent-directory/
