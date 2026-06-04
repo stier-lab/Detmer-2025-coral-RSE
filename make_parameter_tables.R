@@ -138,9 +138,9 @@ demographic <- data.frame(
     "Caribbean meta-analysis; hierarchical bootstrap",
     "Vardi 2011, Vardi et al. 2012",
     "Mendoza-Quiroz et al. 2023",
-    "Soong & Lang 1992",
+    "Soong & Lang 1992 (SC3 reproduction supported by Chamberland et al. 2016)",
     "Computed: A x d_ooc x p_fec (theoretical maxima)",
-    "Calibrated to Fundemar 2025 collection (assumed SC4 colonies)",
+    "Calibrated to Fundemar 2025 collection, assumed SC4 colonies (consistent with ~71% fertilization, Pinon-Gonzalez 2018)",
     "Fundemar outplant monitoring (density-dependent)"
   ),
   stringsAsFactors = FALSE
