@@ -2,11 +2,11 @@
 // All values from docs/model_architecture.md and rse_funs.R
 
 export const sizeClasses = [
-  { id: 'SC1', label: 'SC1', range: '0–10 cm²', midpoint: 0.1, role: 'Recruits / settlers', reproduces: false, fragments: false },
-  { id: 'SC2', label: 'SC2', range: '10–100 cm²', midpoint: 43, role: 'Small juveniles', reproduces: false, fragments: false },
-  { id: 'SC3', label: 'SC3', range: '100–900 cm²', midpoint: 369, role: 'Large juveniles (begin reproducing)', reproduces: true, fragments: false },
-  { id: 'SC4', label: 'SC4', range: '900–4,000 cm²', midpoint: 2158, role: 'Subadults (reproduce + frag.)', reproduces: true, fragments: true },
-  { id: 'SC5', label: 'SC5', range: '> 4,000 cm²', midpoint: 11171, role: 'Adults (max fecundity + frag.)', reproduces: true, fragments: true },
+  { id: 'SC1', label: 'SC1', range: '0–10 cm²', midpoint: 5, role: 'Recruits / settlers', reproduces: false, fragments: false },
+  { id: 'SC2', label: 'SC2', range: '10–100 cm²', midpoint: 55, role: 'Small juveniles', reproduces: false, fragments: false },
+  { id: 'SC3', label: 'SC3', range: '100–900 cm²', midpoint: 500, role: 'Large juveniles (begin reproducing)', reproduces: true, fragments: false },
+  { id: 'SC4', label: 'SC4', range: '900–4,000 cm²', midpoint: 2450, role: 'Subadults (reproduce + frag.)', reproduces: true, fragments: true },
+  { id: 'SC5', label: 'SC5', range: '> 4,000 cm²', midpoint: 9325, role: 'Adults (max fecundity + frag.)', reproduces: true, fragments: true },
 ];
 
 export const locations = {
@@ -18,11 +18,11 @@ export const locations = {
     colorLight: 'rgba(245, 158, 11, 0.12)',
     description: 'Collected larvae are settled onto tiles and grown out before outplanting.',
     parameters: [
-      { name: 'lab_max', value: '~3,100 tiles', desc: 'Total tile capacity in lab' },
-      { name: 'lab_retain_max', value: '0–3,100', desc: 'Tiles reserved for 1-year grow-out' },
+      { name: 'lab_max', value: '~4,000 tiles', desc: 'Total tile capacity in lab' },
+      { name: 'lab_retain_max', value: '0–4,000', desc: 'Tiles reserved for 1-year grow-out' },
       { name: 'sett_props', value: '~0.15', desc: 'Settlement success rate by tile type' },
       { name: 'tile_props', value: '50/50', desc: 'Fraction of lab space per tile type (cement/ceramic)' },
-      { name: 'tank_max', value: '~14,600', desc: 'Max larvae per tank' },
+      { name: 'tank_min / tank_max', value: '14,600 / 33,333', desc: 'Min / max embryos per tank' },
       { name: 's_base', value: 'varies', desc: 'Baseline lab survival' },
       { name: 'm0 / m1', value: 'varies', desc: 'Density-dependent mortality coefficients' },
     ],
@@ -41,7 +41,7 @@ export const locations = {
     colorLight: 'rgba(16, 185, 129, 0.12)',
     description: 'Managed grow-out facility (underwater coral trees/tables). Enhanced survival, faster growth, no fragmentation.',
     parameters: [
-      { name: 'orchard_size', value: '~15,000', desc: 'Max colonies per orchard' },
+      { name: 'orchard_size', value: '~15,000', desc: 'Max tiles per orchard (500 stars × 30)' },
       { name: 'surv_pars', value: 'enhanced', desc: 'Higher survival than reef (protected)' },
       { name: 'growth', value: 'faster', desc: 'Managed conditions accelerate growth' },
       { name: 'orchard_yield', value: '0–1', desc: 'Fraction of orchard larvae collected' },

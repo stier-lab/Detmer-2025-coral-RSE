@@ -43,7 +43,7 @@ export const SIZE_CLASSES: Record<string, SizeClassInfo> = {
     label: 'SC1',
     range: '0-10 cm²',
     rangeNumeric: [0, 10],
-    midpoint: 0.1,
+    midpoint: 5,
     color: '#10b981',
     description: 'Recruits and settlers - highest mortality, no reproduction'
   },
@@ -52,7 +52,7 @@ export const SIZE_CLASSES: Record<string, SizeClassInfo> = {
     label: 'SC2',
     range: '10-100 cm²',
     rangeNumeric: [10, 100],
-    midpoint: 43,
+    midpoint: 55,
     color: '#3b82f6',
     description: 'Small juveniles - moderate growth, minimal reproduction'
   },
@@ -61,7 +61,7 @@ export const SIZE_CLASSES: Record<string, SizeClassInfo> = {
     label: 'SC3',
     range: '100-900 cm²',
     rangeNumeric: [100, 900],
-    midpoint: 369,
+    midpoint: 500,
     color: '#8b5cf6',
     description: 'Large juveniles - faster growth, begins reproduction'
   },
@@ -70,7 +70,7 @@ export const SIZE_CLASSES: Record<string, SizeClassInfo> = {
     label: 'SC4',
     range: '900-4000 cm²',
     rangeNumeric: [900, 4000],
-    midpoint: 2158,
+    midpoint: 2450,
     color: '#f59e0b',
     description: 'Subadults - fragmentation begins, high fecundity'
   },
@@ -79,7 +79,7 @@ export const SIZE_CLASSES: Record<string, SizeClassInfo> = {
     label: 'SC5',
     range: '>4000 cm²',
     rangeNumeric: [4000, Infinity],
-    midpoint: 11171,
+    midpoint: 9325,
     color: '#ef4444',
     description: 'Reproductive adults - maximum fecundity and fragmentation'
   }
@@ -204,7 +204,7 @@ export const PARAMETER_PRESETS = {
 /**
  * Area calculations - midpoint areas for each size class
  */
-export const SIZE_CLASS_AREAS = [0.1, 43, 369, 2158, 11171];
+export const SIZE_CLASS_AREAS = [5, 55, 500, 2450, 9325];
 
 /**
  * Animation and UI constants

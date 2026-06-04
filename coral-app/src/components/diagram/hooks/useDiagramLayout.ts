@@ -12,9 +12,9 @@ const POSITIONS = {
 };
 
 const LAB_PARAMS = [
-  { name: 'lab_max', value: '~3,100 tiles', description: 'Tile capacity' },
+  { name: 'lab_max', value: '~4,000 tiles', description: 'Tile capacity' },
   { name: 'sett_props', value: '~0.15', description: 'Settlement rate' },
-  { name: 'lab_retain_max', value: '0-3,100', description: '1-yr grow-out tiles' },
+  { name: 'lab_retain_max', value: '0-4,000', description: '1-yr grow-out tiles' },
 ];
 
 const ORCHARD_PARAMS = [
