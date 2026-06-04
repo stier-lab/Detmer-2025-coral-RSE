@@ -256,7 +256,7 @@ npx tailwindcss -i ./src/styles/globals.css -o ./dist/output.css
 
 ### For Developers
 - [FRONTEND_ARCHITECTURE.md](../docs/FRONTEND_ARCHITECTURE.md) - Technical architecture
-- [MODEL_ARCHITECTURE_SPECIFICATION.md](../docs/MODEL_ARCHITECTURE_SPECIFICATION.md) - Model details
+- [model_architecture.md](../docs/model_architecture.md) - Model details (parameter values in ../docs/PARAMETER_PROVENANCE.md)
 - [VISUAL_DESIGN_SPECIFICATION.md](../docs/VISUAL_DESIGN_SPECIFICATION.md) - Design system
 
 ## Support

@@ -1280,7 +1280,7 @@ export default ParameterSlider;
 
 **END OF VISUAL DESIGN SPECIFICATION**
 
-This document provides complete guidance for frontend development. For technical questions about the model itself, refer to `MODEL_ARCHITECTURE_SPECIFICATION.md`. For implementation details, see the R code in `rse_funs.R` and `coral_demographic_funs.R`.
+This document provides complete guidance for frontend development. For technical questions about the model itself, refer to `model_architecture.md` (and `PARAMETER_PROVENANCE.md` for parameter values). For implementation details, see the R code in `rse_funs.R` and `coral_demographic_funs.R`.
 
 **Contact:** [Data Science Team]
 **Last Updated:** January 2026

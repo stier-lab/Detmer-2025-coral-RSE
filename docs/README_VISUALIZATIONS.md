@@ -21,9 +21,8 @@ have been retired; the live resources below replace them.)
 
 ## Written model documentation
 
-- **`docs/MODEL_ARCHITECTURE_SPECIFICATION.md`** -- full technical specification.
-- **`docs/model_architecture.md`** / **`docs/model_summary.md`** -- shorter
-  architecture overview and component summary.
+- **`docs/model_architecture.md`** -- the canonical model-architecture
+  document (compartments, size classes, annual cycle, processes, outputs).
 - **`docs/PARAMETER_PROVENANCE.md`** -- every parameter value and where it came
   from (the authoritative parameter reference).
 - **`docs/FECUNDITY_LITERATURE_SUMMARY.md`** -- the size-dependent fecundity

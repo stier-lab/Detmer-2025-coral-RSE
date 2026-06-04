@@ -88,7 +88,7 @@ F(SC5) = 9325 cm^2 x 0.88 x 63.6 oocytes/cm^2 x 0.71 fert x 0.15 settlement
        = ~55,600 settlers per colony per year
 ```
 
-Compare to our current flat estimate of 48,274 embryos per colony -- order-of-magnitude consistent, which is reassuring.
+Compare to the earlier flat estimate of 48,274 embryos per colony -- order-of-magnitude consistent. The model now uses the size-dependent schedule rather than the flat value.
 
 ### Steward 2024: an IPM reproduction sub-kernel
 
@@ -167,7 +167,7 @@ Replace the current flat fecundity rate with a size-dependent function built fro
 F(SC) = Area_mid x P_fertile x 63.6 oocytes/cm^2 x fert_success x settlement_prob
 ```
 
-Every parameter comes from published Caribbean *A. palmata* studies: colony fertility from Soong & Lang (1992), oocyte density from Mendoza-Quiroz et al. (2023), fertilization success from Pinon-Gonzalez (2018), settlement from Fundemar. The SC5 estimate (~55,800 settlers/colony/yr) is consistent with our current Fundemar-derived value (48,274), which validates the approach. The main correction is that SC3 drops from 48,274 to ~340 and SC4 from 48,274 to ~7,200.
+Every parameter comes from published Caribbean *A. palmata* studies: colony fertility from Soong & Lang (1992), oocyte density from Mendoza-Quiroz et al. (2023), fertilization success from Pinon-Gonzalez (2018), settlement from Fundemar. The SC5 settler estimate (~55,800/colony/yr) is order-of-magnitude consistent with the earlier flat Fundemar-derived value (48,274). The model now implements the size-dependent embryo schedule (SC3/SC4/SC5 = 3,180/67,002/521,901), which corrects the prior overestimate of small-colony reproduction.
 
 ---
 

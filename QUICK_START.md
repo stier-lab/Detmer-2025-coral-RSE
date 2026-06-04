@@ -63,6 +63,6 @@ N(t+1) = S * (T + F) * N(t) + R
 
 ## Where to read more
 
-- Model architecture and parameters: [`docs/MODEL_ARCHITECTURE_SPECIFICATION.md`](docs/MODEL_ARCHITECTURE_SPECIFICATION.md), [`docs/model_summary.md`](docs/model_summary.md)
+- Model architecture: [`docs/model_architecture.md`](docs/model_architecture.md)
 - Parameter values and provenance: [`docs/PARAMETER_PROVENANCE.md`](docs/PARAMETER_PROVENANCE.md)
 - Fecundity literature: [`docs/FECUNDITY_LITERATURE_SUMMARY.md`](docs/FECUNDITY_LITERATURE_SUMMARY.md)

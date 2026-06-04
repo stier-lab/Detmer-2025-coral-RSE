@@ -56,7 +56,8 @@ Detmer-2025-coral-RSE/
 │   └── README.md
 │
 └── docs/                            # Technical documentation
-    ├── MODEL_ARCHITECTURE_SPECIFICATION.md
+    ├── model_architecture.md
+    ├── PARAMETER_PROVENANCE.md
     ├── FRONTEND_ARCHITECTURE.md
     ├── VISUAL_DESIGN_SPECIFICATION.md
     ├── FRONTEND_IMPLEMENTATION_SUMMARY.md
@@ -140,7 +141,7 @@ Where:
 ## Documentation
 
 ### For Researchers
-- **[docs/MODEL_ARCHITECTURE_SPECIFICATION.md](docs/MODEL_ARCHITECTURE_SPECIFICATION.md)** -- Complete model specification
+- **[docs/model_architecture.md](docs/model_architecture.md)** -- Model architecture (canonical); parameter values in **[docs/PARAMETER_PROVENANCE.md](docs/PARAMETER_PROVENANCE.md)**
 - **[coral-app/README.md](coral-app/README.md)** -- Web application guide
 
 ### For Developers
