@@ -1,5 +1,5 @@
 "Category","Parameter","Value","Source"
-"-","Inflation rate (applied to all costs except initial orchard setup)","0.056 (5.6%/yr)","Mean of 2022-2024 rates"
+"Rate","Inflation rate (applied to all costs except initial orchard setup)","0.056 (5.6%/yr)","Mean of 2022-2024 rates"
 "Fixed","Reef stars + installation (initial, one-time)","$84.60/star + $1,200 boat","Fundemar"
 "Fixed","Collection permits","$400/yr","Fundemar"
 "Fixed","Boat maintenance","$1,200 x 4/yr","Fundemar"
