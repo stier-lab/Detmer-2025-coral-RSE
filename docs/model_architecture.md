@@ -36,13 +36,13 @@ All populations are structured into 5 size classes based on **planar colony area
 
 | Class | Area Range (cm^2) | Midpoint (cm^2) | Ecological Role |
 |-------|-------------------|-----------------|-----------------|
-| SC1 | 0 -- 10 | 0.1 | Recruits / settlers |
-| SC2 | 10 -- 100 | 43 | Small juveniles |
-| SC3 | 100 -- 900 | 369 | Large juveniles (begin reproducing) |
-| SC4 | 900 -- 4,000 | 2,158 | Subadults (reproduce + fragment) |
-| SC5 | > 4,000 | 11,171 | Reproductive adults (max fecundity + fragmentation) |
+| SC1 | 0 -- 10 | 5 | Recruits / settlers |
+| SC2 | 10 -- 100 | 55 | Small juveniles |
+| SC3 | 100 -- 900 | 500 | Large juveniles (begin reproducing) |
+| SC4 | 900 -- 4,000 | 2,450 | Subadults (reproduce + fragment) |
+| SC5 | > 4,000 | 9,325 | Reproductive adults (max fecundity + fragmentation) |
 
-> **Note:** Midpoint values (`A_mids`) are passed as a parameter to the simulation functions, not hardcoded. The values above are typical values used in analyses.
+> **Note:** Midpoint values (`A_mids`) are passed as a parameter to the simulation functions, not hardcoded. The values above are the canonical midpoints used in the manuscript analyses: arithmetic midpoints of each boundary pair for SC1--SC4, and the 50th percentile of compiled observations > 4,000 cm^2 for SC5 (`rest_pars.rmd`).
 
 **Key patterns across size classes:**
 - Survival increases with size (SC1 ~ 0.1-0.2, SC5 ~ 0.8-0.95)
@@ -211,8 +211,8 @@ These are the **decision variables** — the levers a restoration manager can pu
 | `orchard_yield` | Fraction of orchard larvae collected | 0 -- 1 |
 | `reef_yield` | Fraction of reference reef larvae collected | 0.001 -- 0.01 |
 | `spawn_target` | Target number of larvae to process per year | ~2,000,000 |
-| `lab_max` | Total tile capacity in lab | ~3,100 tiles |
-| `lab_retain_max` | Tiles reserved for 1-year grow-out | 0 -- 3,100 |
+| `lab_max` | Total tile capacity in lab | ~4,000 tiles |
+| `lab_retain_max` | Tiles reserved for 1-year grow-out | 0 -- 4,000 |
 | `tile_props` | Fraction of lab space per tile type (e.g., 50/50 cement/ceramic) | Sums to 1 |
 | `sett_props` | Settlement success rate by tile type | ~0.15 |
 | `tank_max` / `tank_min` | Larvae per tank bounds | ~14,600 / varies |

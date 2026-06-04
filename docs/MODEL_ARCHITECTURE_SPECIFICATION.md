@@ -76,11 +76,11 @@ The model divides the population into 5 size classes based on **planar colony ar
 
 | Size Class | Range (cm²) | Midpoint (cm²) | Ecological Status | Demographic Role |
 |------------|-------------|----------------|-------------------|------------------|
-| **SC1** | 0 – 10 | 0.1 | Recruits/settlers | High mortality, no reproduction |
-| **SC2** | 10 – 100 | 43 | Small juveniles | Moderate growth, minimal reproduction |
-| **SC3** | 100 – 900 | 369 | Large juveniles | Faster growth, begins reproduction |
-| **SC4** | 900 – 4,000 | 2,158 | Subadults | Fragments begin, high fecundity |
-| **SC5** | > 4,000 | 11,171 | Reproductive adults | Maximum fecundity & fragmentation |
+| **SC1** | 0 – 10 | 5 | Recruits/settlers | High mortality, no reproduction |
+| **SC2** | 10 – 100 | 55 | Small juveniles | Moderate growth, minimal reproduction |
+| **SC3** | 100 – 900 | 500 | Large juveniles | Faster growth, begins reproduction |
+| **SC4** | 900 – 4,000 | 2,450 | Subadults | Fragments begin, high fecundity |
+| **SC5** | > 4,000 | 9,325 | Reproductive adults | Maximum fecundity & fragmentation |
 
 **Rationale for Size-Based Structure:**
 - Coral demography depends on colony size, not age (many corals have indeterminate growth)
@@ -109,7 +109,7 @@ The model divides the population into 5 size classes based on **planar colony ar
 - **Growth:** `growth_pars.r[[reef]][[source]][[size_class]]` — probability vectors
 - **Shrinkage:** `shrink_pars.r[[reef]][[source]][[size_class]]` — partial mortality
 - **Fragmentation:** `frag_pars.r[[reef]][[source]][[size_class]]` — asexual reproduction
-- **Fecundity:** `fec_pars.r[[reef]][[source]]` — larvae per individual (typically 0, 0, 5k, 50k, 100k)
+- **Fecundity:** `fec_pars.r[[reef]][[source]]` — embryos per individual, size-dependent (0, 0, 3180, 67002, 521901)
 
 **Sources Tracked:**
 1. External recruits (wild larvae from reference reefs)
@@ -215,7 +215,7 @@ Example: `"0_T1"` = cement tiles with immediate outplanting, `"1_T2"` = ceramic 
 | `m0[treatment]` | Density-dependent mortality coefficient (immediate) | 0–0.01 |
 | `m1[treatment]` | Density-dependent mortality coefficient (1-year) | 0–0.02 |
 | `size_props[treatment, size_class]` | Size distribution at outplanting | Typically [1,0,0,0,0] for immediate |
-| `lab_max` | Total larvae processing capacity | 10,000–40,000 |
+| `lab_max` | Total settlement-tile capacity of the lab | ~4,000 tiles |
 | `lab_retain_max` | Maximum retained for 1 year | 1,200–12,000 |
 | `tile_props[[tile]]` | Proportion of lab space per tile type | Sums to 1.0 |
 

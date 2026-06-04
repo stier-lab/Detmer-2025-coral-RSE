@@ -6,9 +6,9 @@
 
 ## Current model approach
 
-We currently treat fecundity as **size-independent**: SC3--SC5 each produce 48,274 embryos per colony per year (derived from Fundemar 2025: 1,255,111 total embryos / 26 spawning colonies). SC1--SC2 are non-reproductive. See `PARAMETER_PROVENANCE.md` lines 44--45 for full derivation.
+**Update:** fecundity is now **size-dependent** in the model, parameterized from the literature below. SC3/SC4/SC5 produce 3,180 / 67,002 / 521,901 embryos per colony per year, computed as midpoint area x oocyte density (63.6 oocytes/cm^2, Mendoza-Quiroz et al. 2023) x probability of fertility (0, 0, 0.1, 0.43, 0.88, Soong & Lang 1992). SC1--SC2 are non-reproductive. See `PARAMETER_PROVENANCE.md` for the live values.
 
-The literature strongly suggests fecundity is **size-dependent**. The data below could support a more mechanistic parameterization if we want it.
+The earlier draft treated fecundity as size-independent (a flat 48,274 embryos per colony, from Fundemar's 2025 collection of 1,255,111 embryos / 26 colonies). The literature summarized below motivated the move to the size-dependent schedule now in use. Sections that still cite the flat 48,274 value describe that earlier approach and are kept for provenance.
 
 ---
 

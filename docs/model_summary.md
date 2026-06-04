@@ -25,11 +25,11 @@ The model uses **5 size classes** based on planar colony area:
 
 | Class | Range (cm²) | Midpoint (cm²) | Description |
 |-------|-------------|----------------|-------------|
-| SC1 | 0–10 | 0.1 | Recruits/settlers |
-| SC2 | 10–100 | 43 | Small juveniles |
-| SC3 | 100–900 | 369 | Large juveniles |
-| SC4 | 900–4,000 | 2,158 | Subadults |
-| SC5 | >4,000 | 11,171 | Reproductive adults |
+| SC1 | 0–10 | 5 | Recruits/settlers |
+| SC2 | 10–100 | 55 | Small juveniles |
+| SC3 | 100–900 | 500 | Large juveniles |
+| SC4 | 900–4,000 | 2,450 | Subadults |
+| SC5 | >4,000 | 9,325 | Reproductive adults |
 
 ---
 

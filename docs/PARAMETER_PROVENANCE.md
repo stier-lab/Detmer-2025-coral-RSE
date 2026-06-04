@@ -42,7 +42,7 @@ statistics via `default_pars_fun()`.
 | frag_pars.r | Fragmentation rates by SC (reef) | `apal_fragmentation_summ.csv` | Same 6 studies | Only SC4 and SC5 produce fragments; SC1-SC3 set to zero by construction (small colonies lack branching architecture for storm-driven breakage) |
 | dens_pars.r | Density-dependent post-outplanting survival coefficient | 0.02 | **Working estimate** | Ricker-type: survivors = outplants * exp(-0.02 * tile_density). Applied at outplanting time, not to total reef population. Needs empirical validation |
 | fec_pars.r (SC1-SC2) | Fecundity, recruits and small juveniles | 0 | Biological assumption | SC1-SC2 do not reproduce |
-| fec_pars.r (SC3-SC5) | Fecundity, large juveniles through adults | 48,274 embryos per colony | **Empirical**: Fundemar 2025 annual report, Table 1 | Derived: 1,255,111 total embryos / 26 spawning colonies = 48,274. We assume no size-dependent reproduction because (1) lack of data and (2) Fundemar reports smaller colonies sometimes spawn the most |
+| fec_pars.r (SC3-SC5) | Fecundity, large juveniles through adults | 3,180 / 67,002 / 521,901 embryos per colony (SC3 / SC4 / SC5) | **Literature-derived**: Mendoza-Quiroz et al. 2023 (oocyte density), Soong & Lang 1992 (size-based fertility) | Size-dependent: midpoint area (`A_mids`) x oocyte density (63.6 oocytes/cm^2) x probability of fertility (0, 0, 0.1, 0.43, 0.88). These are theoretical maxima; embryo yield `y_e` = 0.72 is applied separately. Replaces an earlier flat per-colony estimate. |
 
 ---
 
@@ -63,7 +63,7 @@ storm-driven breakage.
 | frag_pars.o | Fragmentation rates in nursery | All zeros | Biological assumption | Managed nursery substrates are not subject to storm-driven breakage |
 | dens_pars.o | Density-dependent survival coefficient (orchard) | 0.02 | **Working estimate** | Same mechanism as reef. Needs empirical validation |
 | fec_pars.o (SC1-SC2) | Fecundity, small nursery corals | 0 | Biological assumption | SC1-SC2 do not reproduce |
-| fec_pars.o (SC3-SC5) | Fecundity, large nursery corals | 48,274 embryos per colony | **Empirical**: Fundemar 2025, Table 1 | Same derivation as reef fecundity |
+| fec_pars.o (SC3-SC5) | Fecundity, large nursery corals | 3,180 / 67,002 / 521,901 embryos per colony (SC3 / SC4 / SC5) | **Literature-derived** | Same size-dependent schedule as reef fecundity |
 
 ---
 
@@ -111,7 +111,7 @@ pipeline and the allocation of recruits across sites.
 | orchard_out_props | [1] | Model structure | All orchard-bound tiles go to a single orchard |
 | A_reef | 7,837 m^2 | **Empirical**: Fundemar KML file | Mean of three Fundemar restoration sites: 4,492 + 10,077 + 8,944 m^2, divided by 3. Rough estimates from acreage (1.11 + 2.49 + 2.21 ac) |
 | reef_areas | A_reef * 10,000 cm^2 | Derived | Converted from m^2 to cm^2 for internal model units |
-| lab_max | 3,100 tiles | **Operational constraint**: Fundemar facility | Total tile capacity of the lab in a single spawning season |
+| lab_max | 4,000 tiles | **Operational constraint**: Fundemar facility | Total tile capacity of the lab in a single spawning season, used as the capacity ceiling in the scenario analyses (`rse_new_scenario_analyses.rmd`). Fundemar's 2025 actual throughput was ~3,098 substrates. |
 | lab_retain_max | 0 tiles | Scenario choice | No tiles retained for 1-year grow-out in default scenario. Set > 0 for lab grow-out scenarios |
 | tank_min | 14,600 embryos | **Derived**: Fundemar 2025 spawning data | From `rest_pars.rmd`: mean volume per tank (~7,300 mL) x mean embryo density (~2 embryos/mL) = 14,600. We reduce the number of tanks if larval supply falls below this threshold to avoid unrealistically low settlement densities |
 | tank_max | 33,333 embryos | **Derived**: operational constraint | Chosen to produce ~50 embryos per tile assuming 15% settlement and 100 tiles per tank: 100 tiles x 50 embryos / 0.15 = 33,333 |
@@ -126,7 +126,7 @@ pipeline and the allocation of recruits across sites.
 |-----------|---------------|--------|-------|
 | dist_yrs | years + 10 (= no disturbance) | Scenario choice | Set to year > simulation length to disable disturbance. Set to e.g. c(10) for a disturbance in year 10 |
 | dist_effects | "survival" | Model structure | Which demographic parameters the disturbance affects. Options: "survival", "Tmat", "Fmat", "fecundity" |
-| dist_surv0 | surv_pars * 0.1 | **Working estimate** | 90% mortality during disturbance (survival drops to 10% of baseline). Needs empirical calibration against hurricane/bleaching data |
+| dist_surv0 | surv_pars * 0.2 (severe) / * 0.1 (extreme) | **Working estimate** | The headline "severe disturbance" scenario reduces survival to 20% of baseline (80% mortality); a more extreme variant uses 10% of baseline (90% mortality). Applied every 3 years in the main scenarios. Needs empirical calibration against hurricane/bleaching data |
 
 ---
 
@@ -177,11 +177,17 @@ Summary of all data files loaded from the `Detmer-2025-coral-parameters` repo.
 
 ### Fecundity (embryos per adult)
 
-From Fundemar 2025 annual report, Table 1:
-- Total embryos collected: 1,255,111 (100% fertilization reported)
-- Spawning colonies: 26 out of 31 monitored colonies, spawning over 2 days
-- Per-colony fecundity: 1,255,111 / 26 = **48,274 embryos per adult**
-- We assume size-independent reproduction (same for SC3, SC4, SC5)
+Model fecundity is **size-dependent**, computed as midpoint area (`A_mids`) x oocyte
+density (63.6 oocytes/cm^2, Mendoza-Quiroz et al. 2023) x probability of fertility
+(0, 0, 0.1, 0.43, 0.88, Soong & Lang 1992):
+- SC3: 500 x 63.6 x 0.1 = **3,180**
+- SC4: 2,450 x 63.6 x 0.43 = **67,002**
+- SC5: 9,325 x 63.6 x 0.88 = **521,901**
+
+These are theoretical maxima. The Fundemar 2025 collection data (1,255,111 embryos
+from 26 of 31 monitored colonies over 2 days) are used to calibrate the embryo-yield
+parameter `y_e`, not to set a flat fecundity: assuming the collected colonies were
+SC4, `y_e` = 1,255,111 / (A_mids[SC4] x p_fert[SC4] x oocyte_density x 26) ≈ **0.72**.
 
 ### Settlement rate
 
