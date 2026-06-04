@@ -1,0 +1,17 @@
+**Table 3. Economic parameters (2025 USD).**
+
+| Category | Parameter | Value | Source |
+| --- | --- | --- | --- |
+| - | Inflation rate (applied to all costs except initial orchard setup) | 0.056 (5.6%/yr) | Mean of 2022-2024 rates |
+| Fixed | Reef stars + installation (initial, one-time) | $84.60/star + $1,200 boat | Fundemar |
+| Fixed | Collection permits | $400/yr | Fundemar |
+| Fixed | Boat maintenance | $1,200 x 4/yr | Fundemar |
+| Fixed | Logistics / personnel | $500/mo (= $6,000/yr) | Fundemar |
+| Variable | Substrate purchase (50% cement / 50% ceramic) | $1 / $7 per tile (mean $4.00) | Fundemar |
+| Variable | Reef outplanting (boat + diver + per-tile) | $300 boat/day (1,250/day) + $200 diver/day + $0.19/tile | Fundemar (rate estimated) |
+| Variable | Orchard outplanting (boat + diver + per-tile) | $300 boat/day (800/day) + $200 diver/day + $0.125/tile | Fundemar (rate estimated) |
+| Variable | Orchard maintenance | per-reef-star scaling, 2x/yr (~$265 base + per-star) | Estimated |
+| Variable | Lab, first 2 weeks (aquaria + labor) | $432/day aquaria + $200/day labor, 7 days | Fundemar |
+| Variable | Lab, 1-year retention | $200/day labor x ~346 days | Estimated |
+| Variable | Spawn collection, reference reef | $6,500 per collection event | Fundemar |
+| Variable | Spawn collection, orchard | $3,250 per collection event | Fundemar |

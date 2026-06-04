@@ -46,6 +46,7 @@ Detmer-2025-coral-RSE/
 ├── rse_population_viability.Rmd     # Population viability analysis
 ├── function_tests.Rmd               # Function unit tests
 ├── rse_fun_copy.Rmd                 # Function documentation/exploration
+├── make_parameter_tables.R          # Regenerates the manuscript parameter tables (tables/)
 │
 ├── coral-app/                       # Interactive web application (React + TypeScript)
 │   ├── src/
