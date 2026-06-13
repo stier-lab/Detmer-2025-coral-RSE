@@ -119,7 +119,7 @@ diff_corals2 <- anti_join(apal_growth_ind[,1:14], distinct(apal_surv_ind[,1:14])
 # all the SC5 coral sizes
 SC5_sizes <- c(same_corals$size_live_cm2, diff_corals1$size_live_cm2, diff_corals2$size_live_cm2)
 
-SC5_mid <- quantile(SC5_sizes, 0.5)
+SC5_mid <- unname(quantile(SC5_sizes, 0.5))
 
 # hist(SC5_sizes)
 
@@ -1810,6 +1810,65 @@ ext_N0_0_100
 
 ```
 
+test a range of extinction thresholds
+
+```{r}
+#thresh_set <- seq(from = 1/(A_mids[5]*0.0001), to = 200/(A_mids[5]*0.0001), length.out = 1000)
+
+thresh_set <- seq(from = 1, to = 200, length.out = 1000)
+
+
+ext_N0_50_set <- rep(NA, length(thresh_set))
+ext_N0_100_set <- rep(NA, length(thresh_set))
+ext_N0_0_set <- rep(NA, length(thresh_set))
+
+# A_mids*0.0001
+# 100/(A_mids[5]*0.0001)
+
+for(tt in 1:length(thresh_set)){
+  
+ext_N0_50_set[tt] <- length(which(as.vector(N0_50)< thresh_set[tt]))/length(as.vector(N0_50))
+ext_N0_100_set[tt] <- length(which(as.vector(N0_100)< thresh_set[tt]))/length(as.vector(N0_100))
+ext_N0_0_set[tt] <- length(which(as.vector(N0_0)< thresh_set[tt]))/length(as.vector(N0_0))
+
+  
+}
+
+```
+
+
+```{r}
+# plot result of sensitivity analyses
+
+s_cols <- c("#888888", "#FB9A29", "#993404")
+
+#A_reef
+
+#100/8000
+pdf("TempFigs/ext_thresholds.pdf", height = 4, width = 6)
+#par(mar=c(0, 3.5, 2.5, 1), oma = c(4.5, 1.5, 0.1, 0))
+par(mar=c(4.5, 3.5, 2, 3.5))
+
+
+plot(x = thresh_set, y = ext_N0_0_set, type = "l", ylim = c(0, 1), las = 1, col = s_cols[1], lwd = 3, xlab = NA, ylab = NA)
+mtext(side = 2, "Extinction probability", line = 2.5)
+mtext(side = 1, "Extinction threshold", line = 3)
+axis(side = 1, at = 230, labels = expression(m^2~"coral"), tick = "F", padj = -0.15)
+axis(side = 1, at = c(0, 50, 100, 150, 200, 235), labels = c(round(c(0, 50, 100, 150, 200)/8000*100, 1),"% cover"), tick = "F", padj = 1.5)
+mtext(side = 1, line = 0.9, expression(m^2~"coral"), adj = 1.16)
+mtext(side = 1, line = 1.9, "% cover", adj = 1.16)
+lines(x = thresh_set, y = ext_N0_50_set, col = s_cols[2], lwd = 3)
+lines(x = thresh_set, y = ext_N0_100_set, col = s_cols[3], lwd = 3)
+legend("left", legend = c("none", "50% to reef", "100% to reef"), col = s_cols, lwd = 3, lty = c(1, 1, 1), title = "Restoration strategy", bty = "n", cex = 1)
+
+
+
+dev.off()
+
+```
+
+
+
 ```{r}
 # reef cover for the three restoration levels, no disturbance
 
@@ -2089,7 +2148,7 @@ mtext(side = 1, "Restoration strategy", line = 2.5, cex = lab_cx)
 #mtext(side = 2, "Prop. simulations below \nextinction threshold", line = 2.5, cex = lab_cx)
 mtext(side = 2, "Extinction probability", line = 2.5, cex = lab_cx)
 mtext(side = 3, "b) Probabilities of extinction", cex = lab_cx, adj = 0)
-axis(side = 1, at = c(1,2,3), labels = c("No \nintervention", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
+axis(side = 1, at = c(1,2,3), labels = c("None", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
 for(i in 1:3){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, ext_probs[i], ext_probs[i]), col = s_cols[i])
 
@@ -2115,8 +2174,8 @@ plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM
 axis(side = 1, at = seq(1, L_HM, length.out = 6), tick = F, line = -0.5, labels = seq(0,1,0.2), cex.axis = 1, padj = -1)
 axis(side = 2, at = seq(1, L_HM, 4), tick = F, line = -0.5, cex.axis = 1, las = 1, labels = rev(seq(1, L_HM, 4)))
 mtext(side = 1, "Disturbance severity \n(prop. reduction in survival)", line = 2.75, cex = lab_cx)
-mtext(side = 2, "Disturbance frequency (years \nbetween disturbance events)", line = 1.75, cex = lab_cx)
-mtext(side = 3, "c) Senstivity to disturbance", cex = lab_cx, adj = 0)
+mtext(side = 2, "Disturbance frequency \n(years between disturbance)", line = 1.75, cex = lab_cx)
+mtext(side = 3, "c) Sensitivity to disturbance", cex = lab_cx, adj = 0)
 for(i in 1:L_HM){ # x value
   for(j in 1:L_HM){ # y value
     
@@ -2213,7 +2272,7 @@ mtext(side = 1, "Restoration strategy", line = 2.5, cex = lab_cx)
 #mtext(side = 2, "Prop. simulations below \nextinction threshold", line = 2.5, cex = lab_cx)
 mtext(side = 2, "Extinction probability", line = 2.5, cex = lab_cx)
 mtext(side = 3, "b) Probabilities of extinction", cex = lab_cx, adj = 0)
-axis(side = 1, at = c(1,2,3), labels = c("No \nintervention", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
+axis(side = 1, at = c(1,2,3), labels = c("None", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
 for(i in 1:3){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, ext_probs[i], ext_probs[i]), col = s_cols[i])
 
@@ -2239,8 +2298,8 @@ plot(x = xset*L_HM, y = yset*L_HM, col = NA, xlim = c(0, L_HM), ylim = c(0, L_HM
 axis(side = 1, at = seq(1, L_HM, length.out = 6), tick = F, line = -0.5, labels = seq(0,1,0.2), cex.axis = 1, padj = -1)
 axis(side = 2, at = seq(1, L_HM, 4), tick = F, line = -0.5, cex.axis = 1, las = 1, labels = rev(seq(1, L_HM, 4)))
 mtext(side = 1, "Disturbance severity \n(prop. reduction in survival)", line = 2.75, cex = lab_cx)
-mtext(side = 2, "Disturbance frequency (years \nbetween disturbance events)", line = 1.75, cex = lab_cx)
-mtext(side = 3, "c) Senstivity to disturbance", cex = lab_cx, adj = 0)
+mtext(side = 2, "Disturbance frequency \n(years between disturbance)", line = 1.75, cex = lab_cx)
+mtext(side = 3, "c) Sensitivity to disturbance", cex = lab_cx, adj = 0)
 for(i in 1:L_HM){ # x value
   for(j in 1:L_HM){ # y value
     
@@ -3051,6 +3110,11 @@ for(i in 1:n_sample1){
 }
 
 
+
+mean(lambda_set)
+quantile(lambda_set, 0.05)
+quantile(lambda_set, 0.95)
+
 # get survival parameters for each size class and recruits
 
 surv_mat <- matrix(NA, nrow = n_sample1, ncol = 6)
@@ -3509,7 +3573,7 @@ a1 <- 0.6
 
 pdf("TempFigs/Figure3_petal_legend.pdf", height = 5, width = 6)
 plot(x = 1, y = 1, col = NA, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n", bty = "n")#, bty = "n"
-legend("topleft", legend = c(expression("Reef coral cover ("*m^2*")"), expression("Orchard function ("*m^2*" adults)"), expression("Reef ROI ("*m^2~"reef coral/$)"), "Total ROI ("*m^2~"coral/$)", "Total costs ($)", "Reef recruits outplanted"), fill = c(adjustcolor(metric_cols[1], alpha.f = a1), adjustcolor(metric_cols[2], alpha.f = a1), adjustcolor(metric_cols[3], alpha.f = a1), adjustcolor(metric_cols[4], alpha.f = a1), adjustcolor(metric_cols[5], alpha.f = a1), adjustcolor(metric_cols[6], alpha.f = a1)), bty = "n")
+legend("topleft", legend = c(expression("Reef coral cover ("*m^2*")"), expression("Orchard function ("*m^2*" adults)"), expression("Reef ROI ("*m^2~"reef coral/$)"), "Total ROI ("*m^2~"coral/$)", "Total costs ($)", "Reef recruits outplanted"), fill = c(adjustcolor(metric_cols[1], alpha.f = a1), adjustcolor(metric_cols[2], alpha.f = a1), adjustcolor(metric_cols[3], alpha.f = a1), adjustcolor(metric_cols[4], alpha.f = a1), adjustcolor(metric_cols[5], alpha.f = a1), adjustcolor(metric_cols[6], alpha.f = a1)), bty = "n", title = "Performance metric")
 dev.off()
 
 
@@ -3548,12 +3612,9 @@ plot_colsD <- plot_cols
 pt_cex <- 1.5
 
 
-pdf("TempFigs/Figure3_props.pdf", height = 6, width = 9)
-# par(mfrow = c(3, 1))
-# layout(matrix(c(1, 2), nrow = 2, ncol = 1, byrow = T), widths = c(1), heights = rep(1, 3))
-# #layout.show(5)
-# par(mar=c(0, 3.5, 0.5, 1), oma = c(4.5, 2, 0.1, 0))
-
+#pdf("TempFigs/Figure3_props.pdf", height = 6, width = 9)
+#update width for external legend
+pdf("TempFigs/Figure3_props.pdf", height = 6, width = 5.5)
 
 par(mfrow = c(2, 2))
 layout(matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = T), widths = c(1, 1), heights = rep(1, 2))
@@ -3590,12 +3651,14 @@ dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[2]) %>% rename(metric = reef_co
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
 plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, ymax), las = 1, lwd = 3, col = plot_colsD[1], lty = 2, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
+# replot the end of the line with lty = 1 (last decrease gets cut off with the dashed line)
+lines(x = dt_plot2$prop_out[18:20], y = dt_plot2$mean[18:20], type = "l", lwd = 2, col = plot_colsD[1], lty = 2)
 axis(side = 2, at = seq(0, 100, 20), labels = NA)
 axis(side = 1, at = seq(0, 1, 0.2), labels = NA)
 mtext(side = 3, "Disturbance every 3 years", adj = 0.1, line = -1.5, cex = 1.2)
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
 points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 16, col = plot_colsD[1], cex = pt_cex)
-legend("topleft", legend = c("orchard not disturbed", "orchard equally disturbed"), lty = c(2, 3), col = plot_colsD[1], lwd = 2, bty = "n", inset = c(0, 0.1))
+#legend("topleft", legend = c("orchard not disturbed", "orchard equally disturbed"), lty = c(2, 3), col = plot_colsD[1], lwd = 2, bty = "n", inset = c(0, 0.1))
 
 # add line for case where orchard is equally impacted by disturbance
 dt_plot <- orch_D3_2_all_dt5
@@ -3604,7 +3667,9 @@ dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[2]) %>% rename(metric = reef_co
 
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
-lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 5, col = plot_colsD[1], lty = 2)
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 5, col = plot_colsD[1], lty = 3)
+# replot the end of the line with lty = 1 (last decrease gets cut off with the dashed line)
+lines(x = dt_plot2$prop_out[17:20], y = dt_plot2$mean[17:20], type = "l", lwd = 3, col = plot_colsD[1], lty = 3)
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[1], alpha.f = 0.25))
 points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 16, col = plot_colsD[1], cex = pt_cex)
 
@@ -3635,7 +3700,7 @@ dt_plot1 <- dt_plot%>% filter(par2 == lambda_Rs[2]) %>% rename(metric = tot_ROI_
 
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
-plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, ymax), las = 1, lwd = 3, col = plot_colsD[2], lty = 1, xlab = NA, ylab = NA, yaxt = "n")
+plot(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", ylim = c(0, ymax), las = 1, lwd = 3, col = plot_colsD[2], lty = 2, xlab = NA, ylab = NA, yaxt = "n")
 axis(side = 2, at = seq(0, 0.01, 0.002), labels = NA)
 # lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 3, col = plot_colsD[2], lty = 2)
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[2], alpha.f = 0.25))
@@ -3648,13 +3713,23 @@ dt_plot1 <- dt_plot%>% filter(par2 == lambda_Rs[2]) %>% rename(metric = tot_ROI_
 
 dt_plot2 <- dt_plot1 %>% select(metric, prop_out) %>% group_by(prop_out) %>% summarize(mean = mean(metric), Q05 = quantile(metric, probs = 0.05), Q95 = quantile(metric, probs = 0.95)) %>% ungroup()
 
-lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 5, col = plot_colsD[2], lty = 2)
+lines(x = dt_plot2$prop_out, y = dt_plot2$mean, type = "l", lwd = 5, col = plot_colsD[2], lty = 3)
 polygon(x = c(dt_plot2$prop_out, rev(dt_plot2$prop_out)), y = c(dt_plot2$Q05, rev(dt_plot2$Q95)), border = NA, col = adjustcolor(plot_colsD[2], alpha.f = 0.25))
 points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt_plot2$mean[which(dt_plot2$mean == max(dt_plot2$mean))], pch = 16, col = plot_colsD[2], cex = pt_cex)
 
 
 dev.off()
 
+```
+
+
+```{r}
+# disturbance legend
+
+pdf("TempFigs/Figure3_dist_legend.pdf", height = 5, width = 6)
+plot(x = 1, y = 1, col = NA, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n", bty = "n")#, bty = "n"
+legend("topleft", legend = c("none", "reef only", "reef & orchard"), lty = c(1, 2, 3), lwd = 3, col = "gray40", bty = "n", title = "Disturbance type")
+dev.off()
 ```
 
 
