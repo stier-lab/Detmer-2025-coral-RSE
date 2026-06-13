@@ -4413,6 +4413,82 @@ dev.off()
 
 
 ```{r}
+# with common legend
+
+cols1 <- c("#44BB99", "#FFAABB", "#EE8866", "#BBCC33", "#AAAA00")
+
+
+pdf("TempFigs/Figure4.pdf", height = 6, width = 6)
+
+par(mfrow = c(2, 2))
+layout(matrix(c(1, 1, 2, 3, 4, 4), nrow = 3, ncol = 2, byrow = T), widths = c(1, 1, 2), heights = c(1,1,0.25))
+#layout.show(4)
+par(mar=c(1, 3.75, 3.5, 0), oma = c(0, 1.5, 0.1, 0.25))
+
+
+plot(x = c(1:years), y = rep(0, years), ylim = c(0, max(mod_area)), col = NA, xlab = NA, ylab = NA, las = 1, xaxt = "n")
+axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
+mtext(side = 3, "a) Timeseries: outplanting fixed area annually", adj = 0, line = 0)
+mtext(side = 1, "Year in simulation", line = 2, cex = 0.85)
+mtext(side = 2, expression("Coral cover on reef ("*m^2*")"), line = 3.5, cex = 0.9)
+for(j in 1:5){
+  lines(x = c(1:years), y = mod_area[,j], type = "l", lty = j, col = cols1[j], lwd = 2)
+}
+#legend("topleft", legend = c("1 (4,000,000)", "2 (363,636)", "3 (40,000)", "4 (8,163)", "5 (2,278)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 1, cex = 1.1)
+
+
+
+# look at final size distributions
+
+end_mat <- mod_mat5
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[6,])), xlim = c(0.5, 5.5), las = 1, xlab = NA, ylab = NA)
+#mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.85)
+mtext(side = 3, "b) Size distributions at 5 years", adj = 1, line = 0)
+mtext(side = 2, "Number of corals", line = 3.75, cex = 0.9)
+mtext(side = 1, "Size class outplanted", line = 2.5, cex = 0.85)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+
+end_mat <- mod_mat50
+plot(x = c(1, 2, 3, 4, 5), y = rep(0, 5), col = NA, ylim = c(0, max(mod_ind[51,])), xlim = c(0.5, 5.5), las = 1, xlab = NA, ylab = NA, yaxt = "n")
+axis(side = 2, at = c(0, 500000, 1000000, 1500000), labels = c("0e+00", "5e+05", "10e+05", "15e+05"), las = 1)
+#mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
+mtext(side = 3, "c) Size distributions at 50 years", adj = 1, line = 0)
+mtext(side = 1, "Size class outplanted", line = 2.5, cex = 0.85)
+for(i in 1:5){
+  polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, sum(end_mat[,i]), sum(end_mat[,i])), col = adjustcolor(col = "gray", alpha.f = 0))
+  for(k in 1:5){
+    
+    if(k == 1){
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, end_mat[k,i], end_mat[k,i]), col = cols1[k])
+    } else{
+      polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]), sum(end_mat[1:(k-1),i]) + end_mat[k,i], sum(end_mat[1:(k-1),i]) + end_mat[k,i]), col = cols1[k])
+    }
+    
+  }
+  
+}
+
+plot(x = 0, y = 0, col = NA, xlab = NA, ylab = NA, yaxt = "n", xaxt = "n", bty = "n")
+legend(x = -1.3, y = 4, legend = c("SC1 (4,000,000)", "SC2 (363,636)", "SC3 (40,000)", "SC4 (8,163)", "SC5 (2,278)"), col = cols1, lty = c(1:5), lwd = 2, bty = "n", ncol = 5, cex = 1.1, xpd = T, text.width = c(0.37, 0.32, 0.32, 0.32), x.intersp = c(0.5, 0.2, 0.2, 0.1))
+
+dev.off()
+```
+
+
+```{r}
 # # old version combining theoretical size class outplanting with SC2 outplanting scenarios
 # 
 # # 3 columns: time series, stacked bar plots, stacked tradeoff plots
@@ -5963,6 +6039,7 @@ axis(side = 1, at = seq(0, 100, 20), labels = NA)
 mtext(side = 3, "5 years, no disturbance", line = 0, cex = 1)
 mtext(side = 3, "a)", adj = 0.075, line = -1)
 mtext(side = 2, "Proportional change \nin total ROI", line = 2, cex = 0.9)
+mtext(side = 1, "Proportional change in reef coral cover", line = 2.5, cex = 0.9, outer = T)
 abline(h = 1, lty = 2, col = "gray30")
 abline(v = 1, lty = 2, col = "gray30")
 
@@ -6108,6 +6185,7 @@ axis(side = 1, at = seq(0, 150, 50), labels = NA)
 mtext(side = 3, "50 years, no disturbance", line = 0, cex = 1)
 mtext(side = 3, "a)", adj = 0.075, line = -1)
 mtext(side = 2, "Proportional change \nin total ROI", line = 2, cex = 0.9)
+mtext(side = 1, "Proportional change in reef coral cover", line = 2.5, cex = 0.9, outer = T)
 abline(h = 1, lty = 2, col = "gray30")
 abline(v = 1, lty = 2, col = "gray30")
 
