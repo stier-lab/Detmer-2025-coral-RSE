@@ -5297,7 +5297,7 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def
 #xmax <- max(c(quantile(SC1L_def$reef_coral, 0.95), quantile(SC2_def$reef_coral, 0.95)))
 #ymax <- max(c(quantile(SC1L_def$tot_ROI, 0.95), quantile(SC2_def$tot_ROI, 0.95)))
 
-xmax <- 80
+xmax <- 90
 ymax <- 6
 
 pdf("TempFigs/Figure5.pdf", height = 5, width = 6)
@@ -5310,7 +5310,7 @@ par(mar=c(0, 0.5, 0.5, 0), oma = c(4.5, 4, 2, 1))
 
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
-axis(side = 1, at = seq(0, 80, 20), labels = NA)
+axis(side = 1, at = seq(0, 90, 15), labels = NA)
 #mtext(side = 3, "c) SC1 vs. SC2 strategies", adj = 0, line = 0)
 #mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.85)
 mtext(side = 3, "5 years", line = 0, cex = 1)
@@ -5354,7 +5354,7 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_de
 #ymax <- max(c(quantile(SC1L_def$tot_ROI, 0.95), quantile(SC2_def$tot_ROI, 0.95)))
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
-axis(side = 1, at = seq(0, 80, 20), labels = NA)
+axis(side = 1, at = seq(0, 90, 15), labels = NA)
 axis(side = 2, at = seq(0, 6, 1), labels = NA)
 mtext(side = 3, "b)", adj = 0.075, line = -1)
 #mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
@@ -5394,7 +5394,8 @@ ymax <- 1.5
 ymin <- 0.5
 
 
-plot(x = c(0, xmax), y = c(ymin, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
+plot(x = c(0, xmax), y = c(ymin, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 90, 15))
 #mtext(side = 3, "c) SC1 vs. SC2 strategies", adj = 0, line = 0)
 #mtext(side = 3, "5 years", adj = 0.98, line = -1.25, cex = 0.85)
 mtext(side = 2, "Proportional change \nin total costs", line = 2.25, cex = 0.9)
@@ -5429,7 +5430,8 @@ SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_de
 #xmax <- max(c(quantile(SC1L_def$reef_coral, 0.95), quantile(SC2_def$reef_coral, 0.95)))
 #ymax <- max(c(quantile(SC1L_def$tot_costs, 0.95), quantile(SC2_def$tot_costs, 0.95)))
 
-plot(x = c(0, xmax), y = c(ymin, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, yaxt = "n")
+plot(x = c(0, xmax), y = c(ymin, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, yaxt = "n", xaxt = "n")
+axis(side = 1, at = seq(0, 90, 15))
 mtext(side = 3, "d)", adj = 0.075, line = -1)
 #mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
 axis(side = 2, at = seq(0, 1.2, 0.2), labels = NA)
@@ -5456,6 +5458,37 @@ arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_costs), x1
 
 
 dev.off()
+
+```
+
+
+checking the relative total ROI over 50 years
+
+```{r}
+
+SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
+
+mean(SC2_def$tot_ROI)
+quantile(SC2_def$tot_ROI, 0.05)
+quantile(SC2_def$tot_ROI, 0.95)
+
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
+axis(side = 1, at = seq(0, 90, 15), labels = NA)
+axis(side = 2, at = seq(0, 6, 1), labels = NA)
+mtext(side = 3, "b)", adj = 0.075, line = -1)
+#mtext(side = 3, "50 years", adj = 0.98, line = -1.25, cex = 0.85)
+mtext(side = 3, "50 years", line = 0, cex = 1)
+points(x = mean(SC1L_def$reef_coral), y = mean(SC1L_def$tot_ROI), pch = pch_set[1], col = col_set[1], cex = pt_cex[1])
+arrows(x0 = mean(SC1L_def$reef_coral), y0 = quantile(SC1L_def$tot_ROI, 0.05), y1 = quantile(SC1L_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+arrows(x0 = quantile(SC1L_def$reef_coral, 0.05), y0 = mean(SC1L_def$tot_ROI), x1 = quantile(SC1L_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[1])
+points(x = mean(SC2_def$reef_coral), y = mean(SC2_def$tot_ROI), pch = pch_set[2], col = col_set[2], cex = pt_cex[1])
+arrows(x0 = mean(SC2_def$reef_coral), y0 = quantile(SC2_def$tot_ROI, 0.05), y1 = quantile(SC2_def$tot_ROI, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 = quantile(SC2_def$reef_coral, 0.95), code = 3, angle = 90, length = 0.025, col = col_set[2])
+abline(h = 1, lty = 2, col = "gray30")
+abline(v = 1, lty = 2, col = "gray30")
+
+
 
 ```
 
