@@ -244,6 +244,51 @@ pop_lambda_fun(surv_pars.r, all_pars_05$growth_pars.r[[1]][[1]], all_pars_05$shr
 ```
 
 
+```{r}
+# double check the mean growth rate
+# field_surv$surv_summary
+# field_growth$trans_summary
+# apal_frag_summ
+
+#View(field_growth$trans_summary)
+
+# View(apal_frag_summ)
+
+Tvals <- field_growth$trans_summary
+Fvals <- apal_frag_summ
+
+Svals <- field_surv$surv_summary$mean
+
+Tmat.i <- matrix(NA, nrow = 5, ncol = 5)
+
+for(i in 1:5){
+  for(j in 1:5){
+    
+    Tmat.i[i,j] <- Tvals$mean_prob[which(Tvals$from_class == paste("SC", j, sep = "") & Tvals$to_class == paste("SC", i, sep = ""))]
+  }
+}
+
+Fmat.i <- matrix(0, nrow = 5, ncol = 5)
+
+Fmat.i[1:4,4] <- Fvals$mean[1:4]
+Fmat.i[1:5,5] <- Fvals$mean[5:9]
+
+# Fmat.i
+# Tmat.i
+
+pop_mat <- (Tmat.i + Fmat.i) %*% diag(Svals)
+
+lambda_check <- Re(eigen(pop_mat)$values[1]) # leading eigenvalue
+
+lambda_check
+
+#field_surv$SC_surv_summ_df
+#field_surv$surv_summary
+# why are these survival rates slightly different?
+
+```
+
+
 plot results
 
 ```{r}
@@ -3130,6 +3175,15 @@ for(i in 1:n_sample1){
     surv_mat[i,k+1] <- all_pars_R$surv_pars_L.r[[i]][[1]][[1]][k]
   }
 }
+
+# look at the range of survival values
+# min(surv_mat[,1])
+# max(surv_mat[,1])
+# mean(surv_mat[,1])
+# 
+# min(surv_mat[,2])
+# max(surv_mat[,2])
+# mean(surv_mat[,2])
 
 #unique(s1_rand)
 
