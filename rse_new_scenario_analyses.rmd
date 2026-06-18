@@ -1596,14 +1596,14 @@ ts_fun <- function(sim_list, n_pars, max_yr, prop_choice, par2_choice = 1){
   
   # now calculate the mean, 95%, and 5% quantiles, and standard deviations  across parameter values at each time point
   reef_cover_mn <- apply(reef_cover, 1, function(x) mean(x, na.rm = T))
-  reef_cover_low <- apply(reef_cover, 1, function(x) quantile(x, 0.95, na.rm = T))
-  reef_cover_up <- apply(reef_cover, 1, function(x) quantile(x, 0.05, na.rm = T))
+  reef_cover_low <- apply(reef_cover, 1, function(x) quantile(x, 0.05, na.rm = T))
+  reef_cover_up <- apply(reef_cover, 1, function(x) quantile(x, 0.95, na.rm = T))
   
   reef_cover_sd <- apply(reef_cover, 1, function(x) sd(x, na.rm = T))
   
   orch_fun_mn <- apply(orch_fun, 1, function(x) mean(x, na.rm = T))
-  orch_fun_low <- apply(orch_fun, 1, function(x) quantile(x, 0.95, na.rm = T))
-  orch_fun_up <- apply(orch_fun, 1, function(x) quantile(x, 0.05, na.rm = T))
+  orch_fun_low <- apply(orch_fun, 1, function(x) quantile(x, 0.05, na.rm = T))
+  orch_fun_up <- apply(orch_fun, 1, function(x) quantile(x, 0.95, na.rm = T))
   orch_fun_sd <- apply(orch_fun, 1, function(x) sd(x, na.rm = T))
   
   
@@ -2182,7 +2182,7 @@ mtext(side = 3, "a) Reef cover over 50 years", cex = lab_cx, adj = 0)
   lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = s_cols[3], lwd = 2)
   polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(s_cols[3], alpha.f = 0.2), border = NA)
   
-legend("topleft", legend = c("none", "50% to reef", "100% to reef"), col = s_cols, lwd = c(2, 2, 2), lty = c(1, 1, 1), title = "Restoration strategy", bty = "n", cex = 1.1, fill = c(adjustcolor(s_cols[1], alpha.f = 0.2), adjustcolor(s_cols[2], alpha.f = 0.2), adjustcolor(s_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 3))
+# legend("topleft", legend = c("none", "50% to reef", "100% to reef"), col = s_cols, lwd = c(2, 2, 2), lty = c(1, 1, 1), title = "Restoration strategy", bty = "n", cex = 1.1, fill = c(adjustcolor(s_cols[1], alpha.f = 0.2), adjustcolor(s_cols[2], alpha.f = 0.2), adjustcolor(s_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 3), ncol = 2) #, x.intersp = 0.5, text.width = c(5, 12)
 
 
 # panel B: extinction probabilities
@@ -2193,7 +2193,7 @@ mtext(side = 1, "Restoration strategy", line = 2.5, cex = lab_cx)
 #mtext(side = 2, "Prop. simulations below \nextinction threshold", line = 2.5, cex = lab_cx)
 mtext(side = 2, "Extinction probability", line = 2.5, cex = lab_cx)
 mtext(side = 3, "b) Probabilities of extinction", cex = lab_cx, adj = 0)
-axis(side = 1, at = c(1,2,3), labels = c("None", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
+axis(side = 1, at = c(1,2,3), labels = c("No \nrestoration", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
 for(i in 1:3){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, ext_probs[i], ext_probs[i]), col = s_cols[i])
 
@@ -2266,6 +2266,57 @@ dev.off()
 
 ```
 
+
+```{r}
+# zoom in on no-intervention case
+
+
+# xlab1 <- "Year in simulation"
+# ylab1 <- expression("Reef cover ("*m^2*")")
+# 
+# plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 40), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+# axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
+# mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+# mtext(side = 2, ylab1, line = 2.9, cex = lab_cx)
+# mtext(side = 3, "a) Reef cover over 50 years", cex = lab_cx, adj = 0)
+# 
+#   plot_dt <- ts_fun(sim_list = orch_D0_0, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+#   lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = s_cols[1], lwd = 2)
+#   polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(s_cols[1], alpha.f = 0.2), border = NA)
+#   
+
+  
+pdf("TempFigs/Figure2_inset.pdf", height = 3, width = 4)
+
+par(mfrow = c(1, 1))
+par(mar=c(0, 3.5, 2.5, 1), oma = c(4.5, 1.5, 0.1, 0))
+  
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 200), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
+#mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+#mtext(side = 2, ylab1, line = 2.9, cex = lab_cx)
+mtext(side = 3, "No restoration (all trajectories)", cex = 1.2, adj = 0.1, line = -1)
+
+  plot_dt <- ts_fun(sim_list = orch_D0_0, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  
+  for(i in 1:n_sample1){
+    lines(x = c(1:years), y = plot_dt$reef_cover_all[,i], col = adjustcolor(col = s_cols[1], alpha.f = 0.25), lwd = 1)
+  }
+
+dev.off()
+
+
+# plot legend
+pdf("TempFigs/Figure2_legend.pdf", height = 5, width = 8)
+plot(x = 1, y = 1, col = NA, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n", bty = "n")#, bty = "n"
+legend("left", legend = c("No restoration", "50% to reef", "100% to reef"), col = s_cols, lwd = c(3, 3, 3), lty = c(1, 1, 1), bty = "n", cex = 1.1, border = NA, seg.len = rep(3, 3), ncol = 3, text.width = c(0.15, 0.15)) 
+# legend("left", legend = c("No restoration", "50% to reef", "100% to reef"), col = s_cols, lwd = c(3, 3, 3), lty = c(1, 1, 1), bty = "n", cex = 1.1, fill = c(adjustcolor(s_cols[1], alpha.f = 0.2), adjustcolor(s_cols[2], alpha.f = 0.2), adjustcolor(s_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 3), ncol = 3, text.width = c(0.25, 0.25)) #, x.intersp = 0.5, text.width = c(5, 12)
+dev.off()
+
+```
+
+
+
 Sm figure: effects of external recruitment
 -- repeat figure 2 with external recruitment
 
@@ -2306,7 +2357,7 @@ mtext(side = 3, "a) Reef cover over 50 years", cex = lab_cx, adj = 0)
   lines(x = c(1:years), y = plot_dt$reef_cover_mn, col = s_cols[3], lwd = 2)
   polygon(x = c(c(1:years), rev(c(1:years))), y = c(plot_dt$reef_cover_low, rev(plot_dt$reef_cover_up)), col = adjustcolor(s_cols[3], alpha.f = 0.2), border = NA)
   
-legend("topleft", legend = c("none", "50% to reef", "100% to reef"), col = s_cols, lwd = c(2, 2, 2), lty = c(1, 1, 1), title = "Restoration strategy", bty = "n", cex = 1.1, fill = c(adjustcolor(s_cols[1], alpha.f = 0.2), adjustcolor(s_cols[2], alpha.f = 0.2), adjustcolor(s_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 3))
+#legend("topleft", legend = c("none", "50% to reef", "100% to reef"), col = s_cols, lwd = c(2, 2, 2), lty = c(1, 1, 1), title = "Restoration strategy", bty = "n", cex = 1.1, fill = c(adjustcolor(s_cols[1], alpha.f = 0.2), adjustcolor(s_cols[2], alpha.f = 0.2), adjustcolor(s_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 3))
 
 
 # panel B: extinction probabilities
@@ -2317,7 +2368,7 @@ mtext(side = 1, "Restoration strategy", line = 2.5, cex = lab_cx)
 #mtext(side = 2, "Prop. simulations below \nextinction threshold", line = 2.5, cex = lab_cx)
 mtext(side = 2, "Extinction probability", line = 2.5, cex = lab_cx)
 mtext(side = 3, "b) Probabilities of extinction", cex = lab_cx, adj = 0)
-axis(side = 1, at = c(1,2,3), labels = c("None", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
+axis(side = 1, at = c(1,2,3), labels = c("No \nrestoration", "50% reef \ninvestment", "100% reef \ninvestment"), tick = F, cex.axis = 0.9)
 for(i in 1:3){
   polygon(x = c(i-0.25, i + 0.25, i + 0.25, i-0.25), y = c(0, 0, ext_probs[i], ext_probs[i]), col = s_cols[i])
 
@@ -2389,6 +2440,128 @@ rect(
 dev.off()
 
 ```
+
+
+```{r}
+pdf("TempFigs/SM_fig2_lambda_inset.pdf", height = 3, width = 4)
+
+par(mfrow = c(1, 1))
+par(mar=c(0, 3.5, 2.5, 1), oma = c(4.5, 1.5, 0.1, 0))
+  
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 500), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
+#mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+#mtext(side = 2, ylab1, line = 2.9, cex = lab_cx)
+mtext(side = 3, "No restoration (all trajectories)", cex = 1.2, adj = 0.1, line = -1)
+
+  plot_dt <- ts_fun(sim_list = orch_D0_0_100, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  
+  for(i in 1:n_sample1){
+    lines(x = c(1:years), y = plot_dt$reef_cover_all[,i], col = adjustcolor(col = s_cols[1], alpha.f = 0.25), lwd = 1)
+  }
+
+dev.off()
+```
+
+
+SM figure: show the time series panels as coral cover relative to no intervention case
+
+```{r}
+
+pdf("TempFigs/SM_fig2_delta_coral.pdf", height = 3, width = 7)
+
+par(mfrow = c(2, 1))
+layout(matrix(c(1, 2), nrow = 1, ncol = 2, byrow = T), widths = c(1, 1), heights = rep(1, 2))
+#layout.show(4)
+par(mar=c(0, 1, 2.5, 0.1), oma = c(4.5, 4.5, 0.1, 0.1))
+
+
+lab_cx <- 1
+
+xlab1 <- "Year in simulation"
+ylab1 <- expression("Difference in reef cover ("*Delta*m^2*")")
+#plotlab <- "c) Reef ROI"
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 4000), las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
+mtext(side = 1, xlab1, line = 2.5, cex = lab_cx, outer = T)
+mtext(side = 2, ylab1, line = 2.9, cex = lab_cx)
+mtext(side = 3, "a) No external recruitment", cex = lab_cx, adj = 0)
+
+  plot_dt0 <- ts_fun(sim_list = orch_D0_0, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  plot_dt <- ts_fun(sim_list = orch_D0_50, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+ # View(plot_dt0$reef_cover_all)
+  
+ # reef_coverX_0 <- plot_dt$reef_cover_all - plot_dt0$reef_cover_all
+  reef_coverX_0 <- plot_dt$reef_cover_all - plot_dt0$reef_cover_all
+  
+ # min(plot_dt0$reef_cover_all)
+  
+  reef_low_plot <- apply(reef_coverX_0, 1, function(x) quantile(x, 0.05, na.rm = T))
+  reef_up_plot <- apply(reef_coverX_0, 1, function(x) quantile(x, 0.95, na.rm = T))
+  reef_mn_plot <- apply(reef_coverX_0, 1, function(x) mean(x, na.rm = T))
+  
+  lines(x = c(1:years), y = reef_mn_plot, col = s_cols[2], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(reef_low_plot, rev(reef_up_plot)), col = adjustcolor(s_cols[2], alpha.f = 0.2), border = NA)
+  
+  
+  plot_dt <- ts_fun(sim_list = orch_D0_100, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  
+  reef_coverX_0 <- plot_dt$reef_cover_all - plot_dt0$reef_cover_all
+  
+  reef_low_plot <- apply(reef_coverX_0, 1, function(x) quantile(x, 0.05, na.rm = T))
+  reef_up_plot <- apply(reef_coverX_0, 1, function(x) quantile(x, 0.95, na.rm = T))
+  reef_mn_plot <- apply(reef_coverX_0, 1, function(x) mean(x, na.rm = T))
+  
+  
+  lines(x = c(1:years), y = reef_mn_plot, col = s_cols[3], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(reef_low_plot, rev(reef_up_plot)), col = adjustcolor(s_cols[3], alpha.f = 0.2), border = NA)
+  
+legend("topleft", legend = c("50% to reef", "100% to reef"), col = s_cols[2:3], lwd = c(2, 2), lty = c(1, 1), title = "Restoration strategy", bty = "n", cex = 0.9, fill = c(adjustcolor(s_cols[2], alpha.f = 0.2), adjustcolor(s_cols[3], alpha.f = 0.2)), border = NA, merge = T, seg.len = rep(0.5, 2))
+
+
+# repeat for case with external recruitment
+
+plot(x = c(1:years), y = rep(0, years), type = "l", col = NA, ylim = c(0, 4000), las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
+axis(side = 1, at = seq(0, 50, 10), labels = seq(0, 50, 10) + 2025)
+axis(side = 2, at = seq(0, 4000, 1000), labels = NA)
+#mtext(side = 1, xlab1, line = 2.5, cex = lab_cx)
+#mtext(side = 2, ylab1, line = 2.9, cex = lab_cx)
+mtext(side = 3, "b) With external recruitment", cex = lab_cx, adj = 0)
+
+  plot_dt0 <- ts_fun(sim_list = orch_D0_0_100, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  plot_dt <- ts_fun(sim_list = orch_D0_50_100, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+ # View(plot_dt0$reef_cover_all)
+  
+ # reef_coverX_0 <- plot_dt$reef_cover_all - plot_dt0$reef_cover_all
+  reef_coverX_0 <- plot_dt$reef_cover_all - plot_dt0$reef_cover_all
+  
+ # min(plot_dt0$reef_cover_all)
+  
+  reef_low_plot <- apply(reef_coverX_0, 1, function(x) quantile(x, 0.05, na.rm = T))
+  reef_up_plot <- apply(reef_coverX_0, 1, function(x) quantile(x, 0.95, na.rm = T))
+  reef_mn_plot <- apply(reef_coverX_0, 1, function(x) mean(x, na.rm = T))
+  
+  lines(x = c(1:years), y = reef_mn_plot, col = s_cols[2], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(reef_low_plot, rev(reef_up_plot)), col = adjustcolor(s_cols[2], alpha.f = 0.2), border = NA)
+  
+  
+  plot_dt <- ts_fun(sim_list = orch_D0_100_100, n_pars = n_sample1, max_yr = years, prop_choice = 1, par2_choice = 1)
+  
+  reef_coverX_0 <- plot_dt$reef_cover_all - plot_dt0$reef_cover_all
+  
+  reef_low_plot <- apply(reef_coverX_0, 1, function(x) quantile(x, 0.05, na.rm = T))
+  reef_up_plot <- apply(reef_coverX_0, 1, function(x) quantile(x, 0.95, na.rm = T))
+  reef_mn_plot <- apply(reef_coverX_0, 1, function(x) mean(x, na.rm = T))
+  
+  
+  lines(x = c(1:years), y = reef_mn_plot, col = s_cols[3], lwd = 2)
+  polygon(x = c(c(1:years), rev(c(1:years))), y = c(reef_low_plot, rev(reef_up_plot)), col = adjustcolor(s_cols[3], alpha.f = 0.2), border = NA)
+  
+dev.off()
+
+```
+
+
 
 SM figure: sensitivity analyses
 -- for all the restoration parameters for immediate outplanting scenarios (including lambda_R and reef and orchard yield), put parameter on x-axis with default (remember only need one default run), 5 percent increase and 5 percent decrease (or 10 percent), then y-axis is percent change in reef coral cover (avg and 90% quantiles across demographic parameters), 4 lines for 50% and 100% reef investment and 5 and 50 years (red and yellow, solid and dashed)
