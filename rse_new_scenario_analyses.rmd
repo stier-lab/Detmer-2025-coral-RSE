@@ -309,7 +309,7 @@ axis(side = 1, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(1, 2, 3, 4, 5), tick 
 axis(side = 2, at = c(0.5, 1.5, 2.5, 3.5, 4.5), labels = c(5, 4, 3, 2, 1), las = 1, tick = F, line = -0.5)
 mtext(side = 1, "Final size class", line = 1.75)
 mtext(side = 2, "Initial size class", line = 1.5)
-mtext(side = 3, expression("a)"~lambda~"="~0.77~"(5% quantile)"))
+mtext(side = 3, expression("a)"~lambda~"="~0.78~"(5% quantile)"))
 #polygon(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1))
 for(i in 1:5){ # x value
   for(j in 1:5){ # y value
@@ -1904,7 +1904,7 @@ mtext(side = 1, line = 0.9, expression(m^2~"coral"), adj = 1.16)
 mtext(side = 1, line = 1.9, "% cover", adj = 1.16)
 lines(x = thresh_set, y = ext_N0_50_set, col = s_cols[2], lwd = 3)
 lines(x = thresh_set, y = ext_N0_100_set, col = s_cols[3], lwd = 3)
-legend("left", legend = c("none", "50% to reef", "100% to reef"), col = s_cols, lwd = 3, lty = c(1, 1, 1), title = "Restoration strategy", bty = "n", cex = 1)
+legend("left", legend = c("No restoration", "50% to reef", "100% to reef"), col = s_cols, lwd = 3, lty = c(1, 1, 1), title = "Restoration strategy", bty = "n", cex = 1)
 
 
 
@@ -6275,7 +6275,7 @@ rest_pars <- rest_pars_def
 G_plot <- c(LG_set[1], LG_set[1], LG_set[2], LG_set[2])
 S_plot <- c(LS_set[1], LS_set[2], LS_set[1], LS_set[2])
 
-xmax <-  100#10000
+xmax <-  130#10000
 #xmax <-  10000
 ymax <- 2
 
@@ -6295,7 +6295,7 @@ par(mar=c(0, 0.5, 0.5, 0), oma = c(4.5, 4, 2, 1))
 
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
-axis(side = 1, at = seq(0, 100, 20), labels = NA)
+axis(side = 1, at = seq(0, xmax, 30), labels = NA)
 mtext(side = 3, "5 years, no disturbance", line = 0, cex = 1)
 mtext(side = 3, "a)", adj = 0.075, line = -1)
 mtext(side = 2, "Proportional change \nin total ROI", line = 2, cex = 0.9)
@@ -6326,7 +6326,8 @@ arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_ROI), x1
 ymax <- 4
 #ymax <- 150
 
-plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA)
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n")
+axis(side = 1, at = seq(0, xmax, 30))
 #axis(side = 1, at = seq(0, 80, 20), labels = NA)
 #mtext(side = 3, "5 years", line = 0, cex = 1)
 mtext(side = 3, "c)", adj = 0.075, line = -1)
@@ -6361,7 +6362,7 @@ plot_dt <- labG_D3_dt5$dt_i
 plot_dt2 <- orch_D3_SC1LG_dt5$dt_i
 
 plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n")
-axis(side = 1, at = seq(0, 100, 20), labels = NA)
+axis(side = 1, at = seq(0, xmax, 30), labels = NA)
 axis(side = 2, at = seq(0, 2, 0.5), labels = NA)
 mtext(side = 3, "5 years, disturbance every 3 years", line = 0, cex = 1)
 mtext(side = 3, "b)", adj = 0.075, line = -1)
@@ -6391,7 +6392,8 @@ arrows(x0 = quantile(SC2L_def$reef_coral, 0.05), y0 = mean(SC2L_def$tot_ROI), x1
 
 ymax <- 4
 
-plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, yaxt = "n")
+plot(x = c(0, xmax), y = c(0, ymax), type = "l", col = NA, las = 1, xlab = NA, ylab = NA, yaxt = "n", xaxt = "n")
+axis(side = 1, at = seq(0, xmax, 30))
 axis(side = 2, at = seq(0, 4, 1), labels = NA)
 #mtext(side = 3, "5 years", line = 0, cex = 1)
 mtext(side = 3, "d)", adj = 0.075, line = -1)
@@ -6424,7 +6426,7 @@ dev.off()
 
 ```{r}
 
-xmax <-  150
+xmax <-  160
 ymax <- 15
 
 plot_dt <- labG_D0_dt50$dt_i
