@@ -3774,8 +3774,7 @@ points(x = dt_plot2$prop_out[which(dt_plot2$mean == max(dt_plot2$mean))], y = dt
 
 ```
 
-update: portfolio effect isn't very strong until you get to very high proportions outplanted to reef. So maybe instead of repeating the middle panel with disturbance, instead make some sort of heatmap plot/countour plot showing outplanting proportion that maximizes reef cover for different combinations of 1) orchard resistance to disturbance and 2) reference reef supply? OR orchard resistance to disturbance and orchard fecundity, repeated with and without reference reef supply?
-
+update: portfolio effect isn't very strong until you get to very high proportions outplanted to reef. So maybe instead of repeating the middle panel with disturbance, instead make some sort of heatmap plot/countour plot showing outplanting proportion that maximizes reef cover for different combinations of 1) orchard resistance to disturbance and 2) reference reef supply 
 
 make the plots
 
@@ -3957,6 +3956,48 @@ pdf("TempFigs/Figure3_dist_legend.pdf", height = 5, width = 6)
 plot(x = 1, y = 1, col = NA, xlab = NA, ylab = NA, xaxt = "n", yaxt = "n", bty = "n")#, bty = "n"
 legend("topleft", legend = c("none", "reef only", "reef & orchard"), lty = c(1, 2, 3), lwd = 3, col = "gray40", bty = "n", title = "Disturbance type")
 dev.off()
+```
+
+Effect sizes
+```{r}
+
+# check slope of relationships with short-term tradeoffs
+dt_plot <- orch_D0_all_dt5
+
+dt_plot1 <- dt_plot %>% filter(par2 == lambda_Rs[2]) %>% rename(metric = reef_cover_mean) %>% filter(prop_out %in% c(0, 1)) %>% select(metric, prop_out, par_rep)
+
+#View(dt_plot1)
+
+dt_plot2 <- dt_plot %>% filter(par2 == lambda_Rs[2]) %>% rename(metric = tot_ROI_mean) %>% filter(prop_out %in% c(0, 1)) %>% select(metric, prop_out, par_rep)
+
+#View(dt_plot2)
+
+coral_1vs0 <- rep(NA, n_sample1)
+ROI_0vs1 <- rep(NA, n_sample1)
+
+for(i in 1:n_sample1){
+  
+  dt_sub1 <- dt_plot1 %>% filter(par_rep == i)
+  dt_sub2 <- dt_plot2 %>% filter(par_rep == i)
+  
+  coral_1vs0[i] <- dt_sub1$metric[which(dt_sub1$prop_out == 1)]/dt_sub1$metric[which(dt_sub1$prop_out == 0)]
+  
+  ROI_0vs1[i] <- dt_sub2$metric[which(dt_sub1$prop_out == 0)]/dt_sub2$metric[which(dt_sub1$prop_out == 1)]
+  
+}
+
+#hist(coral_1vs0)
+#hist(ROI_0vs1)
+
+mean(coral_1vs0)
+quantile(coral_1vs0, 0.05)
+quantile(coral_1vs0, 0.95)
+
+mean(ROI_0vs1)
+quantile(ROI_0vs1, 0.05)
+quantile(ROI_0vs1, 0.95)
+
+
 ```
 
 
@@ -5689,9 +5730,11 @@ dev.off()
 ```
 
 
-checking the relative total ROI over 50 years
+checking effect sizes
 
 ```{r}
+
+# relative total ROI over 50 years
 
 SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
 SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt50$dt_i, dt_def = orch_D0_def_dt50$dt_i, n_sample1)
@@ -5715,7 +5758,14 @@ arrows(x0 = quantile(SC2_def$reef_coral, 0.05), y0 = mean(SC2_def$tot_ROI), x1 =
 abline(h = 1, lty = 2, col = "gray30")
 abline(v = 1, lty = 2, col = "gray30")
 
+# coral cover over 5 years without disturbance
 
+SC1L_def <- relative_metrics_fun(dt2 = orch_D0_SC1L_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+SC2_def <- relative_metrics_fun(dt2 = orch_D0_SC2_dt5$dt_i, dt_def = orch_D0_def_dt5$dt_i, n_sample1)
+
+mean(SC2_def$reef_coral)
+quantile(SC2_def$reef_coral, 0.05)
+quantile(SC2_def$reef_coral, 0.95)
 
 ```
 
