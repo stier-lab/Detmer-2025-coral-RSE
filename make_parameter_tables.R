@@ -28,7 +28,7 @@
 ## Size structure -------------------------------------------------------------
 size_lower   <- c(0, 10, 100, 900, 4000)   # lower bound of each size class (cm^2)
 size_upper   <- c(10, 100, 900, 4000, NA)  # upper bound (SC5 open-ended)
-sc5_midpoint <- 9325                       # SC5 midpoint: 50th pctile of obs > 4000 cm^2
+sc5_midpoint <- 8781                       # SC5 midpoint: 50th pctile of obs > 4000 cm^2
 
 ## Fecundity inputs -----------------------------------------------------------
 oocyte_density <- 63.6                      # oocytes per cm^2 (Mendoza-Quiroz et al. 2023)
