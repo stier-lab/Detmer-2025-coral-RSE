@@ -214,3 +214,17 @@ These are the papers we want this manuscript to read like. Each is grounded in a
 
 24 key sources loaded for AI querying:
 https://notebooklm.google.com/notebook/0ad000ef-e1ec-481e-9250-553de0cf384b
+
+
+---
+
+## Added 2026-07-15 — modeling-paper bibliography backfill
+
+Cross-checked the *Fundemar RSE paper* bibliography (53 refs) against the shared RSE Zotero group; 25 were missing and have been added there. These 6 also had no local PDF and were acquired (OA + UCSB-authenticated) and filed here + indexed in `DATABASE.csv`:
+
+- `Beier_2017_ConservationLetters_Coproduction_Actionable_Science.pdf` — Beier 2017, *Conservation Letters* (10.1111/conl.12300)
+- `Ntshotsho_2015_Sustainability_Challenges_Evidence_Base_Restoration.pdf` — Ntshotsho 2015, *Sustainability* (10.3390/su71215788)
+- `Muller_2026_ConservationBiology_Restoration_Prevents_Extirpation.pdf` — Muller 2026, *Conservation Biology* (10.1111/cobi.70168)
+- `Gornish_2024_RestorationEcology_Sharing_Knowledge.pdf` — Gornish 2024, *Restoration Ecology* (10.1111/rec.13417)
+- `Punt_2016_FishAndFisheries_MSE_Best_Practices.pdf` — Punt 2016, *Fish and Fisheries* (10.1111/faf.12104)
+- `CBD_2022_KunmingMontreal_Global_Biodiversity_Framework.pdf` — CBD 2022, *CBD COP15*
