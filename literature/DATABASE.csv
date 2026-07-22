@@ -1,64 +1,103 @@
 filename,author,year,title,journal,doi,domains,in_zotero,hero
+,Devlin-Durante,2017,Genome-wide survey of SNPs in Acropora palmata [correct PDF in coral-parameters repo; wrong PeerJ file deleted],PeerJ,10.7717/peerj.4077,A. palmata; genetics,no,no
 A_2001_CoralReefs_Condition_restored_Acropora_palmata.pdf,A,2001,CoralReefs Condition restored Acropora palmata,,,A. palmata; restoration,no,no
+ABRT_2005_NOAA_AcroporaStatusReview.pdf,ABRT,2005,Acropora Status Review,NOAA,,A. palmata; A. cervicornis; restoration,no,no
 Aeby_2011_PLOSONE_Growth_Anomalies_Coral_Genera.pdf,Aeby,2011,PLOSONE Growth Anomalies Coral Genera,,,vital rates,no,no
-Anthony_2017_NatEcolEvol_NewInterventionsNeeded.pdf,Anthony,2017,NewInterventionsNeeded,,,restoration,no,no
+Albright_2010_PNAS_OceanAcidificationRecruitment.pdf,Albright,2010,Ocean acidification compromises recruitment success of Acropora palmata,PNAS,10.1073/pnas.1007273107,A. palmata; reproduction; disturbance,no,no
+AlvarezFilip_2009_ProcRSocB_FlatteningCaribbeanReefs.pdf,Alvarez-Filip,2009,Flattening of Caribbean coral reefs: region-wide declines in architectural complexity,Proceedings of the Royal Society B,10.1098/rspb.2009.0339,reef ecology; disturbance,no,no
+Anthony_2017_NatEcolEvol_NewInterventionsNeeded.pdf,Anthony,2017,NewInterventionsNeeded,,,restoration,yes,no
+Anthony_2020_PLOSONE_Interventions_DecisionChallenge.pdf,Anthony,2020,Interventions to help coral reefs under global change - a complex decision challenge,PLoS ONE,10.1371/journal.pone.0236399,coral restoration; decision framework,yes,no
 Arias-González_2022_FrontMarSci_Editorial_Coral_Reef_Restoration.pdf,Arias-González,2022,FrontMarSci Editorial Coral Reef Restoration,,,restoration,no,no
 Babcock_1991_EcolMonogr_Comparative_Demography_Three_Species.pdf,Babcock,1991,EcolMonogr Comparative Demography Three Species,,,demography,no,no
 Bak_1983_MarBiol_Neoplasia_regeneration_growth_reefbuilding.pdf,Bak,1983,MarBiol Neoplasia regeneration growth reefbuilding,,,vital rates,no,no
+Bak_2009_BullMarSci_CoralGrowthRatesRevisited.pdf,Bak,2009,Coral growth rates revisited after 31 years,Bulletin of Marine Science,,vital rates,no,no
+Bakker_2018_JAppliedEcology_Staged-scale_restoration.pdf,Bakker,2018,Staged-scale restoration: Refining adaptive management to improve restoration effectiveness,JAppliedEcology,10.1111/1365-2664.13050,perspective ref,yes,no
 Banaszak_2023_Ecology_Applying_coral_breeding_reef.pdf,Mendoza-Quiroz,2023,Ecology Applying coral breeding reef,,,restoration,no,no
-MendozaQuiroz_2023_PeerJ_LongtermSurvivalPalmata.pdf,Mendoza-Quiroz,2023,LongtermSurvivalPalmata,,,A. palmata; vital rates,no,no
 Banaszak_2024_SciTotEnv_ThermalToleranceSexualRecruits.pdf,Banaszak,2024,ThermalToleranceSexualRecruits,,,disturbance; reproduction,no,no
 Barshis_2013_Science_Genomic_basis_coral_resilience.pdf,Barshis,2013,Science Genomic basis coral resilience,,,disturbance,no,no
 Barton_2017_RevAquac_Coral_propagation_review_techniques.pdf,Barton,2017,RevAquac Coral propagation review techniques,,,restoration,no,no
 Baskett_2010_EcolAppl_ConservationManagementCoralsClimateChange.pdf,Baskett,2010,ConservationManagementCoralsClimateChange,,,disturbance,no,no
 Baumann_2022_GlobChangeBiol_Remoteness_not_enhance_coral.pdf,Baumann,2022,GlobChangeBiol Remoteness not enhance coral,,,general,no,no
+Baums_2003_MarBiol_CorallivoreCoralliophila.pdf,Baums,2003,Ecology of a corallivorous gastropod Coralliophila abbreviata on two scleractinian hosts,Marine Biology,10.1007/s00227-003-1197-y,vital rates; A. palmata; reef ecology,yes,no
+Baums_2005_MolEcol_RegionallyIsolated_Apalmata.pdf,Baums,2005,Regionally isolated populations of an imperiled Caribbean coral Acropora palmata,Molecular Ecology,10.1111/j.1365-294X.2005.02489.x,A. palmata; genetics,no,no
+Baums_2006_EcolMonogr_GeographicVariationClonalStructure.pdf,Baums,2006,Geographic variation in clonal structure in a reef-building Caribbean coral Acropora palmata,Ecological Monographs,,A. palmata; genetics; reproduction,no,no
 Baums_2008_MolEcol_RestorationGeneticsGuide.pdf,Baums,2008,RestorationGeneticsGuide,,,genetics; restoration,no,no
 Baums_2019_AnnRevEcolEvol_AdaptiveVariationResilience.pdf,Baums,2019,AdaptiveVariationResilience,,,disturbance,no,no
-Bayraktarov_2019_Ecology_Motivations_success_cost_coral.pdf,Bayraktarov,2019,Ecology Motivations success cost coral,,,costs,no,no
+Baums_2019_EcolAppl_AdaptivePotentialRestoredCorals.pdf,Baums,2019,Considerations for maximizing the adaptive potential of restored coral populations in the western Atlantic,Ecological Applications,10.1002/eap.1978,genetics; restoration,yes,no
+Bayraktarov_2016_EcolAppl_Cost_Feasibility_MarineRestoration.pdf,Bayraktarov,2016,The cost and feasibility of marine coastal restoration,Ecological Applications,10.1890/15-1077,coral restoration; cost-effectiveness,yes,no
+Bayraktarov_2017_EcolAppl_Response_Rebutting_CostEffectiveness.pdf,Bayraktarov,2017,Response to Rebutting the inclined analyses on the cost-effectiveness and feasibility of coral reef restoration,Ecological Applications,10.1002/eap.1583,coral restoration; cost-effectiveness,yes,no
+Bayraktarov_2019_Ecology_Motivations_success_cost_coral.pdf,Bayraktarov,2019,Ecology Motivations success cost coral,,,costs,yes,no
 Beck_2011_Science_Oyster_reefs_risk_recommendations.pdf,Beck,2011,Science Oyster reefs risk recommendations,,,general,no,no
+Becker_2001_BullMarSci_CultureTransplantationStorage.pdf,Becker,2001,Culture transplantation and storage of Montastraea faveolata,Bulletin of Marine Science,,restoration,no,no
+Beier_2017_ConservationLetters_Coproduction_Actionable_Science.pdf,Beier,2017,A How-to Guide for Coproduction of Actionable Science,Conservation Letters,10.1111/conl.12300,evidence-based; co-production,yes,no
 Boettiger_2015_EcolAppl_Optimal_management_stochastically_varying.pdf,Boettiger,2015,EcolAppl Optimal management stochastically varying,,,general,no,no
 Bostrom-Einarsson_2020_CoralRestorationReview.pdf,Bostrom-Einarsson,2020,CoralRestorationReview,,,restoration,no,no
+BrownB_2014_Springer_Natural_Recruitment_Rehabilitation.pdf,BrownB,2014,"Observations of Natural Recruitment and Human Attempts at Mangrove Rehabilitation After Seismic (Tsunami and Earthquake) Events in Simeulue Island and Singkil Lagoon, Aceh, Indonesia",Springer,10.1007/978-3-319-10202-3_19,perspective ref,yes,no
+BrownCJ_2024_ProcRSocB_Speeding_up_recovery_coastal_habitats.pdf,BrownCJ,2024,Speeding up the recovery of coastal habitats through management interventions that address constraints on dispersal and recruitment,ProcRSocB,10.1098/rspb.2024.1065,perspective ref,yes,no
 Brunton_2003_Oecologia_Density_sizedependent_mortality_settling.pdf,Brunton,2003,Oecologia Density sizedependent mortality settling,,,vital rates,no,no
 Burgo_1996_CoralReefs_structure_composition_macroalgal_communities.pdf,Burgo,1996,CoralReefs structure composition macroalgal communities,,,general,no,no
-Burkepile_2020_E_Nitrogen_Identity_Drives_Differential.pdf,Burkepile,2020,Different nitrogen sources speed recovery from corallivory and uniquely alter the microbiome of a reef-building coral,PeerJ,10.7717/peerj.8056,general,yes,no
 Burkepile_2020_E_Nitrogen_Identity_Drives_Differential_2.pdf,Burkepile,2020,Different nitrogen sources speed recovery from corallivory and uniquely alter the microbiome of a reef-building coral,PeerJ,10.7717/peerj.8056,general,yes,no
+Burkepile_2020_E_Nitrogen_Identity_Drives_Differential.pdf,Burkepile,2020,Different nitrogen sources speed recovery from corallivory and uniquely alter the microbiome of a reef-building coral,PeerJ,10.7717/peerj.8056,general,yes,no
+Bythell_1993_CoralReefs_ChronicCatastrophicMortality.pdf,Bythell,1993,Chronic and catastrophic natural mortality of three common Caribbean reef corals,Coral Reefs,,disturbance; vital rates; A. palmata,no,no
 Cameron_2018_SciRep_Density_coral_larvae_can.pdf,Cameron,2018,"Density of coral larvae can influence settlement, post-settlement colony abundance and coral cover in larval restoration",Scientific Reports,10.1038/s41598-020-62366-4,reproduction; restoration,yes,no
 Canessa_2019_AdaptiveMgmtSalamander.pdf,Canessa,2019,AdaptiveMgmtSalamander,,,general,no,no
 Canessa_2023_OptimalReintroductionPlan.pdf,Canessa,2023,OptimalReintroductionPlan,,,MSE/decisions,no,yes
 Canessa_2025_ConsLett_Simulating_Demography_Monitoring_Management.pdf,Canessa,2025,ConsLett Simulating Demography Monitoring Management,,,demography,no,yes
 Carturan_2020_CombiningModelingApproaches.pdf,Carturan,2020,CombiningModelingApproaches,,,general,no,no
+CBD_2022_KunmingMontreal_Global_Biodiversity_Framework.pdf,CBD,2022,Kunming-Montreal Global Biodiversity Framework (Decision 15/4),CBD COP15,,policy,yes,no
 Chamberland_2015_Ecology_Restoration_critically_endangered_elkhorn.pdf,Chamberland,2015,Ecology Restoration critically endangered elkhorn,,,A. palmata; restoration,no,yes
+Chen_2020_DivDistrib_SpatiotemporalElkhorn.pdf,Chen,2020,Spatiotemporal patterns of elkhorn coral,Diversity and Distributions,,A. palmata; demography,no,no
 Clements_2019_Ecology_Biodiversity_enhances_coral_growth.pdf,Clements,2019,Ecology Biodiversity enhances coral growth,,,vital rates,no,no
 Comeau_2014_Ecology_Effects_irradiance_response_coral.pdf,Comeau,2014,Ecology Effects irradiance response coral,,,general,no,no
 Converse_2013_DemographicsReintroduced.pdf,Converse,2013,DemographicsReintroduced,,,demography,no,no
+Crabbe_2013_AJCC_CoralReefPopulationsCaribbean.pdf,Crabbe,2013,Coral reef populations in the Caribbean,American Journal of Climate Change,,demography; reef ecology,no,no
 Crabbe_2018_MER_Scleractinian_coral_population_size.pdf,Crabbe,2018,Scleractinian coral population size structures and growth rates indicate coral resilience on the fringing reefs of North Jamaica,Marine Environmental Research,10.1016/j.marenvres.2009.01.003,disturbance; vital rates,yes,no
 Cresswell_2016_Ecology_Coral_reef_state_influences.pdf,Cresswell,2016,Ecology Coral reef state influences,,,general,no,no
+Croquer_2016_PeerJ_Recovery_Apalmata.pdf,Croquer,2016,Is Acropora palmata recovering? A case study in Los Roques Venezuela,PeerJ,,A. palmata; vital rates; restoration,no,no
+Crouse_1987_Ecology_StageBased_Loggerhead_Turtles.pdf,Crouse,1987,A stage-based population model for loggerhead sea turtles,Ecology,,demography; MSE/decisions,no,no
 Dajka_2019_CoralReefs_Uncovering_drivers_juvenile_coral.pdf,Dajka,2019,CoralReefs Uncovering drivers juvenile coral,,,general,no,no
 DeFilippo_2022_DemographicRestoration.pdf,DeFilippo,2022,DemographicRestoration,,,demography; restoration,no,no
 Dehnert_2022_PeerJ_Comparing_different_farming_habitats.pdf,Dehnert,2022,Comparing different farming habitats for mid-water rope nurseries to advance coral restoration efforts in the Maldives,PeerJ,10.7717/peerj.12874,restoration,yes,no
+delaCruz_2017_LarvalSupplyRecruitment.pdf,delaCruz,2017,LarvalSupplyRecruitment,,,reproduction,no,no
+DeMoor_2023_CJFAS_Ecosystem-based_fisheries_management.pdf,DeMoor,2023,"Explicitly incorporating ecosystem-based fisheries management into management strategy evaluation, with a focus on small pelagics",CJFAS,10.1139/cjfas-2023-0092,perspective ref,yes,no
+Deroba_2018_CJFAS_Dream_and_reality_decision-making.pdf,Deroba,2018,"The dream and the reality: meeting decision-making time frames while incorporating ecosystem and economic models into management strategy evaluation,",CJFAS,10.1139/cjfas-2018-0128,perspective ref,yes,no
+Diefenderfer_2016_Ecosphere_Evidence-based_cumulative_effects.pdf,Diefenderfer,2016,Evidence-based evaluation of the cumulative effects of ecosystem restoration,Ecosphere,10.1002/ecs2.1242,perspective ref,yes,no
 DiFiore_2019_MEPS_Grazing_halos_coral_reefs.pdf,DiFiore,2019,"Grazing halos on coral reefs: predation risk, herbivore density, and habitat size influence grazing patterns that are visible from space",Marine Ecology Progress Series,10.3354/meps13074,general,yes,no
 Done_1987_CoralReefs_Simulation_effects_Acanthaster_planci.pdf,Done,1987,CoralReefs Simulation effects Acanthaster planci,,,general,no,no
 Doo_2018_CoralReefs_Obligate_ectosymbionts_increase_physiological.pdf,Doo,2018,CoralReefs Obligate ectosymbionts increase physiological,,,general,no,no
 Doropoulos_2017_EcolMonogr_Characterizing_ecological_tradeoffs_throughout.pdf,Doropoulos,2017,EcolMonogr Characterizing ecological tradeoffs throughout,,,general,no,no
 Doropoulos_2018_CoralReefs_Exploring_variable_patterns_densitydependent.pdf,Doropoulos,2018,CoralReefs Exploring variable patterns densitydependent,,,general,no,no
 Drury_2017_GenotypeEnvironmentSurvivorship.pdf,Drury,2017,GenotypeEnvironmentSurvivorship,,,genetics; vital rates,no,no
+Duarte_2020_Nature_Rebuilding_marine_life.pdf,Duarte,2020,Rebuilding marine life,Nature,10.1038/s41586-020-2146-7,perspective ref,yes,no
 Dufault_2012_Science_Effects_diurnally_oscillating_pCO2.pdf,Dufault,2012,Science Effects diurnally oscillating pCO2,,,general,no,no
+Edmunds_2014_Bull_Mar_sci.pdf,Edmunds,2014,Large numbers of Acropora palmata grow in shallow water St John,BullMarSci,10.5343/bms.2014.1027,modeling ref,yes,no
 Edmunds_2015_QuarterCenturyDemographic.pdf,Edmunds,2015,QuarterCenturyDemographic,,,demography,no,no
 Edmunds_2018_Ecology_Densitydependence_mediates_coral_assemblage.pdf,Edmunds,2018,Ecology Densitydependence mediates coral assemblage,,,general,no,no
 Edmunds_2020_MEPS_Urgent_need_coral_demography.pdf,Edmunds,2020,Urgent need for coral demography in a world where corals are disappearing,Marine Ecology Progress Series,10.3354/meps13205,demography,yes,yes
 Edmunds_2022_CoralReefs_Finding_signals_noise_coral.pdf,Edmunds,2022,CoralReefs Finding signals noise coral,,,general,no,no
 Eh_1995_MEPS_Agerelated_deterioration_physiological_function.pdf,Eh,1995,MEPS Agerelated deterioration physiological function,,,general,no,no
+Elder_2023_ISMEJ_HeterologousSymbiont.pdf,Elder,2023,Long-term maintenance of a heterologous Durusdinium symbiont in Acropora palmata,ISME Journal,10.1101/2022.08.13.503876,A. palmata; symbiosis,yes,no
 Epstein_2001_Ecology_isolated_ramets_coral_colonies.pdf,Epstein,2001,Ecology isolated ramets coral colonies,,,general,no,no
+Erwin_2010_CoralReefs_SettlementInductionGLWamide.pdf,Erwin,2010,Settlement induction of Acropora palmata planulae by a GLW-amide neuropeptide,Coral Reefs,,A. palmata; reproduction,no,no
 Fong_1995_Ecology_Hurricanes_Cause_Population_Expansion.pdf,Fong,1995,Ecology Hurricanes Cause Population Expansion,,,disturbance,no,no
-Forrester_1995_Oecologia_Strong_densitydependent_survival_recruitment.pdf,Forrester,1995,Oecologia Strong densitydependent survival recruitment,,,reproduction; vital rates,no,no
 Forrester_1995_Oecologia_Strong_densitydependent_survival_recruitment_2.pdf,Forrester,1995,Oecologia Strong densitydependent survival recruitment 2,,,reproduction; vital rates,no,no
-Forrester_2026_Ecology_Evaluating_Methods_Transplanting_Endangered.pdf,Forrester,2026,Ecology Evaluating Methods Transplanting Endangered,,,restoration,no,no
+Forrester_1995_Oecologia_Strong_densitydependent_survival_recruitment.pdf,Forrester,1995,Oecologia Strong densitydependent survival recruitment,,,reproduction; vital rates,no,no
+Forrester_2011_RestEcol_EvaluatingMethodsTransplanting.pdf,Forrester,2011,Evaluating methods for transplanting endangered elkhorn corals in the Virgin Islands,Restoration Ecology,10.1111/j.1526-100X.2010.00664.x,restoration,yes,no
+Forrester_2014_AquatConserv_LongtermSurvivalColonyGrowth.pdf,Forrester,2014,Long-term survival and colony growth of Acropora palmata fragments transplanted by volunteers,Aquatic Conservation,10.1002/aqc.2374,A. palmata; restoration; vital rates,no,no
 Froehlich_2017_Science_When_hypoxia_affect_management.pdf,Froehlich,2017,Supercharge your research: a ten-week plan for open data science,Nature,10.1038/d41586-019-03335-4,general,yes,no
 Funes-Rodríguez_2015_TAFS_Influence_hydrographic_conditions_distribution.pdf,Funes-Rodríguez,2015,Influence of hydrographic conditions on the distribution of spiny lobster larvae off the west coast of baja california,Transactions of the American Fisheries Society,10.1080/00028487.2015.1083474,general,yes,no
 GallagherMB_2007_Stability_behavioral_syndromes_plasticity.pdf,GallagherMB,2007,Stability behavioral syndromes plasticity,,,general,no,no
+Gardner_2003_Science_CaribbeanCoralDecline.pdf,Gardner,2003,Long-term region-wide declines in Caribbean corals,Science,10.1126/science.1086050,disturbance; reef ecology,no,no
+Garrison_2008_BiolCons_StormFragments_Apalmata.pdf,Garrison,2008,Storm-generated fragments — a viable source of transplants for reef rehabilitation,Biological Conservation,,A. palmata; restoration,no,no
+Gerber_2018_Science_Endangered_Recovery_ResourceAllocation.pdf,Gerber,2018,Endangered species recovery and resource allocation,Science,,MSE/decisions,no,no
+Gladfelter_1978_BullMarSci_GrowthRatesReefCorals.pdf,Gladfelter,1978,Growth rates of five reef-building corals in the northeastern Caribbean,Bulletin of Marine Science,,vital rates; A. palmata,yes,no
 Goergen_2025_Guide_Coral_Reef_Restoration.pdf,Goergen,2025,Guide to Coral Reef Restoration: Optimizing efficiency and scale for in situ nurseries and outplanting,,10.5281/ZENODO.15350846,restoration,yes,no
+GonzalezBarrios_2018_EcolInd_SpeciesContribution.pdf,González-Barrios,2018,Species contribution to reef architectural complexity,Ecological Indicators,,reef ecology,no,no
+Gornish_2024_RestorationEcology_Sharing_Knowledge.pdf,Gornish,2024,Sharing knowledge to improve ecological restoration outcomes,Restoration Ecology,10.1111/rec.13417,co-production; restoration,yes,no
 Griffin_2015_Ecology_Densitydependent_effects_initial_growth.pdf,Griffin,2015,Ecology Densitydependent effects initial growth,,,vital rates,no,no
+GroberDunsmore_2006_MEPS_RecoveryInhibitorsPalmata.pdf,Grober-Dunsmore,2006,Potential inhibitors to recovery of Acropora palmata populations in St. John US Virgin Islands,Marine Ecology Progress Series,10.3354/meps321123,A. palmata; restoration; vital rates,no,no
 Guest_2014_ClosingTheCircle.pdf,Guest,2014,ClosingTheCircle,,,general,no,no
+Hagedorn_2021_PNAS_AssistedGeneFlow_Apalmata.pdf,Hagedorn,2021,Assisted gene flow using cryopreserved sperm in critically endangered coral,PNAS,,A. palmata; genetics; restoration,no,no
 Hall_2021_CoralSensitivityDisturbed.pdf,Hall,2021,CoralSensitivityDisturbed,,,disturbance,no,no
 Hall_2023_MarPollBull_Lesion_recovery_two_scleractinian.pdf,Hall,2023,MarPollBull Lesion recovery two scleractinian,,,vital rates,no,no
 Hein_2017_Ecology_need_broader_ecological_socioeconomic.pdf,Hein,2017,Ecology need broader ecological socioeconomic,,,costs,no,no
@@ -67,66 +106,110 @@ Heinlein_2014_CoralReefs_Predators_reduce_abundance_species.pdf,Heinlein,2014,Co
 Heppell_1996_HeadstartingTurtles.pdf,Heppell,1996,HeadstartingTurtles,,,MSE/decisions,no,no
 Highsmith_1980_Oecologia_Survival_hurricanegenerated_coral_fragments.pdf,Highsmith,1980,Oecologia Survival hurricanegenerated coral fragments,,,disturbance; vital rates,no,no
 Highsmith_1982_ReproductionFragmentation.pdf,Highsmith,1982,ReproductionFragmentation,,,reproduction; vital rates,no,no
+HimesBoor_2014_ConservationBiology_Recovery_criteria_framework.pdf,HimesBoor,2014,A Framework for Developing Objective and Measurable Recovery Criteria for Threatened and Endangered Species,ConservationBiology,10.1111/cobi.12155,perspective ref,yes,no
 Hobbs_2012_JB_Biogeography_structure_coral_reef.pdf,Hobbs,2012,Biogeography and the structure of coral reef fish communities on isolated islands,Journal of Biogeography,10.1111/j.1365-2699.2011.02576.x,general,yes,no
+Hoegh-Guldberg_2007_Science_ClimateChangeReefs.pdf,Hoegh-Guldberg,2007,Coral reefs under rapid climate change and ocean acidification,Science,10.1126/science.1152509,disturbance; reef ecology,no,no
+Howlett_2022_OceanCoastalMgmt_Coral_propagation_outplanting.pdf,Howlett,2022,Adoption of coral propagation and out-planting via the tourism industry,OceanCoastalMgmt,10.1016/j.ocecoaman.2022.106199,perspective ref,yes,no
+Hughes_1980_Science_DoCoralsLieAboutAge.pdf,Hughes,1980,Do corals lie about their age?,Science,,vital rates; demography,no,no
 Hughes_1984_PopulationDynamicsSize.pdf,Hughes,1984,PopulationDynamicsSize,,,general,no,no
+Hughes_2000_Ecology_SupplySideEcology.pdf,Hughes,2000,Supply-side ecology works both ways: the link between benthic adults fecundity and larval recruits,Ecology,10.1890/0012-9658(2000)081[2241:SSEWBW]2.0.CO;2,reproduction; density dependence,no,no
+Hughes_2017_Nature_MassBleaching.pdf,Hughes,2017,Global warming and recurrent mass bleaching of corals,Nature,10.1038/nature21707,disturbance,no,no
 Hughes_2023_OE_Principles_coral_reef_restoration.pdf,Hughes,2023,Principles for coral reef restoration in the anthropocene,One Earth,10.1016/j.oneear.2023.04.008,restoration,yes,no
 Humanes_2021_LarvalSupplyRecruitment.pdf,Humanes,2021,LarvalSupplyRecruitment,,,reproduction,no,no
+Humanes_2024_NatCommun_SelectiveBreedingHeatTolerance.pdf,Humanes,2024,Selective breeding enhances coral heat tolerance (A. digitifera - not A. palmata),Nature Communications,10.1038/s41467-024-52895-1,general,yes,no
+Iacona_2017_PNAS_Waiting_Optimal_Conservation.pdf,Iacona,2017,Waiting can be an optimal conservation strategy,PNAS,,MSE/decisions,no,no
+Irwin_2017_CoralReefs_AgeIntraspecificDiversity.pdf,Irwin,2017,Age and intraspecific diversity of resilient Acropora communities,Coral Reefs,,A. palmata; genetics,no,no
+JordanDahlgren_1992_BullMarSci_RecolonizationPalmata.pdf,Jordán-Dahlgren,1992,Recolonization patterns of Acropora palmata in a marginal environment,Bulletin of Marine Science,,A. palmata; restoration; vital rates,no,no
 Karlson_1996_Ecology_DensityDependent_Dynamics_Soft_Coral.pdf,Karlson,1996,Ecology DensityDependent Dynamics Soft Coral,,,general,no,no
 Kayal_1997_Ecology_Predicting_coral_community_recovery.pdf,Kayal,1997,Ecology Predicting coral community recovery,,,general,no,no
+Kenyon_2024_GlobChangeBiol_MaterialLegacies_Rubble.pdf,Kenyon,2024,Material legacies on coral reefs: rubble length and bed thickness are key drivers of rubble bed recovery,Global Change Biology,10.1111/gcb.17574,coral restoration; rubble stabilization,yes,no
 Kittinger_2016_REC_Restoring_ecosystems_restoring_community.pdf,Kittinger,2016,"Restoring ecosystems, restoring community: socioeconomic and cultural dimensions of a community-based coral reef restoration project",Regional Environmental Change,10.1007/s10113-013-0572-x,costs; restoration,yes,no
 Knapp_2022_PeerJ_Coral_microfragmentation_assays_optimizing.pdf,Knapp,2022,PeerJ Coral microfragmentation assays optimizing,,,vital rates,no,no
+Knowlton_1990_PostHurricanePredation.pdf,Knowlton,1990,Post-hurricane predation on Acropora palmata,Proceedings ICRS,,A. palmata; reef ecology,no,no
 Kopecky_2019_CoralReefs_Effects_corallivory_coral_colony.pdf,Kopecky,2019,CoralReefs Effects corallivory coral colony,,,general,no,no
 Kopecky_2023_Ecology_Material_legacies_can_degrade.pdf,Kopecky,2023,Ecology Material legacies can degrade,,,general,no,no
 Kopecky_2025_EcolAppl_Removing_dead_coral_marine.pdf,Kopecky,2025,EcolAppl Removing dead coral marine,,,general,no,no
 Koval_2020_PeerJ_Fish_predation_hinders_success.pdf,Koval,2020,Fish predation hinders the success of coral restoration efforts using fragmented massive corals,PeerJ,10.7717/peerj.9978,restoration; vital rates,yes,no
 Kuffner_2020_ESR_RestorationSurvival_Apalmata.pdf,Kuffner,2020,Reestablishing a stepping-stone population of the threatened elkhorn coral,Endangered Species Research,,A. palmata; restoration; vital rates,no,no
-LaPeyre_2013_Temporal_variation_development_ecosystem.pdf,LaPeyre,2013,Temporal variation development ecosystem,,,general,no,no
+Lachs_2023_CommunBiol_NoTradeoffs_HeatTolerance.pdf,Lachs,2023,No apparent trade-offs associated with heat tolerance in a reef-building coral,Communications Biology,10.1038/s42003-023-04758-6,coral restoration; assisted evolution,yes,no
 Ladd_2018_Ecology_Harnessing_ecological_processes_facilitate.pdf,Ladd,2018,Ecology Harnessing ecological processes facilitate,,,general,no,no
 Ladd_2018_FrontMarSci_Density_Dependence_Drives_Habitat.pdf,Ladd,2018,FrontMarSci Density Dependence Drives Habitat,,,density dependence,no,no
+Ladd_2024_SciRep_AcclimationSizePredation.pdf,Ladd,2024,Acclimation size and predation,Scientific Reports,,density dependence; vital rates,no,no
 Ladd_2025_Ecology_Nearterm_impacts_coral_restoration.pdf,Ladd,2025,Ecology Nearterm impacts coral restoration,,,restoration,no,no
+LaPeyre_2013_Temporal_variation_development_ecosystem.pdf,LaPeyre,2013,Temporal variation development ecosystem,,,general,no,no
+Lasker_1988_BiolBull_ForagingPatternsCyphoma.pdf,Lasker,1988,Foraging patterns of Cyphoma gibbosum on octocorals,Biological Bulletin,10.2307/1541945,reef ecology,no,no
 Lecchini_2004_CRB_Experimental_assessment_sensory_abilities.pdf,Lecchini,2004,Experimental assessment of sensory abilities of coral reef fish larvae in the detection of their settlement location,C. R. Biologies,,reproduction,yes,no
 Lecchini_2005_Oecologia_Larval_sensory_abilities_mechanisms.pdf,Lecchini,2005,Oecologia Larval sensory abilities mechanisms,,,general,no,no
 Lecchini_2006_IchthyolRes_Evidence_densityindependent_mortality_settling.pdf,Lecchini,2006,IchthyolRes Evidence densityindependent mortality settling,,,vital rates,no,no
-Lirman_1992_MEPS_Lesion_regeneration_branching_coral.pdf,Lirman,1992,"Lesion regeneration in the branching coral Acropora palmata: effects of colonization, colony size, lesion size, and lesion shape",Marine Ecology Progress Series,10.3354/meps197209,A. palmata; vital rates,yes,no
+Lester_2020_GlobalChangeBiology_Caribbean_reefs_Anthropocene.pdf,Lester,2020,Caribbean reefs of the Anthropocene: Variance in ecosystem metrics indicates bright spots on coral depauperate reefs,GlobalChangeBiology,10.1111/gcb.15253,perspective ref,yes,no
+Leung_2024_EnvironMonitAssess_Mapping_Susceptibility_Rubble.pdf,Leung,2024,Mapping the susceptibility of reefs to rubble accumulation across the Great Barrier Reef,Environmental Monitoring & Assessment,10.1007/s10661-024-12344-4,coral restoration; rubble stabilization,yes,no
+Leung_2025_JEnvManage_DecisionSupport_RubbleStabilization.pdf,Leung,2025,A decision support tool for rubble stabilization on coral reefs,Journal of Environmental Management,10.1016/j.jenvman.2025.128154,coral restoration; rubble stabilization; decision support,yes,no
+Lighty_1982_CoralReefs_SeaLevelIndicator.pdf,Lighty,1982,Acropora palmata reef framework: a reliable indicator of sea level,Coral Reefs,,A. palmata; reef ecology,no,no
+Lirman_1997_JCoastalRes_PatternsDamageHurricaneAndrew.pdf,Lirman,1997,Patterns of damage to the branching coral Acropora palmata following Hurricane Andrew,Journal of Coastal Research,,A. palmata; disturbance,no,no
 Lirman_2000_Ecology_Fragmentation_branching_coral_Acropora.pdf,Lirman,2000,Ecology Fragmentation branching coral Acropora,,,vital rates,no,no
+Lirman_2000_MEPS_LesionRegeneration.pdf,Lirman,2000,"Lesion regeneration in the branching coral Acropora palmata: effects of colonization, colony size, lesion size, and lesion shape",Marine Ecology Progress Series,10.3354/meps197209,A. palmata; vital rates,yes,no
 Lirman_2003_SimulationAcropora.pdf,Lirman,2003,SimulationAcropora,,,general,no,no
 Lirman_2010_CoralReefs_Propagation_threatened_staghorn_coral.pdf,Lirman,2010,CoralReefs Propagation threatened staghorn coral,,,A. cervicornis; restoration,no,no
 Lirman_2016_EcologicalSolutionsReefDegradation.pdf,Lirman,2016,EcologicalSolutionsReefDegradation,,,general,no,yes
 Lorenzen_2000_OptimalReleaseSize.pdf,Lorenzen,2000,OptimalReleaseSize,,,general,no,yes
 Lorenzen_2005_StockEnhancement.pdf,Lorenzen,2005,StockEnhancement,,,general,no,yes
-Matz_2024_SelectiveBreedingHeatTolerance.pdf,Matz,2024,SelectiveBreedingHeatTolerance,,,general,no,no
+Madin_2014_SizeDependentMortality.pdf,Madin,2014,Size-dependent mortality in corals,,,vital rates; demography,no,no
+Madin_2020_GrowthPartialMortality.pdf,Madin,2020,Growth and partial mortality in corals,,,vital rates; demography,no,no
+Madin_2023_JApplEcol_Selecting_Coral_Species_Restoration.pdf,Madin,2023,Selecting coral species for reef restoration,Journal of Applied Ecology,10.1111/1365-2664.14447,coral restoration; species selection,yes,no
+Manzello_2025_Science_HeatDrivenExtinctionAcropora.pdf,Manzello,2025,Heat-driven functional extinction of Caribbean Acropora corals from Florida Coral Reef,Science,,A. palmata; disturbance; vital rates,no,no
+Maurer_2022_PLOSONE_Survival_Apalmata.pdf,Maurer,2022,Survival of Acropora palmata outplants,PLOS ONE,,A. palmata; restoration; vital rates,no,no
 Mayfield_1999_TJ_effects_variable_temperature_regime.pdf,Mayfield,1999,The effects of a variable temperature regime on the physiology of the reef-building coral Seriatopora hystrix: results from a laboratory-based reciprocal transplant.,The Journal of experimental biology,10.1242/jeb.071688,restoration,yes,no
 Melbourne-Thomas_2011_CoralReefScenarioModeling.pdf,Melbourne-Thomas,2011,CoralReefScenarioModeling,,,general,no,no
+MendozaQuiroz_2023_PeerJ_LongtermSurvivalPalmata.pdf,Mendoza-Quiroz,2023,LongtermSurvivalPalmata,,,A. palmata; vital rates,no,no
 Mercado-Molina_2015_DemographyCervicornis.pdf,Mercado-Molina,2015,DemographyCervicornis,,,A. cervicornis; demography,no,no
 Miller_2016_ReefScaleTrendsAcropora.pdf,Miller,2016,ReefScaleTrendsAcropora,,,general,no,no
+Miller_2020_peerj.pdf,Miller,2020,Larval longevity and competency patterns of Caribbean Acropora,PeerJ,10.7717/peerj.9705,modeling ref,yes,no
 Moore_2018_OysterRestorationDensityDependence.pdf,Moore,2018,OysterRestorationDensityDependence,,,restoration,no,yes
 Moriarty_2004_TM_Coral_disease_causes_consequences.pdf,Moriarty,2004,"Coral disease causes, consequences, and risk within coral restoration",Trends in Microbiology,10.1016/j.tim.2020.06.002,restoration,yes,no
+Morrison_2022_NatureClimateChange_Radical_interventions.pdf,Morrison,2022,Radical interventions for climate-impacted systems,NatureClimateChange,10.1038/s41558-022-01542-y,perspective ref,yes,no
 Mulla_2024_RecoveryDespiteNegativeGrowth.pdf,Mulla,2024,RecoveryDespiteNegativeGrowth,,,vital rates,no,no
+Muller_2014_PLOSONE_WhitePoxSusceptibility.pdf,Muller,2014,White pox disease susceptibility in Acropora palmata,PLOS ONE,,A. palmata; disturbance,no,no
+Muller_2025_AssistedGeneFlow_Apalmata.pdf,Muller,2025,Assisted gene flow for Acropora palmata restoration,,,A. palmata; genetics; restoration,no,no
+Muller_2026_ConservationBiology_Restoration_Prevents_Extirpation.pdf,Muller,2026,Success of restoration strategies in preventing extirpation of 2 critically endangered Acropora,Conservation Biology,10.1111/cobi.70168,A. palmata; restoration; MSE,yes,no
 Mullin_2023_HeadstartingDiminishingReturns.pdf,Mullin,2023,HeadstartingDiminishingReturns,,,MSE/decisions,no,yes
 Mumby_2007_ThresholdsResilience.pdf,Mumby,2007,ThresholdsResilience,,,disturbance,no,no
+Mumby_2021_LimnolOceanogrMethods_ReconnectingReefRecovery.pdf,Mumby,2021,Reconnecting reef recovery in a world of coral bleaching,Limnology & Oceanography: Methods,10.1002/lom3.10455,coral restoration; recovery prioritization,yes,no
 Nedimyer_2011_CoralTreeNursery.pdf,Nedimyer,2011,CoralTreeNursery,,,restoration,no,no
 Nixon_2025_RearingTechniquesSexualCorals.pdf,Nixon,2025,RearingTechniquesSexualCorals,,,reproduction,no,no
+Ntshotsho_2015_Sustainability_Challenges_Evidence_Base_Restoration.pdf,Ntshotsho,2015,Identifying Challenges to Building an Evidence Base for Restoration Practice,Sustainability,10.3390/su71215788,evidence-based; restoration,yes,no
+ODea_2021_Biol_Rev.pdf,ODea,2021,PRISMA-EcoEvo reporting guidelines,BiolRev,10.1111/brv.12721,modeling ref,yes,no
 Olsen_2016_CoralReefs_Differential_larval_settlement_responses.pdf,Olsen,2016,CoralReefs Differential larval settlement responses,,,reproduction,no,no
 Omori_2017_MarBiol_Coral_restoration_research_technical.pdf,Omori,2017,MarBiol Coral restoration research technical,,,restoration,no,no
 Oppen_2014_CoralReefs_Firstgeneration_fitness_consequences_interpopulational.pdf,Oppen,2014,CoralReefs Firstgeneration fitness consequences interpopulational,,,general,no,no
+OrtizProsper_2005_HurricaneFragmentPopDynamics.pdf,Ortiz-Prosper,2005,"Population Dynamics of Hurricane-Generated Fragments of Elkhorn Coral Acropora palmata (Lamarck, 1816)",,,A. palmata; demography; disturbance; vital rates,yes,no
 Overholtzer-McLeod_2004_MEPS_Variance_reef_spatial_structure.pdf,Overholtzer-McLeod,2004,Variance in reef spatial structure masks density dependence in coral-reef fish populations on natural versus artificial reefs,Marine Ecology Progress Series,,density dependence,yes,no
 Page_2018_EcolEng_Microfragmenting_successful_restoration_slow.pdf,Page,2018,EcolEng Microfragmenting successful restoration slow,,,restoration; vital rates,no,no
 Papke_2004_FrontMarSci_Differential_Effects_Substrate_Type.pdf,Papke,2004,FrontMarSci Differential Effects Substrate Type,,,general,no,no
+Patterson_2002_PNAS_EtiologyWhitePox.pdf,Patterson,2002,The etiology of white pox a lethal disease of Caribbean elkhorn coral,PNAS,10.1073/pnas.092260099,A. palmata; disturbance,no,no
 Pausch_2026_MEPS_Impacts_fragment_genotype_habitat.pdf,Pausch,2026,"Impacts of fragment genotype, habitat, and size on outplanted elkhorn coral success under thermal stress",Marine Ecology Progress Series,10.3354/meps12488,A. palmata; disturbance; genetics; restoration; vital rates,yes,no
 Phillips_2006_CoralReefs_Live_coral_cover_may.pdf,Phillips,2006,CoralReefs Live coral cover may,,,general,no,no
+Piczak_2023_EnvSystDecis_Structured_decision_making.pdf,Piczak,2023,Structured decision making remains underused in ecological restoration despite opportunities,EnvSystDecis,10.1007/s10669-023-09940-z,perspective ref,yes,no
 Piñón-González_2018_FrontMarSci_Effects_Partial_Mortality_Growth.pdf,Piñón-González,2018,FrontMarSci Effects Partial Mortality Growth,,,vital rates,no,no
+Polato_2011_PLOSONE_GeneDiscovery_Apalmata.pdf,Polato,2011,Gene discovery in the threatened elkhorn coral,PLOS ONE,,A. palmata; genetics,no,no
 Pratchett_2020_SciRep_Sizespecific_recolonization_success_coraldwelling.pdf,Pratchett,2020,SciRep Sizespecific recolonization success coraldwelling,,,general,no,no
-Prosper_1985_CoralReefs_PopDynamicsHurricaneFragments.pdf,Prosper,1985,"Population Dynamics of Hurricane-Generated Fragments of Elkhorn Coral Acropora palmata (Lamarck, 1816)",,,A. palmata; demography; disturbance; vital rates,yes,no
 Punt_2014_MSE_BestPractices.pdf,Punt,2014,MSE BestPractices,,,MSE/decisions,no,no
+Punt_2016_FishAndFisheries_MSE_Best_Practices.pdf,Punt,2016,Management strategy evaluation: best practices,Fish and Fisheries,10.1111/faf.12104,MSE/decisions,yes,no
+Ramos_2024_Cuba_ReefCrests.pdf,Ramos,2024,Acropora palmata reef crests in Cuba,,,A. palmata; restoration,no,no
 Randall_2009_BiolBull_Elevated_Temperature_Affects_Development.pdf,Randall,2009,BiolBull Elevated Temperature Affects Development,,,general,no,no
 Raymundo_2004_EcolAppl_Getting_Bigger_Faster_Mediation.pdf,Raymundo,2004,EcolAppl Getting Bigger Faster Mediation,,,general,no,no
 Redpath_2011_BR_Dont_forget_look_down.pdf,Redpath,2011,Don't forget to look down – collaborative approaches to predator conservation,Biological Reviews,10.1111/brv.12326,general,yes,no
 Reeves_2020_FrontMarSci_Facilitating_better_outcomes_How.pdf,Reeves,2020,FrontMarSci Facilitating better outcomes How,,,general,no,no
+Rice_2020_PeerJ_NitrogenSourcesCorallivory.pdf,Rice,2020,Nitrogen sources and corallivory,PeerJ,,reef ecology,no,no
 Rinkevich_2005_ConservationActiveRestoration.pdf,Rinkevich,2005,ConservationActiveRestoration,,,restoration,no,no
 Rinkevich_2014_COES_Rebuilding_coral_reefs_active.pdf,Rinkevich,2014,Rebuilding coral reefs: does active reef restoration lead to sustainable reefs?,Current Opinion in Environmental Sustainability,10.1016/j.cosust.2013.11.018,restoration,yes,no
+RitsonWilliams_2010_CoralReefs_LarvalSettlementPreferences.pdf,Ritson-Williams,2010,Larval settlement preferences and post-settlement survival of Acropora palmata,Coral Reefs,10.1007/s00338-009-0555-z,A. palmata; reproduction,no,no
 Roff_2018_PLOSONE_Spatial_Patterns_Parrotfish_Corallivory.pdf,Roff,2018,PLOSONE Spatial Patterns Parrotfish Corallivory,,,general,no,no
 Rogers_1979_Science_Effects_Hurricanes_David_Frederic.pdf,Rogers,1979,Science Effects Hurricanes David Frederic,,,disturbance,no,no
+Rogers_2006_MEPS_RecoveryInhibitors_Apalmata.pdf,Rogers,2006,Recovery inhibitors for Acropora palmata,Marine Ecology Progress Series,,A. palmata; disturbance; vital rates,no,no
+Rogers_2012_CoralReefs_BleachingRecovery_Apalmata.pdf,Rogers,2012,Bleaching and recovery of Acropora palmata,Coral Reefs,,A. palmata; disturbance,no,no
+Rosales_2024_CommEarthEnviron_ReefSiteHabitatRestoration.pdf,Rosales,2024,Reef site and habitat influence effectiveness of Acropora palmata restoration,Communications Earth & Environment,,A. palmata; restoration,no,no
 Rosales_2026_CommEarthEnv_Reef_site_habitat_influence.pdf,Rosales,2026,CommEarthEnv Reef site habitat influence,,,general,no,no
+Roth_2013_CoralReefs_SurvivalApalmata.pdf,Roth,2013,Survival of Acropora palmata,Coral Reefs,,A. palmata; vital rates,no,no
 Ruiz-Moreno_2021_Ecology_High_response_diversity_conspecific.pdf,Ruiz-Moreno,2021,Ecology High response diversity conspecific,,,general,no,no
 Runge_2011_JFishWildlManag_Introduction_Adaptive_Management_Threatened.pdf,Runge,2011,JFishWildlManag Introduction Adaptive Management Threatened,,,MSE/decisions,no,no
 Runge_2013_AdaptiveManagementReintroduction.pdf,Runge,2013,AdaptiveManagementReintroduction,,,MSE/decisions,no,no
@@ -134,126 +217,62 @@ Rutenberg_2022_Negligible_effect_density_coral.pdf,Rutenberg,2022,Negligible eff
 Schmidt-Roach_2020_FrontMarSci_Beyond_Reef_Restoration_NextGeneration.pdf,Schmidt-Roach,2020,FrontMarSci Beyond Reef Restoration NextGeneration,,,restoration,no,no
 Schopmeyer_2017_RestorationBenchmarks.pdf,Schopmeyer,2017,RestorationBenchmarks,,,costs; restoration,no,no
 Schumacher_2018_Identifying_coral_reef_resilience.pdf,Schumacher,2018,"Identifying coral reef resilience potential in Tutuila, American Samoa based on NOAA coral reef monitoring data",,10.7289/v5/sp-pifsc-18-003,disturbance,yes,no
-Scott_2024_CostEffectivenessCoralPlanting.pdf,Scott,2024,CostEffectivenessCoralPlanting,,,costs,no,no
+Schutter_2023_EcolEng_ExSituSurvival_Apalmata.pdf,Schutter,2023,Ex-situ survival and growth of Acropora palmata,Ecological Engineering,,A. palmata; restoration,no,no
+Schuwirth_2019_EcologicalModelling_Useful_ecological_models.pdf,Schuwirth,2019,How to make ecological models useful for environmental management,EcologicalModelling,10.1016/j.ecolmodel.2019.108784,perspective ref,yes,no
+Scott_2024_RestEcol_CostEffectivenessTourismCoralPlanting.pdf,Scott,2024,Cost-effectiveness of tourism-led coral planting at scale on the northern Great Barrier Reef,Restoration Ecology,10.1111/rec.14137,costs,yes,no
 Selden_2017_PRSB_Protection_large_predators_marine.pdf,Selden,2017,Protection of large predators in a marine reserve alters size-dependent prey mortality,Proc. R. Soc. B,10.1098/rspb.2016.1936,vital rates,yes,no
 Seraphim_2023_JFB_Interactions_coral_restoration_fish.pdf,Seraphim,2023,Interactions between coral restoration and fish assemblages: implications for reef management,Journal of Fish Biology,10.1111/jfb.14440,restoration,yes,no
 Shaver_1998_Ecology_Effects_predation_nutrient_enrichment.pdf,Shaver,1998,Ecology Effects predation nutrient enrichment,,,general,no,no
 Shaver_2018_Ecology_Local_management_actions_can.pdf,Shaver,2018,Ecology Local management actions can,,,general,no,no
-Shaver_2022_GlobChangeBiol_roadmap_integrating_resilience_practice.pdf,Shaver,2022,GlobChangeBiol roadmap integrating resilience practice,,,disturbance,no,no
+Shaver_2022_GlobChangeBiol_roadmap_integrating_resilience_practice.pdf,Shaver,2022,GlobChangeBiol roadmap integrating resilience practice,,,disturbance,yes,no
 Shaver_2023_PeerJ_Time_cash_positive_interactions.pdf,Shaver,2023,Time to cash in on positive interactions for coral restoration,PeerJ,10.7717/peerj.3499,restoration,yes,no
 Shima_2001_Ecology_Rrecruitment_coral_reef_fish.pdf,Shima,2001,Ecology - Assessing effects of marine protected areas: Confounding in space and possible solutions,,10.1017/CBO9781139049382.010,reproduction,yes,no
 Shima_2003_Cryptic_density_dependence_integrating.pdf,Shima,2003,Cryptic density dependence: Effects of covariation between density and site quality in reef fish,Ecology,10.1890/0012-9658(2003)084[0046:CDDEOC]2.0.CO;2,density dependence,yes,no
 Shima_2018_BL_vermetid_gastropod_Dendropoma_maximum.pdf,Shima,2018,Guard crabs alleviate deleterious effects of vermetid snails on a branching coral,Coral Reefs,10.1007/s00338-010-0663-9,general,yes,no
 Shima_2021_Ecology_Recruitment_coral_reef_fish.pdf,Shima,2021,Ecology - Assessing effects of marine protected areas: Confounding in space and possible solutions,,10.1017/CBO9781139049382.010,reproduction,yes,no
 Small_2016_MarBiol_sensitivity_early_benthic_juvenile.pdf,Small,2016,MarBiol sensitivity early benthic juvenile,,,general,no,no
+Solan_2020_PhilTransRSocB_BenthicBased_ClimateMitigation.pdf,Solan,2020,Benthic-based contributions to climate change mitigation and adaptation,Phil. Trans. R. Soc. B,10.1098/rstb.2019.0107,coral restoration; nature-based solutions,yes,no
+Soong_1991_BullMarSci_SexualReproductivePatternsReefCorals.pdf,Soong,1991,Sexual reproductive patterns of shallow-water reef corals in Panama,Bulletin of Marine Science,,reproduction; vital rates; A. palmata,no,no
+Soong_1992_BiolBull_ReproductiveIntegrationReefCorals.pdf,Soong,1992,Reproductive integration in reef corals,Biological Bulletin,10.2307/1542249,reproduction; A. palmata; vital rates,yes,no
 Starko_2025_Science_Marine_heatwaves_threaten_cryptic.pdf,Starko,2025,Science Marine heatwaves threaten cryptic,,,disturbance,no,no
 Steinberg_2021_AHSC_Optimization_GrowOut_Bouldering_Coral.pdf,Steinberg,2021,Optimization of Grow-Out of Bouldering Coral Microfragments: Land vs. Offshore Nursery,"All HCAS Student Capstones, Theses, and Dissertations",,restoration; size-at-release; vital rates,yes,no
 Steward_2024_Restoration_renaissance_charting_course.pdf,Steward,2024,Restoration renaissance: charting the course for coral restoration decisions,,,MSE/decisions; restoration,yes,no
+Stier_2010_Ecology_GuardCrabsVermetid.pdf,Stier,2010,Guard crabs and vermetid gastropods,Ecology,,reef ecology,no,no
 Stier_2010_Ecology_Propagule_redirection_Habitat_availability.pdf,Stier,2010,Ecology - Assessing effects of marine protected areas: Confounding in space and possible solutions,,10.1017/CBO9781139049382.010,general,yes,no
 Suggett_2019_Ecology_Optimizing_returnoneffort_coral_nursery.pdf,Suggett,2019,Ecology Optimizing returnoneffort coral nursery,,,restoration,no,yes
 Suggett_2024_RestorationMeaningfulAid.pdf,Suggett,2024,RestorationMeaningfulAid,,,restoration,no,no
+Sutherland_2010_EnvMicrobiol_WhitePoxSewage.pdf,Sutherland,2010,Human pathogen shown to cause disease in the threatened elkhorn coral,Environmental Microbiology,,A. palmata; disturbance,no,no
+Szmant_2006_ICRS_SettlementPostSettlementMortality.pdf,Szmant,2006,Settlement preferences and post-settlement mortality of laboratory cultured and settled larvae,Proceedings 10th ICRS,,reproduction; A. palmata; vital rates,no,no
 Tanner_1999_Ecology_Competition_scleractinian_corals_macroalgae.pdf,Tanner,1999,"SUPPLY-SIDE ECOLOGY WORKS BOTH WAYS: THE LINK BETWEEN BENTHIC ADULTS, FECUNDITY, AND LARVAL RECRUITS",Ecology,10.1890/0012-9658(2000)081[2241:SSEWBW]2.0.CO;2,reproduction,yes,no
 Tanner_2009_Ecology_CommunityLevel_Density_Dependence_Example.pdf,Tanner,2009,"SUPPLY-SIDE ECOLOGY WORKS BOTH WAYS: THE LINK BETWEEN BENTHIC ADULTS, FECUNDITY, AND LARVAL RECRUITS",Ecology,10.1890/0012-9658(2000)081[2241:SSEWBW]2.0.CO;2,reproduction,yes,no
 Thampi_2018_SciRep_Socioecological_dynamics_Caribbean_coral.pdf,Thampi,2018,SciRep Socioecological dynamics Caribbean coral,,,general,no,no
 Toth_2019_Nature_potential_coral_reef_restoration.pdf,Toth,2019,The potential for coral reef restoration to mitigate coastal flooding as sea levels rise,Nature Communications,10.1038/s41467-023-37858-2,restoration,yes,no
+Tunnicliffe_1981_PNAS_BreakagePropagation_Acervicornis.pdf,Tunnicliffe,1981,Breakage and propagation of the stony coral Acropora cervicornis,PNAS,,A. cervicornis; vital rates,no,no
 Vaga_2021_Nature_global_coral_phylogeny_reveals.pdf,Vaga,2021,A global coral phylogeny reveals resilience and vulnerability through deep time,Nature,10.1038/s41586-025-09615-6,disturbance,yes,no
-Vardi_2012_ESR_PopulationDynamicsElkhornFLKeys.pdf,Vardi,1985,"Population dynamics of threatened elkhorn coral in the northern Florida Keys, USA",,,A. palmata; demography,yes,yes
+vanOppen_1994_Building_coral_reef_resilience.pdf,vanOppen,1994,Building coral reef resilience,,,disturbance,no,no
+vanWoesik_2021_DifferentialSurvivalOutplants.pdf,vanWoesik,2021,DifferentialSurvivalOutplants,,,restoration; vital rates,no,no
 Vardi_2011_PhD_UCSD_PopDynamicsPalmataPolicy.pdf,Vardi,2011,"Population dynamics of threatened elkhorn coral in the northern Florida Keys, USA",,,A. palmata; demography,yes,yes
+Vardi_2012_ESR_PopulationDynamicsElkhornFLKeys.pdf,Vardi,1985,"Population dynamics of threatened elkhorn coral in the northern Florida Keys, USA",,,A. palmata; demography,yes,yes
 Vardi_2021_SixPrioritiesRestoration.pdf,Vardi,2021,SixPrioritiesRestoration,,,restoration,no,yes
 Veal_2010_CoralReefs_Increasing_accuracy_surface_area.pdf,Veal,2010,CoralReefs Increasing accuracy surface area,,,general,no,no
 Vermeij_2008_Ecology_DensityDependent_Settlement_Mortality_Structure.pdf,Vermeij,2008,Ecology DensityDependent Settlement Mortality Structure,,,reproduction; vital rates,no,no
 Viehman_2017_E_Coral_restoration_coastal_resilience.pdf,Viehman,2017,"Coral restoration for coastal resilience: Integrating ecology, hydrodynamics, and engineering at multiple scales",Ecosphere,10.1002/ecs2.4517,disturbance; restoration,yes,no
 Vizel_2011_MB_Novel_Method_Coral_Explant.pdf,Vizel,2011,A Novel Method for Coral Explant Culture and Micropropagation,Marine Biotechnology,10.1007/s10126-010-9313-z,restoration,yes,no
+Vollmer_2002_Science_Hybridization_Acropora.pdf,Vollmer,2002,Hybridization and the evolution of reef coral diversity,Science,,A. palmata; genetics,no,no
+Vreeland_1989_JEMBE_SelectiveFeedingHermodice.pdf,Vreeland,1989,Selective feeding of the polychaete Hermodice carunculata on Caribbean gorgonians,Journal of Experimental Marine Biology and Ecology,,reef ecology,no,no
+Wallace_1985_MarBiol_ReproductionRecruitmentFragmentationAcropora.pdf,Wallace,1985,Reproduction recruitment and fragmentation in nine sympatric species of Acropora,Marine Biology,10.1007/BF00392585,reproduction; vital rates,no,no
 Walton_2017_FrontMarSci_Advancing_coral_propagation_toolkit.pdf,Walton,2017,FrontMarSci Advancing coral propagation toolkit,,,restoration,no,no
 Ware_1991_PLOSONE_Survivorship_growth_staghorn_coral.pdf,Ware,1991,PLOSONE Survivorship growth staghorn coral,,,A. cervicornis; vital rates,no,no
 Weijerman_2016_MSE_CoralReefs.pdf,Weijerman,2016,MSE CoralReefs,,,MSE/decisions,no,yes
 White_2000_Ecology_Safety_Numbers_Spatial_Scaling.pdf,White,2000,Advances in restoration ecology: rising to the challenges of the coming decades,Ecosphere,10.1890/ES15-00121.1,restoration,yes,no
-Young_2012_ReviewReefRestorationAcropora.pdf,Young,2012,ReviewReefRestorationAcropora,,,restoration,no,no
-Young_2017_PLOSONE_Cost_timeeffective_method_multiscale.pdf,Young,2017,PLOSONE Cost timeeffective method multiscale,,,costs,no,no
-delaCruz_2017_LarvalSupplyRecruitment.pdf,delaCruz,2017,LarvalSupplyRecruitment,,,reproduction,no,no
-vanOppen_1994_Building_coral_reef_resilience.pdf,vanOppen,1994,Building coral reef resilience,,,disturbance,no,no
-vanWoesik_2021_DifferentialSurvivalOutplants.pdf,vanWoesik,2021,DifferentialSurvivalOutplants,,,restoration; vital rates,no,no
-Soong_1992_BiolBull_ReproductiveIntegrationReefCorals.pdf,Soong,1992,Reproductive integration in reef corals,Biological Bulletin,10.2307/1542249,reproduction; A. palmata; vital rates,yes,no
-Gladfelter_1978_BullMarSci_GrowthRatesReefCorals.pdf,Gladfelter,1978,Growth rates of five reef-building corals in the northeastern Caribbean,Bulletin of Marine Science,,vital rates; A. palmata,yes,no
-Baums_2003_MarBiol_CorallivoreCoralliophila.pdf,Baums,2003,Ecology of a corallivorous gastropod Coralliophila abbreviata on two scleractinian hosts,Marine Biology,10.1007/s00227-003-1197-y,vital rates; A. palmata; reef ecology,yes,no
-GroberDunsmore_2006_MEPS_RecoveryInhibitorsPalmata.pdf,Grober-Dunsmore,2006,Potential inhibitors to recovery of Acropora palmata populations in St. John US Virgin Islands,Marine Ecology Progress Series,10.3354/meps321123,A. palmata; restoration; vital rates,no,no
-Szmant_2006_ICRS_SettlementPostSettlementMortality.pdf,Szmant,2006,Settlement preferences and post-settlement mortality of laboratory cultured and settled larvae,Proceedings 10th ICRS,,reproduction; A. palmata; vital rates,no,no
-JordanDahlgren_1992_BullMarSci_RecolonizationPalmata.pdf,Jordán-Dahlgren,1992,Recolonization patterns of Acropora palmata in a marginal environment,Bulletin of Marine Science,,A. palmata; restoration; vital rates,no,no
 Williams_2006_ICRS_DiseasePredationJuvenilePalmata.pdf,Williams,2006,Importance of disease and predation to growth and survivorship of juvenile Acropora palmata and A. cervicornis,Proceedings 10th ICRS,,A. palmata; vital rates; demography,no,no
-AlvarezFilip_2009_ProcRSocB_FlatteningCaribbeanReefs.pdf,Alvarez-Filip,2009,Flattening of Caribbean coral reefs: region-wide declines in architectural complexity,Proceedings of the Royal Society B,10.1098/rspb.2009.0339,reef ecology; disturbance,no,no
-Forrester_2014_AquatConserv_LongtermSurvivalColonyGrowth.pdf,Forrester,2014,Long-term survival and colony growth of Acropora palmata fragments transplanted by volunteers,Aquatic Conservation,10.1002/aqc.2374,A. palmata; restoration; vital rates,no,no
-Lasker_1988_BiolBull_ForagingPatternsCyphoma.pdf,Lasker,1988,Foraging patterns of Cyphoma gibbosum on octocorals,Biological Bulletin,10.2307/1541945,reef ecology,no,no
-Vreeland_1989_JEMBE_SelectiveFeedingHermodice.pdf,Vreeland,1989,Selective feeding of the polychaete Hermodice carunculata on Caribbean gorgonians,Journal of Experimental Marine Biology and Ecology,,reef ecology,no,no
-Manzello_2025_Science_HeatDrivenExtinctionAcropora.pdf,Manzello,2025,Heat-driven functional extinction of Caribbean Acropora corals from Florida Coral Reef,Science,,A. palmata; disturbance; vital rates,no,no
-ABRT_2005_NOAA_AcroporaStatusReview.pdf,ABRT,2005,Acropora Status Review,NOAA,,A. palmata; A. cervicornis; restoration,no,no
-Albright_2010_PNAS_OceanAcidificationRecruitment.pdf,Albright,2010,Ocean acidification compromises recruitment success of Acropora palmata,PNAS,10.1073/pnas.1007273107,A. palmata; reproduction; disturbance,no,no
-Bak_2009_BullMarSci_CoralGrowthRatesRevisited.pdf,Bak,2009,Coral growth rates revisited after 31 years,Bulletin of Marine Science,,vital rates,no,no
-Baums_2005_MolEcol_RegionallyIsolated_Apalmata.pdf,Baums,2005,Regionally isolated populations of an imperiled Caribbean coral Acropora palmata,Molecular Ecology,10.1111/j.1365-294X.2005.02489.x,A. palmata; genetics,no,no
-Baums_2006_EcolMonogr_GeographicVariationClonalStructure.pdf,Baums,2006,Geographic variation in clonal structure in a reef-building Caribbean coral Acropora palmata,Ecological Monographs,,A. palmata; genetics; reproduction,no,no
-Becker_2001_BullMarSci_CultureTransplantationStorage.pdf,Becker,2001,Culture transplantation and storage of Montastraea faveolata,Bulletin of Marine Science,,restoration,no,no
-Croquer_2016_PeerJ_Recovery_Apalmata.pdf,Croquer,2016,Is Acropora palmata recovering? A case study in Los Roques Venezuela,PeerJ,,A. palmata; vital rates; restoration,no,no
-Crouse_1987_Ecology_StageBased_Loggerhead_Turtles.pdf,Crouse,1987,A stage-based population model for loggerhead sea turtles,Ecology,,demography; MSE/decisions,no,no
-DevlinDurante_2017_PeerJ_PopGenetics_Apalmata.pdf,Devlin-Durante,2017,Population genetics of Acropora palmata,PeerJ,,A. palmata; genetics,no,no
-Erwin_2010_CoralReefs_SettlementInductionGLWamide.pdf,Erwin,2010,Settlement induction of Acropora palmata planulae by a GLW-amide neuropeptide,Coral Reefs,,A. palmata; reproduction,no,no
-Gardner_2003_Science_CaribbeanCoralDecline.pdf,Gardner,2003,Long-term region-wide declines in Caribbean corals,Science,10.1126/science.1086050,disturbance; reef ecology,no,no
-Garrison_2008_BiolCons_StormFragments_Apalmata.pdf,Garrison,2008,Storm-generated fragments — a viable source of transplants for reef rehabilitation,Biological Conservation,,A. palmata; restoration,no,no
-Gerber_2018_Science_Endangered_Recovery_ResourceAllocation.pdf,Gerber,2018,Endangered species recovery and resource allocation,Science,,MSE/decisions,no,no
-GonzalezBarrios_2018_EcolInd_SpeciesContribution.pdf,González-Barrios,2018,Species contribution to reef architectural complexity,Ecological Indicators,,reef ecology,no,no
-Hagedorn_2021_PNAS_AssistedGeneFlow_Apalmata.pdf,Hagedorn,2021,Assisted gene flow using cryopreserved sperm in critically endangered coral,PNAS,,A. palmata; genetics; restoration,no,no
-Hoegh-Guldberg_2007_Science_ClimateChangeReefs.pdf,Hoegh-Guldberg,2007,Coral reefs under rapid climate change and ocean acidification,Science,10.1126/science.1152509,disturbance; reef ecology,no,no
-Hughes_1980_Science_DoCoralsLieAboutAge.pdf,Hughes,1980,Do corals lie about their age?,Science,,vital rates; demography,no,no
-Hughes_2017_Nature_MassBleaching.pdf,Hughes,2017,Global warming and recurrent mass bleaching of corals,Nature,10.1038/nature21707,disturbance,no,no
-Iacona_2017_PNAS_Waiting_Optimal_Conservation.pdf,Iacona,2017,Waiting can be an optimal conservation strategy,PNAS,,MSE/decisions,no,no
-Knowlton_1990_PostHurricanePredation.pdf,Knowlton,1990,Post-hurricane predation on Acropora palmata,Proceedings ICRS,,A. palmata; reef ecology,no,no
-Lighty_1982_CoralReefs_SeaLevelIndicator.pdf,Lighty,1982,Acropora palmata reef framework: a reliable indicator of sea level,Coral Reefs,,A. palmata; reef ecology,no,no
-Lirman_1997_JCoastalRes_PatternsDamageHurricaneAndrew.pdf,Lirman,1997,Patterns of damage to the branching coral Acropora palmata following Hurricane Andrew,Journal of Coastal Research,,A. palmata; disturbance,no,no
-Madin_2014_SizeDependentMortality.pdf,Madin,2014,Size-dependent mortality in corals,,,vital rates; demography,no,no
-Madin_2020_GrowthPartialMortality.pdf,Madin,2020,Growth and partial mortality in corals,,,vital rates; demography,no,no
-Maurer_2022_PLOSONE_Survival_Apalmata.pdf,Maurer,2022,Survival of Acropora palmata outplants,PLOS ONE,,A. palmata; restoration; vital rates,no,no
-Muller_2014_PLOSONE_WhitePoxSusceptibility.pdf,Muller,2014,White pox disease susceptibility in Acropora palmata,PLOS ONE,,A. palmata; disturbance,no,no
-Muller_2025_AssistedGeneFlow_Apalmata.pdf,Muller,2025,Assisted gene flow for Acropora palmata restoration,,,A. palmata; genetics; restoration,no,no
-Oldach_2023_ISME_SymbiontAssociation_Apalmata.pdf,Oldach,2023,Symbiont association in Acropora palmata,ISME Journal,,A. palmata; reef ecology,no,no
-Patterson_2002_PNAS_EtiologyWhitePox.pdf,Patterson,2002,The etiology of white pox a lethal disease of Caribbean elkhorn coral,PNAS,10.1073/pnas.092260099,A. palmata; disturbance,no,no
-Polato_2011_PLOSONE_GeneDiscovery_Apalmata.pdf,Polato,2011,Gene discovery in the threatened elkhorn coral,PLOS ONE,,A. palmata; genetics,no,no
-Ramos_2024_Cuba_ReefCrests.pdf,Ramos,2024,Acropora palmata reef crests in Cuba,,,A. palmata; restoration,no,no
-RitsonWilliams_2010_CoralReefs_LarvalSettlementPreferences.pdf,Ritson-Williams,2010,Larval settlement preferences and post-settlement survival of Acropora palmata,Coral Reefs,10.1007/s00338-009-0555-z,A. palmata; reproduction,no,no
-RitsonWilliams_2010_CoralReefs_SettlementPreferences.pdf,Ritson-Williams,2010,Settlement preferences of Acropora palmata,Coral Reefs,,A. palmata; reproduction,no,no
-Rogers_2006_MEPS_RecoveryInhibitors_Apalmata.pdf,Rogers,2006,Recovery inhibitors for Acropora palmata,Marine Ecology Progress Series,,A. palmata; disturbance; vital rates,no,no
-Rogers_2012_CoralReefs_BleachingRecovery_Apalmata.pdf,Rogers,2012,Bleaching and recovery of Acropora palmata,Coral Reefs,,A. palmata; disturbance,no,no
-Rosales_2024_CommEarthEnviron_ReefSiteHabitatRestoration.pdf,Rosales,2024,Reef site and habitat influence effectiveness of Acropora palmata restoration,Communications Earth & Environment,,A. palmata; restoration,no,no
-Roth_2013_CoralReefs_SurvivalApalmata.pdf,Roth,2013,Survival of Acropora palmata,Coral Reefs,,A. palmata; vital rates,no,no
-Schutter_2023_EcolEng_ExSituSurvival_Apalmata.pdf,Schutter,2023,Ex-situ survival and growth of Acropora palmata,Ecological Engineering,,A. palmata; restoration,no,no
-Sutherland_2010_EnvMicrobiol_WhitePoxSewage.pdf,Sutherland,2010,Human pathogen shown to cause disease in the threatened elkhorn coral,Environmental Microbiology,,A. palmata; disturbance,no,no
-Tunnicliffe_1981_PNAS_BreakagePropagation_Acervicornis.pdf,Tunnicliffe,1981,Breakage and propagation of the stony coral Acropora cervicornis,PNAS,,A. cervicornis; vital rates,no,no
-Vollmer_2002_Science_Hybridization_Acropora.pdf,Vollmer,2002,Hybridization and the evolution of reef coral diversity,Science,,A. palmata; genetics,no,no
 Williams_2008_CoralReefs_RecruitmentFailureFLKeys.pdf,Williams,2008,Recruitment failure in Florida Keys Acropora palmata,Coral Reefs,10.1007/s00338-008-0386-3,A. palmata; reproduction; vital rates,no,no
 Williams_2010_NOAA_TaggedColonies_Apalmata.pdf,Williams,2010,Tagged colonies of Acropora palmata demographic monitoring,NOAA,,A. palmata; vital rates; demography,no,no
 Williams_2010_RestEcol_StabilizationFragments.pdf,Williams,2010,Stabilization of fragments to enhance asexual recruitment in Acropora palmata,Restoration Ecology,,A. palmata; restoration,no,no
 Williams_2012_CoralReefs_MortalityAttribution_Apalmata.pdf,Williams,2012,Attributing mortality among drivers of population decline in Acropora palmata,Coral Reefs,10.1007/s00338-011-0847-y,A. palmata; vital rates; demography,no,no
-Williams_2017_MarPollBull_ThermalStress_Apalmata.pdf,Williams,2017,Thermal stress exposure bleaching response and mortality in Acropora palmata,Marine Pollution Bulletin,,A. palmata; disturbance,no,no
+Williams_2017_MarPollBull_ThermalStressMortalityApalmata.pdf,Williams,2017,"Thermal stress exposure, bleaching response, and mortality in Acropora palmata",Marine Pollution Bulletin,10.1016/j.marpolbul.2017.07.001,A. palmata; disturbance,yes,no
+Winters_2025_RestEcol_CoralRestorationEconomicStimulus.pdf,Winters,2025,Coral restoration as economic stimulus,Restoration Ecology,,costs; restoration,no,no
+Young_2012_ReviewReefRestorationAcropora.pdf,Young,2012,ReviewReefRestorationAcropora,,,restoration,no,no
+Young_2017_PLOSONE_Cost_timeeffective_method_multiscale.pdf,Young,2017,PLOSONE Cost timeeffective method multiscale,,,costs,no,no
 Zubillaga_2008_CoralReefs_EcologicalGeneticRecovery.pdf,Zubillaga,2008,Ecological and genetic data indicate recovery of Acropora palmata in Los Roques,Coral Reefs,,A. palmata; genetics; vital rates,no,no
-Soong_1991_BullMarSci_SexualReproductivePatternsReefCorals.pdf,Soong,1991,Sexual reproductive patterns of shallow-water reef corals in Panama,Bulletin of Marine Science,,reproduction; vital rates; A. palmata,no,no
-Wallace_1985_MarBiol_ReproductionRecruitmentFragmentationAcropora.pdf,Wallace,1985,Reproduction recruitment and fragmentation in nine sympatric species of Acropora,Marine Biology,10.1007/BF00392585,reproduction; vital rates,no,no
-Beier_2017_ConservationLetters_Coproduction_Actionable_Science.pdf,Beier,2017,A How-to Guide for Coproduction of Actionable Science,Conservation Letters,10.1111/conl.12300,evidence-based; co-production,yes,no
-Ntshotsho_2015_Sustainability_Challenges_Evidence_Base_Restoration.pdf,Ntshotsho,2015,Identifying Challenges to Building an Evidence Base for Restoration Practice,Sustainability,10.3390/su71215788,evidence-based; restoration,yes,no
-Muller_2026_ConservationBiology_Restoration_Prevents_Extirpation.pdf,Muller,2026,Success of restoration strategies in preventing extirpation of 2 critically endangered Acropora,Conservation Biology,10.1111/cobi.70168,A. palmata; restoration; MSE,yes,no
-Gornish_2024_RestorationEcology_Sharing_Knowledge.pdf,Gornish,2024,Sharing knowledge to improve ecological restoration outcomes,Restoration Ecology,10.1111/rec.13417,co-production; restoration,yes,no
-Punt_2016_FishAndFisheries_MSE_Best_Practices.pdf,Punt,2016,Management strategy evaluation: best practices,Fish and Fisheries,10.1111/faf.12104,MSE/decisions,yes,no
-CBD_2022_KunmingMontreal_Global_Biodiversity_Framework.pdf,CBD,2022,Kunming-Montreal Global Biodiversity Framework (Decision 15/4),CBD COP15,,policy,yes,no
-Bakker_2018_JAppliedEcology_Staged-scale_restoration.pdf,Bakker,2018,Staged-scale restoration: Refining adaptive management to improve restoration effectiveness,JAppliedEcology,10.1111/1365-2664.13050,perspective ref,yes,no
-BrownB_2014_Springer_Natural_Recruitment_Rehabilitation.pdf,BrownB,2014,"Observations of Natural Recruitment and Human Attempts at Mangrove Rehabilitation After Seismic (Tsunami and Earthquake) Events in Simeulue Island and Singkil Lagoon, Aceh, Indonesia",Springer,10.1007/978-3-319-10202-3_19,perspective ref,yes,no
-BrownCJ_2024_ProcRSocB_Speeding_up_recovery_coastal_habitats.pdf,BrownCJ,2024,Speeding up the recovery of coastal habitats through management interventions that address constraints on dispersal and recruitment,ProcRSocB,10.1098/rspb.2024.1065,perspective ref,yes,no
-DeMoor_2023_CJFAS_Ecosystem-based_fisheries_management.pdf,DeMoor,2023,"Explicitly incorporating ecosystem-based fisheries management into management strategy evaluation, with a focus on small pelagics",CJFAS,10.1139/cjfas-2023-0092,perspective ref,yes,no
-Deroba_2018_CJFAS_Dream_and_reality_decision-making.pdf,Deroba,2018,"The dream and the reality: meeting decision-making time frames while incorporating ecosystem and economic models into management strategy evaluation,",CJFAS,10.1139/cjfas-2018-0128,perspective ref,yes,no
-Diefenderfer_2016_Ecosphere_Evidence-based_cumulative_effects.pdf,Diefenderfer,2016,Evidence-based evaluation of the cumulative effects of ecosystem restoration,Ecosphere,10.1002/ecs2.1242,perspective ref,yes,no
-Duarte_2020_Nature_Rebuilding_marine_life.pdf,Duarte,2020,Rebuilding marine life,Nature,10.1038/s41586-020-2146-7,perspective ref,yes,no
-HimesBoor_2014_ConservationBiology_Recovery_criteria_framework.pdf,HimesBoor,2014,A Framework for Developing Objective and Measurable Recovery Criteria for Threatened and Endangered Species,ConservationBiology,10.1111/cobi.12155,perspective ref,yes,no
-Lester_2020_GlobalChangeBiology_Caribbean_reefs_Anthropocene.pdf,Lester,2020,Caribbean reefs of the Anthropocene: Variance in ecosystem metrics indicates bright spots on coral depauperate reefs,GlobalChangeBiology,10.1111/gcb.15253,perspective ref,yes,no
-Morrison_2022_NatureClimateChange_Radical_interventions.pdf,Morrison,2022,Radical interventions for climate-impacted systems,NatureClimateChange,10.1038/s41558-022-01542-y,perspective ref,yes,no
-Piczak_2023_EnvSystDecis_Structured_decision_making.pdf,Piczak,2023,Structured decision making remains underused in ecological restoration despite opportunities,EnvSystDecis,10.1007/s10669-023-09940-z,perspective ref,yes,no
-Schuwirth_2019_EcologicalModelling_Useful_ecological_models.pdf,Schuwirth,2019,How to make ecological models useful for environmental management,EcologicalModelling,10.1016/j.ecolmodel.2019.108784,perspective ref,yes,no
 zuErmgassen_2019_ConservationLetters_Biodiversity_offsets.pdf,zuErmgassen,2019,The ecological outcomes of biodiversity offsets under “no net loss” policies: A global review,ConservationLetters,10.1111/conl.12664,perspective ref,yes,no
-Edmunds_2014_Bull_Mar_sci.pdf,Edmunds,2014,Large numbers of Acropora palmata grow in shallow water St John,BullMarSci,10.5343/bms.2014.1027,modeling ref,yes,no
-Miller_2020_peerj.pdf,Miller,2020,Larval longevity and competency patterns of Caribbean Acropora,PeerJ,10.7717/peerj.9705,modeling ref,yes,no
-ODea_2021_Biol_Rev.pdf,ODea,2021,PRISMA-EcoEvo reporting guidelines,BiolRev,10.1111/brv.12721,modeling ref,yes,no
-Howlett_2022_OceanCoastalMgmt_Coral_propagation_outplanting.pdf,Howlett,2022,Adoption of coral propagation and out-planting via the tourism industry,OceanCoastalMgmt,10.1016/j.ocecoaman.2022.106199,perspective ref,yes,no
