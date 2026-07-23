@@ -1,3 +1,6 @@
+# [SHARED ENGINE — verified] sources the real model (rse_funs.R + coral_demographic_funs.R) and builds
+# the base parameters. This is the ONLY _extracted file talk figures may source. Do NOT add per-figure
+# result extracts here — inline each scenario from rse_new_scenario_analyses.rmd instead.
 ## AUTO-EXTRACTED setup chunks from rse_new_scenario_analyses.rmd (do not edit; regenerate via extract)
 
 # command + option + i for new code chunk
@@ -339,4 +342,3 @@ N0.o_def <- N0.o
 N0.l_def <- N0.l
 
 sim1 <- rse_mod1(years, n, A_mids, surv_pars.rc, surv_pars.r, dens_pars.r, growth_pars.r, shrink_pars.r, frag_pars.r, fec_pars.r, surv_pars.o, dens_pars.o, growth_pars.o, shrink_pars.o, frag_pars.o, fec_pars.o, lambda, lambda_R, sigma_s, sigma_f, ext_rand, seeds, dist_yrs, dist_pars.r, dist_effects.r, dist_pars.o, dist_effects.o, orchard_treatments, reef_treatments, lab_treatments, lab_pars, rest_pars, N0.r, N0.o, N0.l)
-

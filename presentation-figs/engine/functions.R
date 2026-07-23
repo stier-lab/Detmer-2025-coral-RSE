@@ -1,3 +1,6 @@
+# [SHARED ENGINE — verified] sources the real model (rse_funs.R + coral_demographic_funs.R) and builds
+# the base parameters. This is the ONLY _extracted file talk figures may source. Do NOT add per-figure
+# result extracts here — inline each scenario from rse_new_scenario_analyses.rmd instead.
 ## AUTO-EXTRACTED functions block (670-1628)
 
 
@@ -935,5 +938,3 @@ full_dt_fun <- function(sim_list, max_yr, n_pars, prop_set, par_set2, par2_name,
   }
 
 }
-
-

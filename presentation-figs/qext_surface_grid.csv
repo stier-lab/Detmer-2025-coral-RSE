@@ -1,0 +1,91 @@
+"sev_lab","rest_lab","rest_lambdaR","interval_yr","severity_mult","P"
+"Moderate (50% mortality)","0 (none)",0,30,0.5,1
+"Moderate (50% mortality)","157k",156888.875,30,0.5,0.8805
+"Moderate (50% mortality)","314k",313777.75,30,0.5,0.737
+"Moderate (50% mortality)","628k",627555.5,30,0.5,0.638
+"Moderate (50% mortality)","1.26M (max)",1255111,30,0.5,0.468
+"Moderate (50% mortality)","0 (none)",0,15,0.5,1
+"Moderate (50% mortality)","157k",156888.875,15,0.5,0.9
+"Moderate (50% mortality)","314k",313777.75,15,0.5,0.75
+"Moderate (50% mortality)","628k",627555.5,15,0.5,0.66
+"Moderate (50% mortality)","1.26M (max)",1255111,15,0.5,0.5
+"Moderate (50% mortality)","0 (none)",0,10,0.5,1
+"Moderate (50% mortality)","157k",156888.875,10,0.5,0.97
+"Moderate (50% mortality)","314k",313777.75,10,0.5,0.89
+"Moderate (50% mortality)","628k",627555.5,10,0.5,0.75
+"Moderate (50% mortality)","1.26M (max)",1255111,10,0.5,0.71
+"Moderate (50% mortality)","0 (none)",0,6,0.5,1
+"Moderate (50% mortality)","157k",156888.875,6,0.5,1
+"Moderate (50% mortality)","314k",313777.75,6,0.5,0.98
+"Moderate (50% mortality)","628k",627555.5,6,0.5,0.91
+"Moderate (50% mortality)","1.26M (max)",1255111,6,0.5,0.81
+"Moderate (50% mortality)","0 (none)",0,4,0.5,1
+"Moderate (50% mortality)","157k",156888.875,4,0.5,1
+"Moderate (50% mortality)","314k",313777.75,4,0.5,0.99
+"Moderate (50% mortality)","628k",627555.5,4,0.5,0.94
+"Moderate (50% mortality)","1.26M (max)",1255111,4,0.5,0.88
+"Moderate (50% mortality)","0 (none)",0,2,0.5,1
+"Moderate (50% mortality)","157k",156888.875,2,0.5,1
+"Moderate (50% mortality)","314k",313777.75,2,0.5,1
+"Moderate (50% mortality)","628k",627555.5,2,0.5,0.99
+"Moderate (50% mortality)","1.26M (max)",1255111,2,0.5,0.94
+"Severe (80% mortality)","0 (none)",0,30,0.2,1
+"Severe (80% mortality)","157k",156888.875,30,0.2,0.9755
+"Severe (80% mortality)","314k",313777.75,30,0.2,0.9365
+"Severe (80% mortality)","628k",627555.5,30,0.2,0.8185
+"Severe (80% mortality)","1.26M (max)",1255111,30,0.2,0.7245
+"Severe (80% mortality)","0 (none)",0,15,0.2,1
+"Severe (80% mortality)","157k",156888.875,15,0.2,0.99
+"Severe (80% mortality)","314k",313777.75,15,0.2,0.97
+"Severe (80% mortality)","628k",627555.5,15,0.2,0.86
+"Severe (80% mortality)","1.26M (max)",1255111,15,0.2,0.78
+"Severe (80% mortality)","0 (none)",0,10,0.2,1
+"Severe (80% mortality)","157k",156888.875,10,0.2,1
+"Severe (80% mortality)","314k",313777.75,10,0.2,1
+"Severe (80% mortality)","628k",627555.5,10,0.2,0.99
+"Severe (80% mortality)","1.26M (max)",1255111,10,0.2,0.98
+"Severe (80% mortality)","0 (none)",0,6,0.2,1
+"Severe (80% mortality)","157k",156888.875,6,0.2,1
+"Severe (80% mortality)","314k",313777.75,6,0.2,1
+"Severe (80% mortality)","628k",627555.5,6,0.2,1
+"Severe (80% mortality)","1.26M (max)",1255111,6,0.2,1
+"Severe (80% mortality)","0 (none)",0,4,0.2,1
+"Severe (80% mortality)","157k",156888.875,4,0.2,1
+"Severe (80% mortality)","314k",313777.75,4,0.2,1
+"Severe (80% mortality)","628k",627555.5,4,0.2,1
+"Severe (80% mortality)","1.26M (max)",1255111,4,0.2,1
+"Severe (80% mortality)","0 (none)",0,2,0.2,1
+"Severe (80% mortality)","157k",156888.875,2,0.2,1
+"Severe (80% mortality)","314k",313777.75,2,0.2,1
+"Severe (80% mortality)","628k",627555.5,2,0.2,1
+"Severe (80% mortality)","1.26M (max)",1255111,2,0.2,1
+"Extreme (90% mortality)","0 (none)",0,30,0.1,1
+"Extreme (90% mortality)","157k",156888.875,30,0.1,0.985
+"Extreme (90% mortality)","314k",313777.75,30,0.1,0.965
+"Extreme (90% mortality)","628k",627555.5,30,0.1,0.923
+"Extreme (90% mortality)","1.26M (max)",1255111,30,0.1,0.867
+"Extreme (90% mortality)","0 (none)",0,15,0.1,1
+"Extreme (90% mortality)","157k",156888.875,15,0.1,1
+"Extreme (90% mortality)","314k",313777.75,15,0.1,0.99
+"Extreme (90% mortality)","628k",627555.5,15,0.1,0.97
+"Extreme (90% mortality)","1.26M (max)",1255111,15,0.1,0.92
+"Extreme (90% mortality)","0 (none)",0,10,0.1,1
+"Extreme (90% mortality)","157k",156888.875,10,0.1,1
+"Extreme (90% mortality)","314k",313777.75,10,0.1,1
+"Extreme (90% mortality)","628k",627555.5,10,0.1,1
+"Extreme (90% mortality)","1.26M (max)",1255111,10,0.1,1
+"Extreme (90% mortality)","0 (none)",0,6,0.1,1
+"Extreme (90% mortality)","157k",156888.875,6,0.1,1
+"Extreme (90% mortality)","314k",313777.75,6,0.1,1
+"Extreme (90% mortality)","628k",627555.5,6,0.1,1
+"Extreme (90% mortality)","1.26M (max)",1255111,6,0.1,1
+"Extreme (90% mortality)","0 (none)",0,4,0.1,1
+"Extreme (90% mortality)","157k",156888.875,4,0.1,1
+"Extreme (90% mortality)","314k",313777.75,4,0.1,1
+"Extreme (90% mortality)","628k",627555.5,4,0.1,1
+"Extreme (90% mortality)","1.26M (max)",1255111,4,0.1,1
+"Extreme (90% mortality)","0 (none)",0,2,0.1,1
+"Extreme (90% mortality)","157k",156888.875,2,0.1,1
+"Extreme (90% mortality)","314k",313777.75,2,0.1,1
+"Extreme (90% mortality)","628k",627555.5,2,0.1,1
+"Extreme (90% mortality)","1.26M (max)",1255111,2,0.1,1

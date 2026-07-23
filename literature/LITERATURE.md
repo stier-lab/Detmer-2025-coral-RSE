@@ -109,7 +109,7 @@ These are the papers we want this manuscript to read like. Each is grounded in a
 |-------|---------|
 | Bayraktarov et al. 2019 | Global cost benchmarks |
 | Chamberland et al. 2015 | $13 vs $325 per coral (early vs nursery grow-out) |
-| Scott et al. 2024 (`Scott_2024_CostEffectivenessCoralPlanting.pdf`) | Per-colony cost data from scaled program ($12–$248) |
+| Scott et al. 2024 (⚠ PDF missing — wrong file was a neurosurgery paper; re-source) | Per-colony cost data from scaled program ($12–$248) |
 | Suggett et al. 2019 (`Suggett_Opti_Optimizing_returnoneffort_coral_nursery.pdf`) | Return-on-effort framework |
 
 ### Results — Scenario comparisons
@@ -159,7 +159,8 @@ These are the papers we want this manuscript to read like. Each is grounded in a
 | van Woesik et al. 2021 (`vanWoesik_2021_DifferentialSurvivalOutplants.pdf`) | Spatial variation in outplant outcomes |
 | Guest et al. 2014 (`Guest_2014_ClosingTheCircle.pdf`) | Sexual propagation feasibility ("closing the circle") |
 | Drury et al. 2017 (`Drury_2017_GenotypeEnvironmentSurvivorship.pdf`) | Genotype × environment — the dimension we omit |
-| Baums 2019 (`Baums_2019_AdaptiveVariationResilience.pdf`) | Adaptive variation for resilience |
+| Quigley et al. 2019 (`Quigley_2019_EcolEvol_ActiveSpreadAdaptiveVariation.pdf`) | Active spread of adaptive variation for reef resilience (was misfiled as Baums 2019) |
+| Baums et al. 2019 (`Baums_2019_EcolAppl_AdaptivePotentialRestoredCorals.pdf`) | Maximizing adaptive potential of restored coral populations (western Atlantic) |
 | Banaszak et al. 2023 (`Banaszak_2023_LongtermSurvivalPalmata.pdf`) | 9-yr survival data for sexual *A. palmata* recruits |
 | Banaszak et al. 2024 (`Banaszak_2024_ThermalToleranceSexualRecruits.pdf`) | Sexual recruits had higher thermal tolerance in 2023 bleaching |
 | Nixon et al. 2025 (`Nixon_2025_RearingTechniquesSexualCorals.pdf`) | Multi-year rearing technique comparison |
@@ -175,7 +176,7 @@ These are the papers we want this manuscript to read like. Each is grounded in a
 | Baskett et al. 2010 (`Baskett_2010_ConservationManagementCoralsClimateChange.pdf`) | Theoretical comparison of coral climate adaptation approaches |
 | Melbourne-Thomas et al. 2011 (`Melbourne-Thomas_2011_CoralReefScenarioModeling.pdf`) | Coral reef scenario modeling as decision support |
 | Carturan/Bozec et al. 2020 (`Carturan_2020_CombiningModelingApproaches.pdf`) | Agent-based + demographic modeling for Caribbean reefs |
-| Matz et al. 2024 (`Matz_2024_SelectiveBreedingHeatTolerance.pdf`) | Selective breeding enhances thermal tolerance |
+| Humanes et al. 2024 (`Humanes_2024_NatCommun_SelectiveBreedingHeatTolerance.pdf`) | Selective breeding enhances coral heat tolerance (A. digitifera) |
 
 ---
 
