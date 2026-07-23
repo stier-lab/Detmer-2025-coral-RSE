@@ -19,7 +19,7 @@ Stage-structured demographic models for evaluating coral restoration strategies,
 ├── figure-1/                         # Figure 1 — RSE framework schematic (SVG/HTML + PDF/PNG export)
 ├── figure-suggestions/               # Figure plan and supplement list
 ├── literature/                       # Literature database (indexes only — PDFs on Drive)
-│   ├── DATABASE.csv                  # 174 papers: author, year, title, journal, DOI, domain tags
+│   ├── DATABASE.csv                  # 277 rows (synced to the PDF folder): author, year, title, journal, DOI, domain tags
 │   └── LITERATURE.md                 # Hero paper analysis + manuscript-section mapping
 ├── model-diagram/                    # Standalone D3 model diagram (separate Vite project)
 ├── coral-app/                        # Interactive web app (React + Vite + TypeScript)
@@ -31,7 +31,7 @@ Stage-structured demographic models for evaluating coral restoration strategies,
 
 ## Literature
 
-235 papers organized by domain. PDFs are too large for git (~700MB) so they live in two places:
+276 PDFs (indexed in `DATABASE.csv`, synced 2026-07-21) organized by domain. PDFs are too large for git (~700MB) so they live in two places:
 
 **PDFs:** [coral-rse/literature/](https://drive.google.com/drive/folders/1PJ_zGH0YfXb1zeJRX-zlaJR4JrUWIYRf) on the shared Drive (astier@ucsb.edu)
 
